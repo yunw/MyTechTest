@@ -1,0 +1,92 @@
+jira: Pass1234
+
+10.91.240.191
+
+https://210.13.68.150:5443/ abfme/Password123
+
+safe  db:10.91.235.124 smct wymqw/Pass1234
+safe was:10.91.235.125 smct wymqw/Pass1234
+safe wps:10.91.235.126 smct wymqw/Pass1234
+safe git:10.91.230.116 smct ddcgu/Pass12345
+
+https://mail.saicmotor.com/owa/#
+
+工作安排：
+1、源码管理、文档管理
+2、非功能性需求调研
+3、1.2版本升级
+4、临时解决方案重构
+
+
+1、读取web.xml
+A、com.saicmotor.framework.web.AppContextListener 读取：contextConfigLocation，解析文件：appcontext.xml
+B、注册guice模块
+C、初始化容器
+D、设置缓存
+
+
+
+改进建议：
+9、框架没有提供程序级别的读写分离功能
+8、safe版本的一些建议：
+safe1.x：基于jdk5、guice3.x，适用于当前正在适用该框架的项目（was6.x+）
+safe2.x：基于jdk7、guice3.x，适用于该框架开放以后成立的项目（was8.x+）
+safe3.x：基于jdk8、guice4.x，适用于该框架开放以后成立的项目（was9+？）
+7、serviceHelper.addResource()中添加资源到上下文环境，如果有重载的方法，可能会出问题。
+6、并发冲突如何处理？乐观锁？
+5、JPAPersistence.createEntityManagerFactory(String persistenceUnitName, Map properties)方法的persistenceUnitName参数没有用到，程序硬编码了。
+4、GuiceContext.init()最好能提供stage配置，让应用系统能动态调整。
+3、GuiceContext.userModules：用户自定义的模块集合。框架中没有用到，原始的设计方案想如何实现？
+2、RequestContentReaderRegister、ResponseWriterRegister的类注释标注该类为单例的，但是在JsonModule中却采用new关键字直接生成了对象，违反了单例设计的初衷。
+1、
+对com.saicmotor.framework.core.annotations.service.Service注解添加：String value() default "";
+以提供更大的灵活性;
+
+同时修改：com.saicmotor.framework.context.module.service.ServiceModule
+的getModules()方法：
+String value = clazz.getAnnotation(Service.class).value();
+String canonicalName = "";
+try {
+   if ("".equals(value)) {
+     String className = clazz.getSimpleName();
+     className = className.substring(1);
+     canonicalName = clazz.getPackage().getName() + DOT + classNmae + CLZ_SUFFIX;
+   } else {
+     canonicalName = value;
+   }
+   class clazzImpl = Class.forName(canonicalName);
+   bind(clazz).to(clazzImpl);
+} catch(clsssNotFoundException e) {
+......
+
+
+参考DaoModule
+如果是jpa，注入的是jpaBaseDaoImpl
+如果是mybatis，注入的是MyBatisBaseDaoImpl
+
+
+wifi: abfme/Pass1234 cdajb/Password123
+vm ip: 10.91.240.191
+https://mail.saicmotor.com/owa/    user:SMC\abfme passowrd: Password12345
+\\ssavn1072
+sources code:http://ssahn823:8080/tfs
+供应商管理系统：10.91.227.161:8030 abfme/Pass12345
+
+10.91.240.124 db
+10.91.240.125 was
+10.91.240.126 wps
+
+
+safe读写分离：
+DataBaseLoggingServiceImpl类的save、delete方法会在读库中出现写操作。
+方案1：查询操作不记日志
+方案2：查询操作的日志记录在读库中（如果有多个读库就有问题）
+方案3：所有日志都记录到mq中，然后由mq异步写到写库中。（推荐）
+
+1、增加类：PersistenceUnitNameHelper，用于动态获取persistenceUnitName和datasource
+2、修改DaoModule的动态类生成逻辑：NewDaoModule，在注入逻辑中加入主从数据库的设置逻辑
+3、修改transactionModule，绑定主从数据库事务管理器
+4、修改jsonFilter：根据请求决定使用主库还是从库
+5、增加NeJapEntityManagerFactoryUtils，代替原JapEntityManagerFactoryUtils
+6、EntityManagerPreparationInterceptor.java 39行代码要修改如下：
+  String unitname = PersistenceUnitNameHelper.getPersistenceUnitName();

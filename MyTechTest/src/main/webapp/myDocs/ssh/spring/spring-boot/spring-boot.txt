@@ -1,0 +1,22 @@
+org.springframework.boot.context.config.ConfigFileApplicationListener负责加载application.properties文件。
+
+Spring Boot所提供的配置优先级顺序比较复杂。按照优先级从高到低的顺序，具体的列表如下所示。
+　　1.Command line arguments.
+   2.JNDI attributes from java:comp/env.
+   3.Java System properties (System.getProperties()).
+   4.OS environment variables.
+   5.A RandomValuePropertySource that only has properties in random.*.
+   6.Profile-specific application properties outside of your packaged jar (application-{profile}.properties and YAML variants)
+   7.Profile-specific application properties packaged inside your jar (application-{profile}.properties and YAML variants)
+   8.Application properties outside of your packaged jar (application.properties and YAML variants).
+   9.Application properties packaged inside your jar (application.properties and YAML variants).
+   10.@PropertySource annotations on your @Configuration classes.
+   11.Default properties (specified using SpringApplication.setDefaultProperties).
+
+
+　　Spring Boot 的这个配置优先级看似复杂，其实是很合理的。比如命令行参数的优先级被设置为最高。这样的好处是可以在测试或生产环境中快速地修改配置参数值，而不需要重新打包和部署应用。
+
+　　SpringApplication 类默认会把以“--”开头的命令行参数转化成应用中可以使用的配置参数，如 “--name=Alex” 会设置配置参数 “name” 的值为 “Alex”。
+如果不需要这个功能，可以通过 “SpringApplication.setAddCommandLineProperties(false)” 禁用解析命令行参数。
+   RandomValuePropertySource可以用来生成测试所需要的各种不同类型的随机值，从而免去了在代码中生成的麻烦。RandomValuePropertySource可以生成数字和字符串。
+数字的类型包含 int 和 long，可以限定数字的大小范围。以“random.”作为前缀的配置属性名称由 RandomValuePropertySource来生成。如代码 3 所示。

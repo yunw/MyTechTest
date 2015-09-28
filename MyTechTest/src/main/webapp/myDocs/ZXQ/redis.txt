@@ -1,0 +1,196 @@
+一、安装
+1、设置nameserver：
+vi /etc/resolv.conf
+nameserver 114.114.114.114
+
+2、安装前的准备：
+iptables -I INPUT -p tcp --dport 6379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 16379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 26379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 36379 -j ACCEPT
+yum install -y openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+gem sources -a http://ruby.taobao.org/
+gem install redis
+mkdir /etc/redis
+mkdir /data/logs
+mkdir /data/logs/redis
+mkdir /data/redis
+mkdir /data/Downloads
+cd /data/Downloads
+wget http://download.redis.io/releases/redis-3.0.3.tar.gz
+tar -zxvf redis-3.0.3.tar.gz
+cd redis-3.0.3
+make && make PREFIX=/usr/local/redis install
+
+3、配置master、slave
+cp /data/Downloads/redis-3.0.3/utils/redis_init_script /etc/rc.d/init.d/redis
+vi /etc/rc.d/init.d/redis
+然后将redis文件的内容修改如下：
+#!/bin/sh
+# chkconfig: 2345 80 90
+# Simple Redis init.d script conceived to work on Linux systems
+# as it does use of the /proc filesystem.
+
+REDISPORT=6379
+EXEC=/usr/local/redis/bin/redis-server
+CLIEXEC=/usr/local/redis/bin/redis-cli
+
+PIDFILE=/var/run/redis_${REDISPORT}.pid
+CONF="/etc/redis/${REDISPORT}.conf"
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+                echo "$PIDFILE exists, process is already running or crashed"
+        else
+                echo "Starting Redis server..."
+                $EXEC $CONF &
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "$PIDFILE does not exist, process is not running"
+        else
+                PID=$(cat $PIDFILE)
+                echo "Stopping ..."
+                $CLIEXEC -p $REDISPORT shutdown
+                while [ -x /proc/${PID} ]
+                do
+                    echo "Waiting for Redis to shutdown ..."
+                    sleep 1
+                done
+                echo "Redis stopped"
+        fi
+        ;;
+    *)
+        echo "Please use start or stop as first argument"
+        ;;
+esac
+然后：
+chkconfig --add redis
+chkconfig redis on
+
+cp /data/Downloads/redis-3.0.3/redis.conf /etc/redis/6379.conf
+vi /etc/redis/6379.conf
+将如下属性的值按下列值进行配置：
+daemonize yes
+pidfile /var/run/redis_6379.pid
+logfile "/data/logs/redis/redis_6379.log"
+cluster-enabled yes
+cluster-config-file /etc/redis/nodes-6379.conf
+cluster-node-timeout 15000
+dir /data/redis
+
+4、配置sentinel
+vi /etc/reids/26379.conf
+port 26379
+sentinel monitor mymaster1 10.25.23.101 6379 2
+sentinel down-after-milliseconds mymaster1 60000
+sentinel failover-timeout mymaster1 180000
+sentinel parallel-syncs mymaster1 1
+
+启动sentinel：
+/usr/local/redis/bin/redis-server /etc/redis/26379.conf --sentinel 2>&1>>/data/logs/redis/redis_26379.log &
+
+二、集群：
+1、创建：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb create --replicas 1 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379 10.25.23.104:6379 10.25.23.105:6379 10.25.23.106:6379
+上述命令创建集群，每个master都有一个slave，具体就是：101-103为master，104-106为对应的slave。
+
+2、添加master节点到集群：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node 10.25.23.107:6379 10.25.23.101:6379
+10.25.23.107:6379为要添加的master节点
+10.25.23.101:6379为集群中存在的一个随机master节点
+
+3、添加slave节点到集群：
+A）添加到slave节点最少的一个master节点上：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node --slave 10.25.23.108:6379 10.25.23.101:6379
+10.25.23.108:6379为要添加的slave节点
+10.25.23.101:6379为集群中存在的一个随机master节点
+该命令并不意味着10.25.23.108:6379会成为10.25.23.101:6379的slave节点，而是会在集群中slave节点最少的master节点中随机选择一个master节点。
+
+B）添加slave节点到指定master节点：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node --slave --master-id 02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.108:6379 10.25.23.101:6379
+3c3a0c74aae0b56170ccb03a76b60cfe7dc1912e为指定的master节点的master-id。该id可以用cluster nodes命令查看。
+10.25.23.108:6379为要添加的slave节点
+10.25.23.101:6379为集群中存在的一个随机master节点
+
+4、重新分配哈希槽：
+A）从所有节点中抽取哈希槽到目标节点：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb reshard 10.25.23.101:6379
+......
+How many slots do you want to move (from 1 to 16384)? 100
+What is the receiving node ID? 02af16ac8a70c0857cfa420cc18405025fb36396
+Please enter all the source node IDs.
+  Type 'all' to use all the nodes as source nodes for the hash slots.
+  Type 'done' once you entered all the source nodes IDs.
+Source node #1:all
+......
+Do you want to proceed with the proposed reshard plan (yes/no)? 
+重新分配就结束了。可以用cluster nodes命令查看：
+/usr/local/redis/bin/redis-cli -p 6379 -h localhost
+127.0.0.1:6379> cluster nodes
+4c5cb3b1e2d531282a237803dc72dbd0ec7f5f67 10.25.23.105:6379 slave 146babb6919ed154494439cee41fe131ff8beb34 0 1441853916273 5 connected
+02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.107:6379 master - 0 1441853920282 7 connected 0-32 5461-5494 10923-10955
+146babb6919ed154494439cee41fe131ff8beb34 10.25.23.102:6379 master - 0 1441853918277 2 connected 5495-10922
+360400af2b23347cd3343508927a24477fe3c918 10.25.23.108:6379 slave 02af16ac8a70c0857cfa420cc18405025fb36396 0 1441853917276 7 connected
+f0567fe3de2aa2166b32a407ba8a91ee19ebd32c 10.25.23.103:6379 master - 0 1441853918779 3 connected 10956-16383
+e94902fcf8e06e2354aa35eeb09f9f89ef122fa2 10.25.23.106:6379 slave f0567fe3de2aa2166b32a407ba8a91ee19ebd32c 0 1441853915772 6 connected
+1ee72556e46721f751564711fa4fb370fea7f843 10.25.23.104:6379 slave 9eb54b1da98175a6fb28ddfaaaa3bd295be201f4 0 1441853919280 4 connected
+9eb54b1da98175a6fb28ddfaaaa3bd295be201f4 10.25.23.101:6379 myself,master - 0 0 1 connected 33-5460
+
+cluster nodes命令的输出说明：
+第一列：Node ID
+第二列：ip:port
+第三列：flags: master, slave, myself, fail, ...
+第四列：if it is a slave, the Node ID of the master, else 0
+第五列：Time of the last pending PING still waiting for a reply.
+第六列：Time of the last PONG received.
+第七列：Configuration epoch for this node (see the Cluster specification).
+第八列：Status of the link to this node.
+第九列：Slots served...
+
+B）从指定节点抽取哈希槽到目标节点：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb reshard 10.25.23.101:6379
+......
+How many slots do you want to move (from 1 to 16384)? 10
+What is the receiving node ID? 02af16ac8a70c0857cfa420cc18405025fb36396
+Please enter all the source node IDs.
+  Type 'all' to use all the nodes as source nodes for the hash slots.
+  Type 'done' once you entered all the source nodes IDs.
+Source node #1:f0567fe3de2aa2166b32a407ba8a91ee19ebd32c
+Source node #2:done
+......
+Do you want to proceed with the proposed reshard plan (yes/no)? yes
+重新分配成功。
+127.0.0.1:6379> cluster nodes
+4c5cb3b1e2d531282a237803dc72dbd0ec7f5f67 10.25.23.105:6379 slave 146babb6919ed154494439cee41fe131ff8beb34 0 1441854608113 5 connected
+02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.107:6379 master - 0 1441854605100 7 connected 0-32 5461-5494 10923-10965
+146babb6919ed154494439cee41fe131ff8beb34 10.25.23.102:6379 master - 0 1441854604098 2 connected 5495-10922
+360400af2b23347cd3343508927a24477fe3c918 10.25.23.108:6379 slave 02af16ac8a70c0857cfa420cc18405025fb36396 0 1441854607108 7 connected
+f0567fe3de2aa2166b32a407ba8a91ee19ebd32c 10.25.23.103:6379 master - 0 1441854605602 3 connected 10966-16383
+e94902fcf8e06e2354aa35eeb09f9f89ef122fa2 10.25.23.106:6379 slave f0567fe3de2aa2166b32a407ba8a91ee19ebd32c 0 1441854603096 6 connected
+1ee72556e46721f751564711fa4fb370fea7f843 10.25.23.104:6379 slave 9eb54b1da98175a6fb28ddfaaaa3bd295be201f4 0 1441854606104 4 connected
+9eb54b1da98175a6fb28ddfaaaa3bd295be201f4 10.25.23.101:6379 myself,master - 0 0 1 connected 33-5460
+
+5、动态修改sentinel的配置：
+首先用redis客户端连接到sentinel：
+/usr/local/redis/bin/redis-cli -p 26379 -h 10.25.23.101
+10.25.23.101:26379> sentinel monitor mymaster2 10.25.23.102 6379 2
+10.25.23.101:26379> sentinel masters
+10.25.23.101:26379> sentinel master mymaster1
+10.25.23.101:26379> ping
+10.25.23.101:26379> sentinel get-master-addr-by-name mymaster1
+10.25.23.101:26379> sentinel slaves mymaster1
+10.25.23.101:26379> sentinel sentinels mymaster1
+
+6、删除节点：
+A）删除slave节点：
+./redis-trib del-node 10.25.23.110:6379 4c5cb3b1e2d531282a237803dc72dbd0ec7f5f67
+10.25.23.110:6379：集群中的随机节点
+4c5cb3b1e2d531282a237803dc72dbd0ec7f5f67：要删除的节点
+
+B）删除主节点：
+删除主节点的方法和从节点相同，但是，主节点必须是空的，不能有哈希槽，如果有，必须先移到其它节点。

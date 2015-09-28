@@ -1,0 +1,47 @@
+java-base config：基于java的配置的核心是基于@Configuration注解的类和基于@Bean注解的方法
+
+
+1、定义bean
+<beans>
+<bean id="myService" class="com.acme.services.MyServiceImpl"/>
+</beans>
+
+可以用如下代码代替：
+
+@Configuration
+public class AppConfig {
+@Bean
+public MyService myService() {
+return new MyServiceImpl();
+}
+}
+
+2、扫描包，查找所有具有@Component注解的类
+<beans>
+<context:component-scan base-package="com.acme"/>
+</beans>
+可以用如下代码代替：
+public static void main(String[] args) {
+AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+ctx.scan("com.acme");
+ctx.refresh();
+MyService myService = ctx.getBean(MyService.class);
+}
+
+3、使用springmvc，如果用java来配置，需要将@EnableWebMvc注解加入到一个由@Configuration注解的类上。
+@Configuration
+@EnableWebMvc
+public class WebConfig {
+}
+上面的类与下面的配置等价：
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/mvc
+http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+<mvc:annotation-driven />
+</beans>

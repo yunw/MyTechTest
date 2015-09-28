@@ -1,0 +1,16 @@
+下载：
+mule-standalone-3.7.0.tar.gz 到/data/Downloads
+tar zxvf mule-standalone-3.7.0.tar.gz
+mv mule-standalone-3.7.0 /usr/local/
+
+配置环境变量：
+vi /etc/profile
+export MULE_HOME=/usr/local/mule-standalone-3.7.0
+export PATH=$PATH:$MULE_HOME/bin
+
+将esb的项目（hello-world.zip）部署到：/usr/local/mule-standalone-3.7.0/apps下面
+mule start
+
+访问：
+http://http://10.25.23.110:8081/helloWorld
+如果页面显示：Hello World即说明部署成功。

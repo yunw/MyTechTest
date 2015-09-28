@@ -1,0 +1,9 @@
+安装主机：109、110
+demo：101、102
+
+cd /data/Downloads
+wget http://apache.fayea.com/tomcat/tomcat-8/v8.0.26/bin/apache-tomcat-8.0.26.tar.gz
+http://code.taobao.org/svn/tbschedule/trunk/console/ScheduleConsole.war
+tar zxvf apache-tomcat-8.0.26.tar.gz
+mv apache-tomcat-8.0.26 /usr/local/
+cp /data/Downloads/ScheduleConsole.war /usr/local/apache-tomcat-8.0.26/webapps

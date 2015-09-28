@@ -1,0 +1,82 @@
+配置nginx（假设nginx的安装路径为：D:\nginx-1.7.4）:
+修改D:\nginx-1.7.4\conf\nginx.conf如下：
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    upstream www.myapp22.com {
+        server svr1.cms1.com:8081;
+        server svr2.cms2.com:8082;
+        server svr3.cms3.com:8083;
+    }
+
+    server {
+        listen       80;
+        server_name 127.0.0.1;
+        #静态资源服务器
+        #location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$ { 
+	       #root e://ftproot/wechat;#windows下的配置
+           #root /cygdrive/e/ftproot/wechat;#设置e:\ftproot\wechat 为documentroo
+           #root /wechatroot;#linux下的配置  
+           # expires 24h; #设置过期时间  
+  
+        #}
+        
+        location / {
+            proxy_pass http://www.myapp22.com;
+            #透传客户端真实ip
+            proxy_redirect off;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+    }
+
+
+}
+
+
+
+然后程序中按如下方式获取客户端IP：
+/**获取客户端IP*/
+	public static String getIpAddr(HttpServletRequest request) {
+		String fromSource = "X-Real-IP";
+		String ip = request.getHeader("X-Real-IP");
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("X-Forwarded-For");
+			fromSource = "X-Forwarded-For";
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("Proxy-Client-IP");
+			fromSource = "Proxy-Client-IP";
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+			fromSource = "WL-Proxy-Client-IP";
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+			fromSource = "request.getRemoteAddr()";
+		}
+		log.debug("client ip:::::::::::::::" + fromSource);
+		return ip;
+	}
+
+
+
+
+针对
+1、在tomcat\lib下加入包：commons-pool-1.6.jar、jedis-2.2.1.jar、tomcat-redis-session-manager-1.2-tomcat-7-java-7.jar
+2、修改tomcat\conf\context.xml，加入：
+<Valve className="com.radiadesign.catalina.session.RedisSessionHandlerValve" />
+    <Manager className="com.radiadesign.catalina.session.RedisSessionManager"
+                 host="localhost"
+                 port="6379"
+                 database="0"
+                 maxInactiveInterval="60"
+         />

@@ -1,0 +1,38 @@
+一、activeMQ
+1、下载安装ActiveMQ
+  下载：apache-activemq-5.10.0-bin.zip
+ 解压到：D:\apache下面
+
+2、设置系统环境变量：ActiveMQ_Home=D:\apache\apache-activemq-5.10.0
+将%ActiveMQ_Home%\bin;加入系统变量：path
+
+3、测试mq是否安装成功
+ 在命令行下输入： activemq start
+ 
+4、打开：http://localhost:8161/admin 输入用户名/密码：admin/admin
+
+5、停止activemq：在命令行输入：activemq stop
+
+二、jms
+ConnectionFactory: 客户用该对象创建连接。
+Connection：封装了客户与jms提供者之间的一个虚拟的连接。
+Session：JMS Session 是生产和消费消息的一个单线程上下文。会话用于创建消息生产者（producer）、消息消费者（consumer）和消息 （message）等。
+                         会话提供了一个事务性的上下文，在这个上下文中，一组发送和接收被组合到了一个原子操作中。
+Destination：客户用来指定它生产的消息的目标和它消费的消息的来源的对象。
+            point to point（PTP）：目的地被称为队列（queue）
+            Publish/subscribe：目的地被称为主题（topic）。
+MessageProducer：会话创建的一个对象，用于把消息发送到一个目的地。
+MessageConsumer：由会话创建的一个对象，它用于接收发送到目的地的消息。
+                                                 同步消费。通过调用 消费者的receive 方法从目的地中显式提取消息。receive 方法可以一直阻塞到消息到达。
+                                                 异步消费。客户可以为消费者注册一个消息监听器，以定义在消息到达时所采取的动作。
+MapMessage：消息由以下三部分组成：
+         消息头。每个消息头字段都有相应的getter 和setter 方法。
+         消息属性。如果需要除消息头字段以外的值，那么可以使用消息属性。
+         消息体。JMS 定义的消息类型有TextMessage、MapMessage、BytesMessage、StreamMessage和 ObjectMessage。
+
+三、spring-jms
+spring的连接工厂：
+1、SingleConnectionFactory：从工厂中返回一个共享的连接，该连接会忽略掉close方法。该连接是线程安全的。该连接可以从错误中自动恢复。
+2、CachingConnectionFactory：继承了SingleConnectionFactory，额外提供会话缓存功能。默认情况下只缓存一个会话，在高并发环境中，可以通过提高sessionCacheSize来提升性能。
+
+spring的消息是由：JmsTemplate负责发送的。

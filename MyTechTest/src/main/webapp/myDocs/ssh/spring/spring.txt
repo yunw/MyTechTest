@@ -1,0 +1,52 @@
+spring事务核心接口：org.springframework.transaction.PlatformTransactionManager
+
+注册bean定义:
+org.springframework.beans.factory.support.DefaultListableBeanFactory.registerBeanDefinition
+创建bean实例：
+org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean
+
+spring资源加载：
+PathMatchingResourcePatternResolver加载jar文件
+was以“wsjar：file:”开头
+其他服务器以“jar:file:”开头
+
+父上下文：
+spring parent context: ApplicationContext org.springframework.web.context.ContextLoader.loadParentContext(ServletContext servletContext)
+加载父上下文的主要原因是：允许多个root web application context作为一个共享的ear context的孩子，或者让相同的父上下文对ejb可见。对于单纯的web appliction来说，不用担心有没有父上下文。
+
+单例bean注册器：
+org.springframework.beans.factory.support.DefaultSingletonBeanRegistry
+注册所有单例，通过bean name访问。
+
+spring-quartz:
+
+delete from qrtz_cron_triggers;
+delete from qrtz_triggers;
+delete from qrtz_job_details;
+
+delete from qrtz_blob_triggers;
+delete from qrtz_calendars;
+delete from qrtz_fired_triggers;
+delete from qrtz_locks;
+delete from qrtz_paused_trigger_grps;
+delete from qrtz_scheduler_state;
+delete from qrtz_simple_triggers;
+delete from qrtz_simprop_triggers;
+
+select * from qrtz_cron_triggers;
+select * from qrtz_triggers;
+select * from qrtz_job_details;
+
+select * from qrtz_blob_triggers;
+select * from qrtz_calendars;
+select * from qrtz_fired_triggers;
+select * from qrtz_locks;
+select * from qrtz_paused_trigger_grps;
+select * from qrtz_scheduler_state;
+select * from qrtz_simple_triggers;
+select * from qrtz_simprop_triggers;
+
+
+使用RequestMappingHandlerMapping，就要使用<mvc:annotation-driven/>不然会报错:
+No adapter for handler [xx.xx.xx.XxController@dbb9b9]: 
+The DispatcherServlet configuration needs to include a HandlerAdapter that supports this handler

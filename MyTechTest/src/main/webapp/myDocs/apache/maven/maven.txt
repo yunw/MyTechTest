@@ -1,0 +1,24 @@
+groupId:用于申明你的项目在maven仓库中的分层地址，这里说的仓库指的是你的文件系统中的本地maven仓库。
+artifactId：项目的一个标志符。
+version：项目的版本。
+
+多模块项目：多模块项目由一个父项目组成，这个父项目包含了子项目或模块。父项目的pom文件包含了所有这些子模块的引用。这些子模块可以有不同的类型。
+父项目的pom文件示例（父项目的packaging的值必须是pom）：
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>com.test.maven</groupId>
+   <artifactId>TestParentApp</artifactId>
+   <version>1.0-SNAPSHOT</version>
+   <packaging>pom</packaging>
+   <name>MyLargeModularApp</name>
+</project>
+
+举例：
+1、创建父项目：
+在eclipse中创建一个maven项目，然后将pom.xml中的<packaging>jar</packaging>修改为：<packaging>pom</packaging>，
+此时，pom.xml文件会报错：在problems视图上用鼠标选中该错误，右键点击，选中quick Fix可以修复该错误。一个父项目就创建完毕了。
+2、创建子项目：选中刚才创建的父项目，右键，创建项目，选中创建maven module项目，此时，该module的父项目默认就是刚才创建的父项目名。
+3、在父项目下创建父项目：与第2步相同，创建完毕后，将packaging的值改为：pom并加入parent的配置。

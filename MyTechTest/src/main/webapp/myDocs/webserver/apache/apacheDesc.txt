@@ -1,0 +1,64 @@
+Apache具备支持多个站点的能力，称为虚拟主机。<VisualHost>配置段中的指令仅对该段中的特定站点（虚拟主机）有效。
+
+配置段（容器）
+容器<IfDefine>、<IfModule>、<IfVersion>仅在启动和重新启动中起作用，如果在启动时指定的条件成立，则其中的指令对所有的请求都有效，否则将被忽略。
+例如，如下配置：
+<IfDefine ClosedForNow>
+Redirect / http://otherserver.example.com/
+</IfDefine>
+表示：只有在服务器用  httpd -DClosedForNow 方式启动时，所有的请求才会被重定向到另一个站点
+
+<IfModule>容器很相似，但是其中的指令只有当服务器启用特定的模块时才有效(或是被静态地编译进了服务器，或是被动态装载进了服务器)，
+注意，配置文件中该模块的装载指令LoadModule行必须出现在此容器之前。
+下例表示：MimeMagicFiles指令仅当mod_mime_magic模块启用时才有效。
+<IfModule mod_mime_magic.c>
+MimeMagicFile conf/magic
+</IfModule>
+
+文件系统容器
+<Directory>和<Files>指令与其相应的正则表达式版本(<DirectoryMatch>和<FilesMatch>)一起作用于文件系统的特定部分。
+<Directory>配置段中的指令作用于指定的文件系统目录及其所有子目录
+下例中，/var/web/dir1 及其所有子目录被允许进行目录索引。
+<Directory /var/web/dir1>
+Options +Indexes
+</Directory>
+
+<Files>配置段中的指令作用于特定的文件名，而无论这个文件实际存在于哪个目录。
+下例中的配置指令如果出现在配置文件的主服务器段，则会拒绝对位于任何目录下的private.html的访问。
+<Files private.html>
+Order allow,deny
+Deny from all
+</Files>
+
+<Files>和<Directory>段的组合可以作用于文件系统中的特定文件。下例中的配置会拒绝对/var/web/
+dir1/private.html 、/var/web/dir1/subdir2/private.html 、/var/web/dir1/subdir3/
+private.html等任何/var/web/dir1/ 目录下private.html的访问。
+<Directory /var/web/dir1>
+<Files private.html>
+Order allow,deny
+Deny from all
+</Files>
+</Directory>
+
+网络空间容器
+<Location>指令与其相应的正则表达式版本(<LocationMatch>)一起作用于网络空间的特定部分。下例中的配置会拒绝对任何以"/private"开头的URL路径的访问，
+比如：http://yoursite.example.com/private、http://yoursite.example.com/private123、http://yoursite.example.com/
+private/dir/file.html 等所有以"/private"开头的URL路径。
+<Location /private>
+Order Allow,Deny
+Deny from all
+</Location>
+
+<Location>指令与文件系统无关，下例演示了如何将特定的URL映射到Apache内部的处理器mod_status，而并不要求文件系统中确实存在server-status文件。
+<Location /server-status>
+SetHandler server-status
+</Location>
+
+配置段的合并：
+位于<VirtualHost>容器中的配置段在外部对应的段处理完毕以后再处理，这样就允许虚拟主机覆盖主服务器的设置。
+
+
+
+
+
+

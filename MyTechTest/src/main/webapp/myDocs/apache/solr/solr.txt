@@ -1,0 +1,26 @@
+solr5.2.1部署
+1、下载：solr-5.2.1.zip，解压到：d:/solr-5.2.1
+拷贝D:\solr-5.2.1\server\webapps\solr.war到tomcat的webapps目录下
+2、启动tomcat
+3、停止tomcat，修改webapps\solr\\WEB-INF\web.xml文件
+找到：
+<env-entry>
+       <env-entry-name>solr/home</env-entry-name>
+       <env-entry-value>/put/your/solr/home/here</env-entry-value>
+       <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+修改为：
+<env-entry>
+       <env-entry-name>solr/home</env-entry-name>
+       <env-entry-value>D:/solr-5.2.1/server/solr</env-entry-value>
+       <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+4、将：D:\solr-5.2.1\server\lib\ext下的jar包拷贝到tomcat的lib下面
+5、启动tomcat，在浏览器上输入：http://localhost:8080/solr就可以出现solr的界面了。
+
+
+document（文档）：solr最基本的信息单元是文档，它是描述某件事的一套数据。在solr的世界中，文档由字段（field）组成，字段是更详细的信息片段。
+字段可以包含不同种类的数据。
+你可以通过字段类型（field type）告诉solr一个字段包含了哪种类型的数据。字段类型告诉solr字段将如何解释和查询。
+当你添加一个文档，solr将信息加入到字段中并建立索引。当你执行查询的时候，solr会快速的查阅索引并返回匹配的文档。
+schema(模式)：告诉solr你要从输入的文档如何创建索引的地方。

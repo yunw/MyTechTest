@@ -1,0 +1,680 @@
+日报、周报
+
+java nio aio
+
+linux shell 获取命令返回值
+a=`date`
+`是数字1前面那个键
+
+hadoop文档
+spring boot pom 执行
+hbase
+windows install cgwin
+
+web.xml 配置 tld dtd
+
+morris
+当当读书
+
+mysql foreign key ERROR 1215 (HY000): Cannot add foreign key constraint
+
+微信平台
+soa通用模块
+
+springmvc tiles
+防盗链
+
+maven jdk
+org.apache.jasper.JasperException: The absolute uri: http://tiles.apache.org/tags-tiles cannot be resolved in either web.xml or the jar files deployed with this application
+
+tiles3 slf4j
+
+felix_4.0.2.jar
+org.eclipse.equinox.common_3.6.0.v20110523.jar
+org.eclipse.equinox.registry_3.5.101.R37x_v20110810-1611.jar
+org.eclipse.osgi_3.7.1.R37x_v20110808-1106.jar
+org.eclipse.osgi.services_3.3.0.v20110513.jar
+sojo-1.0.0.jar
+transloader-0.4.jar
+dict-query.jar
+搭建微信平台
+
+https://github.com/spring-projects/spring-security.git
+advisor
+PostProcessor
+org.springframework.context.annotation.Bean;
+
+package javax.servlet;
+
+/**
+ * Enumeration of filter dispatcher types.
+ *
+ * @since Servlet 3.0
+ */
+public enum DispatcherType {
+    FORWARD,
+    INCLUDE,
+    REQUEST,
+    ASYNC,
+    ERROR
+}
+session固定攻击
+org.hibernate.QueryTimeoutException: Could not execute JDBC batch update
+javax.persistence.QueryTimeoutException: Could not execute JDBC batch update
+数据库长度、非空等错误。
+lsm应用 zxid
+
+https://github.com/google/leveldb
+
+webservice集群环境开发
+
+地址转换为经纬度
+
+jms: CachingConnectionFactory
+jmm(java memory model)java内存模型
+Java理论与实践（“并发集合类”）中
+
+org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+spring scheduler
+
+在文件的最后追加
+filter、interseptor
+正则：字符串去重
+
+BeanPostProcessor
+
+ext window layout:card
+
+ioe：ibm、oracle、emc
+数据结构-java
+中文分词：之Trie树
+树的遍历
+
+eclipse teamprise plugin
+inte....idea tfs plugin   http://marketplace.eclipse.org/content/tfs-plug-eclipse
+
+http://www.mossle.com/docs/auth/html/index.html
+spring security 3.2.5 资源 权限
+@DeclareParents
+Position beyond number of declared ordinal parameters. Remember that ordinal parameters are 1-based! Position: 2
+http://download.csdn.net/detail/dulei294948/6329435
+javax.xml.bind.annotation.XmlElement
+CSRF: 跨站请求伪造 https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
+https://code.google.com/p/family168/downloads/list
+spring security www.family168.com
+http://wenku.baidu.com/link?url=JEHVpaDGch3ri68vMpL9zo6QOVCYIiJFdW0DgYqB5r4iaP9_c-sm5xnAeEmHkzlIaDw50GC-33v_TrlGQYSHmSkpP2HbAZCEA6oJE8XkPPG
+RequestMatcher AntPathRequestMatcher
+
+http://blog.csdn.net/running_snail_/article/details/7107877#
+redis desktop manager
+jira 破解版
+jar service api
+
+spring security3
+java cas sso单点登录 http://blog.csdn.net/kuangkunkui/article/details/7902822
+https://www.apereo.org/cas/download
+
+nginx redis sessionid tomcat-redis-session-manager-1.2-tomcat-7-java-7.jar
+
+struts 国际化乱码
+
+jstl if tag null
+maven parent child 本地仓库
+org.eclipse.wst.common.component dependent-module
+data:$('#yourformid').serialize(),// 你的formid
+eclipse svn插件
+wiki
+TortoiseSVN Apache与Svn的整合及apache的账号权限设置 
+xp professional sp3
+
+tiles struts标签获取session内容
+用struts标签： <s:property value="#session.hello"  />
+ 用EL表达式：${session.hello}
+ 用java代码：<%=session.getAttribute("hello")%>
+git
+struts2+guice3+tiles 注解
+msysgit portable
+
+wps 调用方式
+swf文件
+项目自动发布
+struts2+guice3+tiles
+struts2-convention-plugin-2.3.16.3.jar
+struts2-tiles-plugin-2.3.16.3.jar
+github搭建源码管理服务器
+localhost没有cookie
+div 高度100%
+svn下载安装
+dreamweaver
+
+Publishing failed with multiple errors 
+Resource is out of sync with the file system: /Thumbs.db
+struts2 guice3
+div加背景图片
+nginx redis sessionid tomcat-redis-session-manager-1.2-tomcat-7-java-7.jar
+linux maven tomcat
+最新jquery下载
+nginx集群配置 sessionid会改变
+
+web网站例子、网上宠物店
+osgi felix
+rest web
+was 研究
+websphere platform 8.5.0.0 [ND 8.5.0.0 gm1218.01]
+\IBM\WebSphere\AppServer\bin\stopServer.bat
+\IBM\WebSphere\AppServer\profiles\AppSrv01\bin\stopServer.bat
+\IBM\WebSphere\AppServer\profiles\AppSrv01\config\cells\SSAVN1107Node01Cell\nodes\SSAVN1107Node01\servers\server1
+Deploying BaseApp.war failed
+com.ibm.ws.sip.application.frameworkext.SARToEARWrapperProvider.executeTask(SARToEARWrapperProvider.java:158)
+Deployment failed. can not copy D:\IBM\WebSphere\AppServer\profiles\AppSrv01\wstemp\92668751\upload\BaseApp.war to
+java.lang.OutOfMemoryError: Map failed
+sun.nio.ch.FileChannelImpl.map(FileChannelImpl.java:769)
+带电脑回家
+was 启动、停止 调整jvm参数
+ibm was node
+Semaphore翻译 信号
+
+oracle transaction
+LinkedBlockingQueue和ConcurrentLinkedQueue详细用法
+CyclicBarriers Semaphore
+
+cgi
+ReentrantLock
+SYNCHRONIZATION_ALWAYS SYNCHRONIZATION_ON_ACTUAL_TRANSACTION SYNCHRONIZATION_NEVER
+pointcut 表达式，排除特定方法
+TransactionSynchronizationManager.bindResource(getDataSource(), conHolder);
+activemq
+guice3 jit bind
+jedis set expire
+最新apache版本和最新版本对应的文档下载
+
+redis3 windows
+photoshop
+最新版eclipse
+eclipse tomcat8
+websocket cluster
+jedis cluster 配置 过期时间
+
+*** FATAL CONFIG FILE ERROR ***
+Reading the configuration file, at line 6
+>>> 'cluster-enabled yes'
+Bad directive or wrong number of arguments
+redis cluster windows
+failover:失效备援、故障转移
+jedis 访问cluster redis 配置
+
+ietester
+
+车联网
+移动app 服务端架构      重力感应  前端工程师教程 图片制作 ps图片
+websocket 如何发送 html form
+websocket tomcat8 例子
+
+tomcat shutdown
+tomcat ajp protocol
+tomcat jioendpoint aprendpoint nioendpoint
+js websocket  'WebSocket' in window 'MozWebSocket' in window
+websocket xhtml
+websocket was
+
+js json  jsObj = eval('(' + jsonStr + ')');
+js如何读json字符串："{"addOnMsgs":{}, "content":["zh_CN"],"errorMessage":"","errorType":"",
+"pageCount":null, "pageIndex":null,"resultCount":null,"success":true}"
+tomact8.0.9 fulldocs websocket
+util.HTMLFilter
+net.sf.json.JSONObject
+
+ext 获取session信息
+oracle with as 
+sqlexception: ORA-01114: IO error writing block to file 2001 (block # 3577482)
+ORA-29701: unable to connect to Cluster Manager
+ORA-00933: SQL command not properly ended
+java websocket tomcat
+json
+and so forth 等等
+redis cluster windows
+
+多播、广播地址
+socket localport
+tcp/ip lookupTable Domain Name System (DNS) Network Information Service(NIS)
+Last_IO_Errno: 1236
+Last_IO_Error: Got fatal error 1236 from master when reading data from binary log: 'Binary log is not open'
+redis shard
+redis windows cluster
+最近版本的Reids在默认情况下不会在客户端空闲很久后关闭连接；连接将永久保留。
+jedis 文档
+<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+redis crc32 hash function
+应用程序 redis master-slave
+redis standby
+
+redis最新版
+redis 配置多服务器访问
+Last_IO_Errno: 1236
+Last_IO_Error: Got fatal error 1236 from master when reading data from binary log: 'Binary log is not open'
+
+ipv4:0.0.0.0 保留地址
+RFC：
+0.0.0.0/8 - Addresses in this block refer to source hosts on "this"
+network. Address 0.0.0.0/32 may be used as a source address for this
+host on this network; other addresses within 0.0.0.0/8 may be used to
+refer to specified hosts on this network ([RFC1122], Section 3.2.1.3).
+因此，根据RFC文档描述，它不只是代表本机，0.0.0.0/8可以表示本网络中的所有主机，0.0.0.0/32可以用作本机的源地址，0.0.0.0/8也可表示本网络上的某个特定主机,
+综合起来可以说0.0.0.0表示整个网络
+在路由器配置中可用0.0.0.0/0表示默认路由，作用是帮助路由器发送路由表中无法查询的包。如果设置了全零网络的路由，路由表中无法查询的包都将送到全零网络的路由中去。
+查阅百度知道里一些说法如下：
+1. 严格说来，0.0.0.0已经不是一个真正意义上的IP地址了。它表示的是这样一个集合：所有不清楚的主机和目的网络。这里的“不清楚”是指在本机的路由 表里没有特定条目指明如何到达。
+对本机来说，它就是一个“收容所”，所有不认识的“三无”人员，一 律送进去。如果你在网络设置中设置了缺省网关，那么Windows系统会自动产生一个目的地址为0.0.0.0的缺省路由。
+2. 网络中0.0.0.0的IP地址表示整个网络，即网络中的所有主机。它的作用是帮助路由器发送路由表中无法查询的包。如果设置了全零网络的路由，路由表中无法查询的包都将送到全零网络的路由中去。
+wildcard 通配符
+js window.localtion.search location.search 取url?后的部分 
+SocketAddress ServerSocket InetAddress InetSocketAddress
+InetAddress:代表网路地址（ip address），有两种类型：ipv4、ipv6。对应两个子类：Inet4Address和Inet6Address
+SocketAddress:代表了一个没有附加任何协议的套接字地址。
+InetSocketAddress：SocketAddress的子类。实现了一个ip套接字地址（[ip地址+端口号]或者[hostname + 端口号]）
+
+Socket:客户端套接字，也叫套接字。它是一个两台机器用来通讯的终端。
+ServerSocket：服务端套接字。它等待来自网络的请求，并基于这个请求执行某些操作，在可能的情况下向请求方返回一个结果。
+
+openjpa versionupdate
+
+hibernate 乐观锁 集群
+mybatis 版本控制
+mvn cglib jfreechart jcommon
+
+/: &#47;
+download mybatis
+tomcat host context
+spring resource 获取jar中的xml文件
+spring resource classpath下所有子目录的xml文件:
+ApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(ServletActionContext.getServletContext());
+Resource[] res = ctx.getResources("classpath*:**/*Mapper.xml");
+wid 环境配置
+多国语言切换
+spring-quartz cluster
+ssh 获取ApplicationContext servletcontext
+
+java.sql.SQLException: Cannot execute statement: impossible to write to binary log since BINLOG_FORMAT = STATEMENT and at least one table uses a storage engine limited to row-based logging. InnoDB is limited to row-logging when transaction isolation level is READ COMMITTED or READ UNCOMMITTED.
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1094)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4226)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4158)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2615)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2776)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2840)
+	at com.mysql.jdbc.PreparedStatement.executeInternal(PreparedStatement.java:2082)
+	at com.mysql.jdbc.PreparedStatement.executeUpdate(PreparedStatement.java:2334)
+	at com.mysql.jdbc.PreparedStatement.executeUpdate(PreparedStatement.java:2262)
+	at com.mysql.jdbc.PreparedStatement.executeUpdate(PreparedStatement.java:2246)
+	at org.apache.tomcat.dbcp.dbcp.DelegatingPreparedStatement.executeUpdate(DelegatingPreparedStatement.java:105)
+	at org.apache.tomcat.dbcp.dbcp.DelegatingPreparedStatement.executeUpdate(DelegatingPreparedStatement.java:105)
+	at com.test.example.datasource.neted.Test.test(Test.java:22)
+	at com.test.example.datasource.neted.Test.main(Test.java:13)
+	
+dbcp c3p0
+datasource 嵌套事务
+
+was 应用程序服务器：停止、立即停止、终止的区别
+
+commons-digester
+
+1、guartz采用新的datasource
+2、job中去掉所有service
+
+org.eclipse.hyades.logging.events.cbe.impl.EventFactoryContext
+
+was jmx connection
+spring quartz 事务管理   配置
+quartz autocommit
+quartz：org.quartz.plugins.xml.XMLSchedulingDataProcessorPlugin
+was datasource:连接超时、收集时间、未使用的超时、时效超时
+sonInThreadPool
+sonOutThreadPool
+at com/ibm/io/async/AsyncLibrary.aio_getioev3(Native Method)
+
+at com/ibm/rmi/iiop//Connection.readMoreData(Connection.java:1642)
+
+Ptl_Tchan_checkConnectionPending
+at com/ibm/rmm/ptl/tchan/transmitter/checkConnectionPending.run(CheckConnectionPending.java:81)
+
+QuartzScheduler_Worker-2
+at comn/ibm/ejs/j2c/FreePool.queueRequest(FreePool.java:429(Compiled Code))
+
+IBM WebSphere Application Server version 6.1各版本的BUG列表及补丁下载
+http://www-01.ibm.com/support/docview.wss?rs=180&uid=swg27007951
+baidu javacore com.ibm.com.rmi.iiop.Connection.readMoreData
+jmx remote
+ -Dcom.sun.management.jmxremote.port=9999
+ -Dcom.sun.management.jmxremote.authenticate=false
+ -Dcom.sun.management.jmxremote.ssl=false
+ 
+
+javacore:
+4XESTACKTRACE
+3XMTHREADINFO
+3XMTHREADINFO1
+3XMTHREADINFO2
+3XMTHREADINFO3
+3XMTHREADBLOCK
+
+jconsole远程登录
+
+类文件具有错误的版本50.0，应为49.0
+
+SQL*Net message from client
+quartz document
+quartz UserTransaction
+oracle v$session inactive? command=0
+could not get JDBC Connection
+org.springframework.jdbc.datasource.DataSourceUtils.getConnection(DataSourceUtils.java:80)
+
+commons-digester
+ReentrantLock
+was soap 压缩
+org.quartz.Scheduler
+ibm AbstractQueuedSynchronizer.jar:2127
+create unique index idx_name on tb_name (nvl2(case is_valid when 0 then null else is_valid end, code,null));
+
+&#064; --> @
+org.springframework.orm.hibernate4.support.OpenSessionInViewFilter
+
+事务的acid：isolation、
+savepoint
+transaction synchronization
+
+guice3 transaction
+TransactionSynchronizationManager
+
+Caused by: org.apache.commons.beanutils.ConversiionException: No value specified for 'Date'
+at org.apache.commons.beanutils.converters.AbstractConverter.handleMissing(AbstractConverter.java:310) ~[commons-beanutils-1.8.3.jar:1.8.3]
+
+spring web容器直接获取bean
+callback
+xml:xsd
+spring配置文件定义bean：Generic bean: class [org.springframework.jndi.JndiObjectFactoryBean]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null
+com.cms.action.LoginAction@65f4d1
+com.cms.service.impl.UserInfoServiceImpl@a27c03
+com.cms.action.UserInfoAction@1bf08ca
+com.cms.service.impl.UserInfoServiceImpl@a27c03
+
+spring transaction:
+DefaultTransactionAttribute
+JpaTransactionManager
+TransactionAspectSupport
+
+tomcat7 远程debug
+comet
+
+fileChannel.tryLock
+websocket
+StringManager
+
+jpa version update
+
+LinkedBlockingQuene bug？
+socket serversocket
+import org.apache.tools.ant.AntClassLoader;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.FileUtils;
+js压缩
+org.eclipse.wst.comm.component <property name="java-output-path">
+pom.xml <project.workspace.value>${basedir}/../</project.workspace.value>
+非功能性需求
+hibernate.jdbc.batch_size=20
+ngix apache --负载均衡
+unit of work?
+felix osgi 负载均衡
+http、ftp、sftp断点续传（上传、下载）
+
+spring3 PrePersist @EntityListeners
+spring3 jpa2 PersistenceUnitManager  
+OpenJPA
+
+ssh拦截器顺序:Ordered @Order
+
+Fatal error: The slave I/O thread stops because master and slave have equal MySQL server UUIDs; these UUIDs must be different for replication to work.
+
+2014-06-17 16:25:21 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see d
+ocumentation for more details).
+aop 表达式 and
+ssh文档
+java.sql.SQLException: Incorrect string value: '\xE6\x98\xB5\xE7\xA7\xB0' for column 'nick_name' at row 1
+CHAR[(length)]
+[CHARACTER SET charset_name] [COLLATE collation_name]
+| VARCHAR(length)
+[CHARACTER SET charset_name] [COLLATE collation_name]
+
+
+
+ireport5.5.0无法启动
+
+
+c3p0 datasource 0.9.1.1  ---0.9.1.2 区别？修改了什么bug
+jpa实现？hibernate之外，还有什么？
+
+org.apache.tomcat.dbcp.dbcp.SQLNestedException: Cannot create JDBC driver of class '' for connect URL 'null'
+
+javax.naming.NameNotFoundException: Name jdbc is not found in this Context
+at org.apache.naming.NamingContext.lookup(NamingContext.java:770)
+
+mysql This example shows how to create a table that is partitioned by hash into 6 partitions and which uses the InnoDB storage engine: 
+CREATE TABLE ti (id INT, amount DECIMAL(7,2), tr_date DATE)
+    ENGINE=INNODB
+    PARTITION BY HASH( MONTH(tr_date) )
+    PARTITIONS 6;
+
+PARTITION BY HASH( MONTH(tr_date) )  hash的优点？
+
+select partition 和 select的区别
+每张表一个表空间的优缺点
+telnet服务无法启动，报错：无法启动服务，原因可能是已被禁用或与其相关联的设备没有启动。
+hibernate注解生成uuid
+mysql> insert into t_user(id, name,nick_name, first_name, last_name, password, birthday, version, delete_flag, create_time, update_time)
+    ->           values (0, 'admin', '管理员', '', '', '111111', '1975-01-01', 1, 0, current_timestamp, current_timestamp);
+ERROR 1366 (HY000): Incorrect string value: '\xB9\xDC\xC0\xED\xD4\xB1' for column 'nick_name' at row 1
+
+oracle jndi
+<Resource name="jdbc/oracleDS" auth="Container" type="javax.sql.DataSource"
+		driverClassName="oracle.jdbc.OracleDriver" url="jdbc:oracle:thin:@127.0.0.1:1521:mysid"
+		maxActive="50" username="scott" password="tiger" maxIdle="30" maxWait="10000" />
+翻译：up front
+
+java.lang.reflect.Array
+raw type primitive type
+guice-servlet.jar
+win7 telnet http协议详解
+threadLocal threadPool注意事项
+mysql驱动jar、开发手册
+spring3 mysql datasource jndi
+derby mysql读写分离
+unique constraints 和 unique index 的区别
+
+下载mysql 32
+流媒体 服务器搭建
+java.lang.IllegalStateException: Cannot activate transaction synchronization - already active
+TransactionSynchronizationManager.initSynchronization()
+
+
+
+spring3: AbstractRoutingDataSource 
+hibernate4:读写分离
+spring3 方法注解事务拦截？
+jpa事务 多数据源
+system properties 和 system environment variables的区别？参照org.springframework.core.env.StandardEnvironment的类注释。
+
+ * That is, if the key "xyz" is present both in the JVM system properties as well as in
+ * the set of environment variables for the current process, the value of key "xyz" from
+ * system properties will return from a call to {@code environment.getProperty("xyz")}.
+ * This ordering is chosen by default because system properties are per-JVM, while
+ * environment variables may be the same across many JVMs on a given system.  Giving
+ * system properties precedence allows for overriding of environment variables on a
+ * per-JVM basis.
+
+spring：org.springframework.beans.factory.support.DefaultListableBeanFactory存储了bean。
+
+
+tomcat7启动信息：
+1、The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path
+2、No Spring WebApplicationInitializer types detected on classpath
+
+ssh文档
+spring : 初始化参数：locatorFactorySelector、parentContextKey的作用
+
+spring beanFactory
+怎样获取对象制定方法的拦截器？
+
+guice 注入带参数属性？
+guice多数据源
+
+spring-security-core
+spring-security-ldap
+spring-ldap
+
+jfreechart-1.0.17项目构建
+
+Ext.window.Window layout: 
+    Auto     Default
+    card
+    fit
+    hbox
+    vbox
+    anchor
+    table
+
+ext store.insert(0, user)  store.sync()
+
+httpServletRequest.getInputstream
+aop 表达式 and
+jpa one-to-many 关系的维护端?
+varchar nvarchar的区别
+jpa @Version 在cms系统中使用
+
+persistence javax.persistence.spi.PersistenceProvider unitName
+
+读写分离与分布式事务 一写多读
+mqt 物化视图
+JPAPersistenceUnitInfo: persistenceUnitName--> jpatest
+rest web
+用静态类实现单例
+junit模拟servlet容器
+
+guice中module的作用
+rawtype
+Class.isAssignableFrom()
+http content: application/x-www-form-urlencode
+
+
+
+java.lang.NoClassDefFoundError:org/hamcrest/SelfDescribing //junit 4.11将这个类分离到hamcrest-core.jar中去了
+html5
+freemarker template 乱码
+spring android
+class类的根路径
+
+mail: smtp  MIME/RFC822
+车联网
+ext onReady ext.application launch
+freemarker例子
+ext 获取 config options的值
+config options properties
+Ext.grid.Panel: initComponent
+js: window.navigator.userLanguage  window.navigator.language
+报表比较：开源、收费
+ibm工作流wps
+jndi配置web.xml
+ext4.0 xtype selType
+Ext.grid.Panel: selType: 'checkboxmodel'、'cellmodel'
+com.sun.tools.javac.Main.compile
+ext4.0下载、教程
+
+json 优点JavaScript Object Notation（JSON）
+org.springframework.transaction.PlatformTransactionManager
+
+jdk ws rpc document 特点和应用场景
+jdk8 stream的优点
+editplus 列模式:
+1）菜单：编辑 -> 选择 -> 列选择
+2）先按下 Alt + C ，释放，然后移动鼠标或键盘上下左右键进行选择
+注意：在自动换行的模式下是不行的，改为不自动换行就行了。
+
+comet样式的应用程序:"服务器推"技术
+side-effect：副作用
+
+filechannel
+guice PrivateModule
+
+jdk7新特性
+
+String.replaceAll的原理
+
+jdk6
+java控制台输出百分比进度条示例 
+
+下载一个mysql、hadoop、lucene、solr站内查询
+下载一个github操作手册、各种文档
+正则：(?>X) X,非捕获组,不回溯   的含义
+jdk webservice 
+guice3 ext4.0 rcpjson junit4 ecache memcache redis ftp sftp smb sso ldap jpa2.0 mybatis jta cxf2.2 
+自动获取cup数量: Runtime.getRuntime().availableProcessors()
+freemarker
+移动开发的特点
+oracle
+捕获组、非捕获组
+
+pdf 
+
+String.format
+
+org.eclipse.wst.common.project.facet.core.xml
+<installed facet="java" version="1.7"/>
+error: Java compiler level does not match the version of the installed Java project facet.
+
+
+
+MybatisXPathParser
+
+
+
+
+
+
+
+如何读懂下列gc日志：
+Java HotSpot(TM) Client VM (25.5-b02) for windows-x86 JRE (1.8.0_05-b13), built on Mar 18 2014 01:14:47 by "java_re" with MS VC++ 10.0 (VS2010)
+Memory: 4k page, physical 2681068k(1835836k free), swap 5360384k(4336124k free)
+CommandLine flags: -XX:InitialHeapSize=41943040 -XX:MaxHeapSize=536870912 -XX:+PrintGC -XX:+PrintGCTimeStamps -XX:-UseLargePagesIndividualAllocation 
+0.443: [GC (Allocation Failure)  10944K->2827K(39616K), 0.0066059 secs]
+0.758: [GC (Allocation Failure)  13771K->6003K(39616K), 0.0109325 secs]
+1.010: [GC (Allocation Failure)  16947K->8440K(39616K), 0.0132917 secs]
+1.471: [GC (Allocation Failure)  19384K->12486K(39616K), 0.0106533 secs]
+1.842: [Full GC (Metadata GC Threshold)  20539K->13053K(39616K), 0.0263444 secs]
+2.154: [GC (Allocation Failure)  24061K->17077K(39680K), 0.0074970 secs]
+2.466: [GC (Allocation Failure)  28085K->22656K(39680K), 0.0213062 secs]
+2.815: [GC (Allocation Failure)  33664K->26012K(39680K), 0.0139032 secs]
+2.893: [GC (Allocation Failure)  37020K->26727K(39680K), 0.0074902 secs]
+3.154: [GC (Allocation Failure)  37735K->30473K(41600K), 0.0140627 secs]
+3.168: [Full GC (Allocation Failure)  30473K->21678K(41600K), 0.0644855 secs]
+3.737: [GC (Allocation Failure)  36206K->27647K(52452K), 0.0122381 secs]
+4.163: [GC (Allocation Failure)  42175K->31717K(52452K), 0.0128333 secs]
+4.517: [GC (Allocation Failure)  46245K->36503K(52452K), 0.0186057 secs]
+4.711: [GC (Allocation Failure)  51031K->39199K(53732K), 0.0117347 secs]
+4.723: [Full GC (Allocation Failure)  39199K->37160K(53732K), 0.0965190 secs]
+5.165: [GC (Allocation Failure)  62056K->43708K(89904K), 0.0151078 secs]
+5.533: [GC (Allocation Failure)  68604K->49556K(89904K), 0.0184958 secs]
+6.208: [GC (Allocation Failure)  74452K->56133K(89904K), 0.0167999 secs]
+6.937: [GC (Allocation Failure)  81029K->59738K(89904K), 0.0160276 secs]
+7.659: [GC (Allocation Failure)  84634K->63513K(89904K), 0.0180430 secs]
+7.957: [GC (Allocation Failure)  88409K->65148K(90544K), 0.0165822 secs]
+7.974: [Full GC (Allocation Failure)  65148K->40398K(90544K), 0.1406322 secs]
+8.377: [GC (Allocation Failure)  67470K->48842K(97732K), 0.0172173 secs]
+10.094: [GC (Allocation Failure)  75913K->54560K(97732K), 0.0175628 secs]
+30.406: [GC (Allocation Failure)  81632K->58477K(97732K), 0.0229794 secs]
+
+
+http://eds.newtouch.cn/eds36web/login.html 14320/yinsl12345

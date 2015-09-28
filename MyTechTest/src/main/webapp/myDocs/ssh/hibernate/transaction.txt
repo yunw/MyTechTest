@@ -1,0 +1,4 @@
+1、org.hibernate.SessionFactory
+         创建session实例的主要契约。通常一个应用只有一个sessionFactory实例，各个线程从这个factory中获取session来服务与客户端请求。
+   sessionFactory的内部状态是不可变的。一旦被创建，它的内部状态就已经设置好了。它的内部状态包含所有与object/relational mapping有关的元数据。
+   SessionFactory的实现必须是线程安全的。

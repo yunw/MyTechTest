@@ -1,0 +1,106 @@
+一、配置tomcat ssl认证
+1、生成证书并导入Java证书库
+（1）、生成证书：命令行进入Tomcat的bin目录下执行
+keytool -genkey -alias tomcat -keyalg RSA -keypass changeit -storepass changeit -keystore server.keystore -validity 3600
+注：如果出现乱码，则先输入：chcp 936，然后再输入命令
+注：您的名字与姓氏是什么？答：localhost 其他的直接回车，最后y。此时会在%TOMCAT_HOME%/bin下生成server.keystore 文件。 
+注：参数 -validity 指证书的有效期(天)，缺省有效期很短，只有90天。
+
+（2）、导出证书：
+keytool -export -trustcacerts -alias tomcat -file server.cer -keystore  server.keystore -storepass changeit
+此时会在%TOMCAT_HOME%/bin下生成server.cer 文件。
+
+（3）、导入到证书库：
+keytool -import -trustcacerts -alias tomcat -file server.cer -keystore  %JAVA_HOME%/jre/lib/security/cacerts -storepass changeit
+这一步是导入到证书信任库，可以观察%JAVA_HOME%/jre/lib/security/cacerts 这个文件，修改时间为当前时间。
+
+附：keytool其它命令（列出信任证书库中所有已有证书，删除库中某个证书）： 
+   keytool -list -v -keystore %JAVA_HOME%/jre/lib/security/cacerts 
+   keytool -delete -trustcacerts -alias tomcat  -keystore  %JAVA_HOME%/jre/lib/security/cacerts -storepass changeit
+
+   
+2、配置ssl
+首先将上面bin目录下生成的server.keystore复制到Tomcat根目录下。
+打开Tomcat的server.xml，取消SSL注释，增加keystoreFile和keystorePass两个属性。
+<Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+               clientAuth="false" sslProtocol="TLS" keystoreFile="server.keystore" keystorePass="changeit"/>
+               
+3、启动tomcat
+访问https://localhost:8443，如果配置成功则地址栏后面的安全报告小锁成闭合状态
+
+二、部署CAS Server
+1、不连接db
+在cas-server-3.5.1-release.zip包modules目录下有打好的war包:cas-server-webapp-3.5.1.war，
+其实在不连接database的情况下直接将其扔到Tomcat webapps下，CAS Server就算部署完了。
+启动tomcat就可以访问：http://localhost:8080/cas-server-webapp-3.5.1/了。
+
+2、连接db
+（1）、打开%TOMCAT_HOME%/webapps/cas-server-webapp-3.5.1/WEB-INF/deployerConfigContext.xml
+将：
+<bean class="org.jasig.cas.authentication.handler.support.SimpleTestUsernamePasswordAuthenticationHandler" />
+替换为：
+<bean class="org.jasig.cas.adaptors.jdbc.QueryDatabaseAuthenticationHandler">
+<property name="dataSource" ref="dataSource" />
+<property name="sql" value="select password from t_user where username =?" />
+<property name="passwordEncoder" ref="MD5PasswordEncoder" />
+</bean>
+在最后增加:
+	<bean id="dataSource"
+	class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:mysql://localhost:3306/mysql</value>
+		</property>
+		<property name="username">
+			<value>root</value>
+		</property>
+		<property name="password">
+			<value></value>
+		</property>
+	</bean>
+	<bean id="MD5PasswordEncoder"
+	class="org.jasig.cas.authentication.handler.DefaultPasswordEncoder">
+	<constructor-arg index="0">
+		<value>MD5</value>
+		</constructor-arg>
+	</bean>
+
+（2）、复制cas-server-support-jdbc-3.5.1.jar、mysql-connector-java-5.1.33.jar文件到%TOMCAT_HOME%/webapps/cas-server-webapp-3.5.1/WEB-INF/lib文件夹下面。
+（3）、启动tomcat，已经可以访问了：
+https://localhost:8443/cas-server-webapp-3.5.1/
+
+三、部署测试用client
+（1）新建两个web工程：CasClient1、CasClient2为了区分两个工程，将两个工程的index.jsp中的内容设置得不一样。
+然后打开两个工程的web.xml。添加如下内容：
+<filter>
+		<filter-name>CAS Authentication Filter</filter-name>
+		<filter-class>org.jasig.cas.client.authentication.AuthenticationFilter</filter-class>
+		<init-param>
+			<param-name>casServerLoginUrl</param-name>
+			<param-value>https://localhost:8443/cas-server-webapp-3.5.1/login</param-value>
+		</init-param>
+
+		<init-param>
+			<param-name>serverName</param-name>
+			<param-value>https://localhost:8443</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>CAS Authentication Filter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+然后将：cas-client-core-3.2.1.jar、commons-logging-1.1.jar拷贝到工程的lib目录下。
+打包这两个工程的war包，发布到不同的tomcat（为了方便，也可以放在一个tomcat下）
+然后启动tomcat。
+打开：http://localhost:8080/CasClient1
+会发现页面跳转到cas的登录页面，输入用户名密码后，跳转到CasClient1的index.jsp页面。
+（地址栏显示：https://localhost:8443/CasClient1/?ticket=ST-1-BwRlRYedxOQdmegCa76I-cas01.example.org）
+
+然后打开：http://localhost:8080/CasClient2
+会跳过登录直接到达CasClient2的index.jsp页面。
+（地址栏显示：https://localhost:8443/CasClient2/?ticket=ST-2-IKzWctSisFAwFowreJiJ-cas01.example.org）

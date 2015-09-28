@@ -1,0 +1,416 @@
+启动server：
+server.exe redis.conf
+
+启动sentinel：
+redis-server /path/to/sentinel.conf --sentinel
+
+redis删除过期key：消极和积极
+消极：访问过期key的时候删除，缺陷：过期key长时间没有被访问。
+积极：
+随机测试包含过期时间的key集合中的少量key，如果过期则删除。具体步骤如下：
+redis每秒10次执行如下步骤：
+1、从关联了过期时间的key集合中测试20个key。
+2、将已经过期的key删除。
+3、如果过期的key超过25%，重复第一步。直到过期key低于25%。
+
+当一个key过期后，一个DEL操作被同步到aof文件和slaves。这样，过期操作集中控制在master实例上。
+slave连接到master上不会独立的删除过期key（但是会等待来自master的del命令）；他们会保存数据集中所有过期key的全部状态。
+因此，当一个slave被选为master后，他能像master一样独立删除过期key。
+
+LRU（Least Recently Used）算法：最近最久未使用算法。
+
+redis内存回收算法：
+redis在内存到达极限的时候，采用的内存淘汰算法是LRU算法（其实是一种近似算法）。有6种策略：
+1.volatile-lru:从设置了过期时间的数据集中，选择最近最久未使用的数据释放
+2.allkeys-lru:从数据集中(包括设置过期时间以及未设置过期时间的数据集中)，选择最近最久未使用的数据释放
+3.volatile-random:从设置了过期时间的数据集中，随机选择一个数据进行释放
+4.allkeys-random:从数据集中(包括了设置过期时间以及未设置过期时间)随机选择一个数据进行入释放
+5.volatile-ttl：从设置了过期时间的数据集中，选择马上就要过期的数据进行释放操作
+6.noeviction：不删除任意数据(但redis还会根据引用计数器进行释放呦~),这时如果内存不够时，会直接返回错误
+
+redis默认的策略是：6
+maxmemory-policy noeviction
+
+redis是近似算法，因为它通过配置：
+maxmemory-samples 5
+来规定上述6种策略的数据集范围。例如：5，说明在随机5个key中执行上述策略。
+
+redis从2.8版本开始，支持主从rdb的部分复制功能，不用全部rdb复制了。
+
+slow log:
+在客户端（redis-cli）执行命令：
+SLOWLOG subcommand [argument]
+例如：
+slowlog get 2
+表示：显示最近的两个慢日志的信息：
+redis 127.0.0.1:6379> slowlog get 2
+1) 1) (integer) 14               --唯一标识符
+   2) (integer) 1309448221       --命令执行的时间点
+   3) (integer) 15               --执行命令花费的时间
+   4) 1) "ping"                  --命令的参数列表
+2) 1) (integer) 13               --唯一标识符
+   2) (integer) 1309448128       --命令执行的时间点
+   3) (integer) 30               --执行命令花费的时间
+   4) 1) "slowlog"               --命令的参数列表
+      2) "get"                   --命令的参数列表
+      3) "100"                   --命令的参数列表
+      
+每个条目包含四个域:
+a、一个唯一的渐进的标识符
+b、记录命令执行的时间点（unix timestamp）
+c、命令执行花费的时间（微秒）
+d、命令的参数列表
+
+可以通过redis.conf来控制slow log：
+slowlog-log-slower-than 10000  --记录超过10毫秒的命令。负数禁用慢日志，0强制记录每个命令。
+slowlog-max-len 128            --慢日志的最大长度，超过最大长度，最早的日志被清除。
+
+redis cluster:
+每个redis集群节点需要有两个tcp连接。一个用于客户端（命令端口），例如：6379，另一个加10000，即16379，用于集群总线（cluster bus），这是一个用于节点之间
+通信的二进制协议。集群总线常用于故障检测，配置更新，故障转移，授权等等。客户端永远不应该和集群总线端口通信。请确保防火墙打开了这两个端口，否则集群节点之间无法通信。
+命令端口和集群总线端口的位移是固定的，总是10000。
+集群总线采用一种不同的二进制协议用于节点与节点之间的数据交换，这是一种更适合于小的带宽和处理时间的交换信息的协议。
+
+Redis cluster Data sharding：
+redis集群不使用一致性哈希，而使用一种不同的分区形式——哈希槽。redis集群有16384（16k）个哈希槽。计算某个key属于哪个哈希槽的方法是：对key做crc16计算，然后对16384取模。
+
+redis cluster的一致性：
+redis集群不能保证强一致性。这意味着redis集群可能丢失写。
+第一种丢失的情况是因为redis使用异步复制。写的过程如下：
+A）客户端写到主节点B。
+B）主节点B对客户端回复OK。
+C）主节点B将写信息同步到从节点B1、B2。。。
+从上面的操作可以看出：主节点B在回复客户端的时候并不等待从节点的确认。因此，在主节点回复客户端后同步到从节点前崩溃会导致写丢失。
+
+redis集群不支持多数据库，它只使用数据库0，并且SELECT命令不允许。
+fault tolerance（容错）：
+
+安装redis
+vi /etc/resolv.conf
+添加：
+nameserver 114.114.114.114
+先安装：
+iptables -I INPUT -p tcp --dport 6379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 16379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 26379 -j ACCEPT
+yum install -y openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+gem sources -a http://ruby.taobao.org/  #加入淘宝源，外国的源无法访问了
+一、下载redis与安装：
+mkdir /data/Downloads
+cd /data/Downloads
+wget http://download.redis.io/releases/redis-3.0.3.tar.gz
+tar -zxvf redis-3.0.3.tar.gz
+cd redis-3.0.3
+make && make PREFIX=/usr/local/redis install
+
+报错：
+make[3]: gcc: Command not found
+
+yum install -y gcc
+
+报错：
+zmalloc.h:50:31: error: jemalloc/jemalloc.h: No such file or directory
+zmalloc.h:55:2: error: #error "Newer version of jemalloc required"
+
+打开/root/Downloads/redis-3.0.3/README可以看到，解决办法是：
+make MALLOC=libc
+
+
+报错：
+cc: ../deps/hiredis/libhiredis.a: No such file or directory
+cc: ../deps/lua/src/liblua.a: No such file or directory
+make[1]: *** [redis-server] Error 1
+make[1]: Leaving directory `/data/Downloads/redis-3.0.3/src'
+make: *** [all] Error 2
+解决办法：
+分别进入redis下的deps下的hiredis、lua和jemalloc下运行make。
+jemalloc下可能要先运行./configure，然后make。最后回到redis的src下，运行make，就OK了。
+进入lua下，执行make，报错：
+Please do
+   make PLATFORM
+where PLATFORM is one of these:
+   aix ansi bsd freebsd generic linux macosx mingw posix solaris
+See INSTALL for complete instructions.
+根据提示：
+执行：
+make linux
+还是报错：
+luaconf.h:275:31: error: readline/readline.h: No such file or directory
+luaconf.h:276:30: error: readline/history.h: No such file or directory
+安装：readline
+yum -y install -y readline-devel
+然后执行：
+make linux
+还是报错：
+cc: ../deps/hiredis/libhiredis.a: No such file or directory
+查看../deps/hiredis/目录，发现下面有个文件：libhiredis.so，没有：libhiredis.a
+删除redis-3.0.3目录
+重新：
+tar -zxvf redis-3.0.3.tar.gz
+cd redis-3.0.3
+make
+make install
+成功
+
+make PREFIX=/usr/local/redis install  #安装在指定目录中
+安装至此完成。可以在/usr/local/redis下看到多了个目录：bin
+执行命令：
+/usr/local/redis/bin/redis-server /data/Downloads/redis-3.0.3/redis.conf &
+ps -ef | grep redis
+可以看到redis已经启动起来了。
+
+三、将redis变为一个服务
+按前面的安装步骤安装，redis的服务脚本就会在/data/Downloads/redis-3.0.3/utils目录下：redis_init_script
+将其拷贝到/etc/rc.d/init.d/目录下，并改名为redis：
+cp /data/Downloads/redis-3.0.3/utils/redis_init_script /etc/rc.d/init.d/redis
+vi /etc/rc.d/init.d/redis
+然后将redis文件的内容修改如下：
+#!/bin/sh
+# chkconfig: 2345 80 90
+# Simple Redis init.d script conceived to work on Linux systems
+# as it does use of the /proc filesystem.
+
+REDISPORT=6379
+EXEC=/usr/local/redis/bin/redis-server
+CLIEXEC=/usr/local/redis/bin/redis-cli
+
+PIDFILE=/var/run/redis_${REDISPORT}.pid
+CONF="/etc/redis/${REDISPORT}.conf"
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+                echo "$PIDFILE exists, process is already running or crashed"
+        else
+                echo "Starting Redis server..."
+                $EXEC $CONF &
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "$PIDFILE does not exist, process is not running"
+        else
+                PID=$(cat $PIDFILE)
+                echo "Stopping ..."
+                $CLIEXEC -p $REDISPORT shutdown
+                while [ -x /proc/${PID} ]
+                do
+                    echo "Waiting for Redis to shutdown ..."
+                    sleep 1
+                done
+                echo "Redis stopped"
+        fi
+        ;;
+    *)
+        echo "Please use start or stop as first argument"
+        ;;
+esac
+然后：
+chkconfig --add redis
+chkconfig redis on
+
+将/data/Downloads/redis-3.0.3/redis.conf拷贝到/etc/redis/下，并改名为6379.conf
+mkdir /etc/redis
+mkdir /data/logs
+mkdir /data/logs/redis
+mkdir /data/redis
+cp /data/Downloads/redis-3.0.3/redis.conf /etc/redis/6379.conf
+vi /etc/redis/6379.conf
+
+修改/etc/redis/6379.conf将对应内容修改为：
+daemonize yes
+pidfile /var/run/redis_6379.pid
+logfile "/data/logs/redis/redis_6379.log"
+启动redis服务：
+service redis start
+
+
+redis cluster:
+redis.conf的如下属性配置修改如下（端口需修改）：
+port 6379
+cluster-enabled yes
+cluster-config-file /etc/redis/nodes-6379.conf
+cluster-node-timeout 15000
+dir /data/redis
+
+执行命令：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb create 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379
+报错：-bash: ./redis-trib.rb: No such file or directory
+说明没有装ruby。
+yum install -y ruby
+重新执行前面的命令，依然报错：
+./redis-trib.rb:24:in `require': no such file to load -- rubygems (LoadError)
+        from ./redis-trib.rb:24
+继续安装rubygems组件：
+yum install -y rubygems
+再次执行命令，依然报错：
+/usr/lib/ruby/site_ruby/1.8/rubygems/custom_require.rb:31:in `gem_original_require': no such file to load -- redis (LoadError)
+        from /usr/lib/ruby/site_ruby/1.8/rubygems/custom_require.rb:31:in `require'
+        from ./redis-trib.rb:25
+这是因为缺少redis和ruby的接口，使用gem安装：
+gem install redis --version 3.2.1
+然后执行前述命令：
+[OK] All 16384 slots covered.
+
+说明redis集群建立成功。
+
+添加redis集群节点：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node 10.25.23.107:6379 10.25.23.101:6379
+
+重新分配hash slot：
+/data/Downloads/redis-3.0.3/src/redis-trib.rb reshard 10.25.23.107:6379 --from <node-id> --to <node-id> --slots --yes
+
+安装ruby
+wget https://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.3.tar.gz
+tar zxvf ruby-2.2.3.tar.gz
+cd ruby-2.2.3
+./configure --prefix=/usr/local/ruby
+make
+make install
+ruby -v
+
+安装rubygems
+wget http://production.cf.rubygems.org/rubygems/rubygems-2.4.8.tgz
+tar zxvf rubygems-2.4.8.tgz
+cd rubygems-2.4.8
+ruby setup.rb
+gem -v
+
+gem install redis
+报错：
+ERROR:  Loading command: install (LoadError)
+        cannot load such file -- zlib
+ERROR:  While executing gem ... (NoMethodError)
+    undefined method `invoke_with_build_args' for nil:NilClass
+解决办法：
+进入ruby源码文件夹 
+安装ruby自身提供的zlib包 
+#cd ext/zlib
+#ruby ./extconf.rb
+#make
+#make install
+
+redis连接错误：
+[root@SSSVL0301 bin]# ./redis-cli -h 10.25.23.102 -p 6379
+Could not connect to Redis at 10.25.23.102:6379: No route to host
+not connected> 
+这是因为防火墙的缘故，只要打开6379和16379端口就可以了：
+iptables -I INPUT -p tcp --dport 6379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 16379 -j ACCEPT
+iptables -I INPUT -p tcp --dport 26379 -j ACCEPT
+
+创建集群时报某个err slot 0 is already busy (redis::commanderror)
+这是由于之间创建集群没有成功,需要将nodes.conf和dir里面的文件全部删除(注意不要删除了redis.conf)
+
+sentinel:
+1、至少需要3个sentinel实例才能健康的部署。
+2、三个sentinel实例最好部署在计算机或虚拟机中，以保证它们以独立的方式失败。例如，不同的物理服务器或虚拟机的不同的执行区。
+3、sentinel+redis分布式系统不能保证失败期间的确认写被保留，因为redis使用异步复制。
+4、你需要保证你的客户端支持sentinel。流行的客户端已经支持了，但不是所有。
+
+配置sentinel：
+redis源码发布包含了一个文件：sentinel.conf，这是一个配置文件的例子，你可以用来配置sentinel。
+一个典型的最小配置的文件如下：
+port 26379
+sentinel monitor mymaster1 10.25.23.101 6379 2
+sentinel down-after-milliseconds mymaster1 60000
+sentinel failover-timeout mymaster1 180000
+sentinel parallel-syncs mymaster1 1
+
+sentinel monitor mymaster2 10.25.23.102 6379 2
+sentinel down-after-milliseconds mymaster2 60000
+sentinel failover-timeout mymaster2 180000
+sentinel parallel-syncs mymaster2 1
+
+sentinel monitor mymaster3 10.25.23.103 6379 2
+sentinel down-after-milliseconds mymaster3 60000
+sentinel failover-timeout mymaster3 180000
+sentinel parallel-syncs mymaster3 1
+
+运行时修改sentinel配置：
+SENTINEL MONITOR <name> <ip> <port> <quorum>
+该命令告诉sentinel开始用指定的参数监控指定的节点。例如：
+sentinel monitor mymaster 10.25.23.102 6379 2
+
+你只需要指定需要监控的master，给每个master（可能有任意个slave）一个不一样的名字。不需要指定slave，它们能自动发现。
+sentinel会自动更新配置文件添加有关slave的信息（为了保留信息用于重启）。配置文件也会重写，在一个slave被升级为master或一个新的sentinel被发现的时候。
+上面的配置例子中，监控了两套redis实例，每套由一个master和不定数量的slave组成。一套实例的名字叫mamaster，另一个叫resque。
+下面一行一行的说明配置的含义：
+sentinel monitor <master-group-name> <ip> <port> <quorum>
+第一行告诉redis监控一个master，它的名字叫mymaster，它的地址是127.0.0.1，端口为6379，quorum为2。
+quorum的含义是：
+A）quorum是sentinel需要同意master不可达这个事实，标记slave已经失败以及如果可能最终开始故障转移操作的数量。
+B）quorum仅仅用于发现错误。为了精确的执行故障转移，sentinel中的一个必须被选为leader来执行故障转移和被授权去操作。这只有在大多数sentinel进程投票才会发生。
+
+因此，假设你有5个sentinel进程，quorum对一个给定的master的值为2。那么：
+a、如果两个sentinel同时同意那个master不可达，两个中的一个将试图开始故障转移。
+b、如果至少有三个sentinel可达，故障转移将被授权并实际开始。
+在实践中，这意味着失败期间，如果大部分的sentinel进程都不说话，sentinel永远不会开始故障转移。
+
+其它的sentinel配置选项：
+sentinel <option_name> <master_name> <option_value>
+down-after-milliseconds：sentinel开始认为这个实例下线（不响应ping命令或响应错误信息）的时间，以毫秒为单位。
+parallel-syncs：选项指定了在执行故障转移时， 最多可以有多少个从服务器同时对新的主服务器进行同步， 这个数字越小， 完成故障转移所需的时间就越长。
+但越大就意味着越多的从服务器因为复制而不可用。可以通过将这个值设为 1 来保证每次只有一个从服务器处于不能处理命令请求的状态。
+
+添加或移除sentinel：
+添加一个新的sentinel很简单，因为sentinel能自动识别。你只需将配置好的sentinel启动起来以监控当前活动的master，
+10秒之类sentinel就能获得其它的sentinel和master以及它的slave集合。
+如果你一次要添加多个sentinel。建议一个一个的添加，在添加下一个之前，确保其它的sentinel都已经知道了你刚加入的sentinel。
+
+删除一个sentinel要复杂一点：sentinel永远不会忘掉已经见过的sentinel，即使它们已经很长时间都不可达，因为我们不希望动态的改变
+需要授权故障转移的大多数。要删除，你需要：
+a、停止你想删除的sentinel进程
+b、发送：SENTINEL RESET * 命令给其它所有的sentinel实例（可以用明确的master名称代替*，如果你只想重置单个的master）。一个接一个，每个实例之间至少等待30秒。
+c、检查所有的sentinel同意了现在活动的sentinel数量。用SETINEL MASTER mastername逐个检查。
+
+slave优先级：
+slave-priority这个参数定义了slave升级为master的优先级。值越小优先级越高。如果值为0，则永远不能升级为master。
+
+SDOWN（Subjectively Down：主观下线） and ODOWN（Objectively Down：客观下线）
+在配置规定的时间间隔内sentinel没有收到可接受的PING指令的响应，就认为SDOWN条件达成。
+对PING指令的可接受的响应有如下三种情况：
+a、响应为：+PONG
+b、响应为：-LOADING error
+c、响应为：-MASTERDOWN error
+其它的响应（或者根本没有响应）都被认为是不合法的。
+
+SDOWN不足以触发故障转移，要触发故障转移，必须达成ODOWN状态。
+在一个给定的时间范围内，如果一个给定的sentinel从足够多的sentinel那里得到报告说某个master不工作了，SDOWN就被升级为ODOWN。
+如果以后这个master又可以用了，这个状态就会被清除掉。
+ODOWN状态只适用于master。sentinel和salve不会有ODOWN状态，只会有SDOWN状态。
+SDOWN状态也是有含义的：例如，一个SDOWN状态的slave是不会被sentinel选为故障转移的目标而升级为master的。
+
+configuration epoch（配置时代）：
+sentinel需要得到大多数sentinel的授权才开始执行故障转移，这是有重要原因的：
+当一个sentinel被授权，它就会获得一个关于那个需要故障转移的master的configuration epoch。这是一个数字，用于故障转移完成后新配置的版本。因为大多数同意将一个指定的版本给予
+一个指定的sentinel，其它的sentinel就不能使用它。这意味着每次配置故障转移都有一个唯一的版本。
+sentinel都遵守一个规则：如果一个sentinel选举另一个sentinel对一个master做故障转移，那么它会等一段时间再一次对同一个master做故障转移。这个延迟由sentinel.conf文件
+中的failover-timeout配置。这意味着sentinel不会在同一时间对同一个master执行故障转移。第一被授权的将先执行，如果失败了，另一个在以后的某个时间再试，以此类推。
+redis sentinel保证了活跃性：如果大多数的sentinel能够说话，最后一定有一个sentinel在master宕机后执行故障转移。
+redis sentinel也保证了安全性：每个sentinel对同一个master执行故障转移都会使用一个不同的configuration epoch。
+
+集群环境下的redis-cli：
+[root@SSSVL0301 ~]# /usr/local/redis/bin/redis-cli -h 10.25.23.105
+10.25.23.105:6379> get key0
+(error) MOVED 13252 10.25.23.103:6379
+10.25.23.105:6379> get key1
+"value1"
+10.25.23.105:6379> set key1 value1-1
+OK
+10.25.23.105:6379> get key1
+"value1-1"
+10.25.23.105:6379> set key0 value0-0
+(error) MOVED 13252 10.25.23.103:6379
+10.25.23.105:6379> get key0
+(error) MOVED 13252 10.25.23.103:6379
+10.25.23.105:6379> quit
+[root@SSSVL0301 ~]# /usr/local/redis/bin/redis-cli -h 10.25.23.103
+10.25.23.103:6379> get key0
+"value0"
+10.25.23.103:6379> get key1
+(error) MOVED 9189 10.25.23.105:6379
+10.25.23.103:6379> 
+可以看到：cli只能操作哈希槽在自己正连接的节点上的数据，其他节点上的数据无法操作，但会提示该key在哪个节点上。

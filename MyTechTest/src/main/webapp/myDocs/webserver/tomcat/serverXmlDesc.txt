@@ -1,0 +1,25 @@
+对server.xml文件的说明：
+1、server元素：server元素代表了整个catalina servlet容器。因此，在conf/server.xml文件中，它必须是唯一的一个最外层的元素。它的属性描述了整个servlet容器的特征。
+
+属性：
+  a、className：用于实现server的java类，它必须实现：org.apache.catalina.Server接口。如果没有指定，将使用标准的实现。
+  b、address：tcp/ip地址，server在这个地址上等待关闭命令。如果没有指定，使用localhost
+  c、port：tcp/ip端口，server在这个端口上等待关闭命令。将它设为-1将使关闭端口失效。
+             注意：使关闭端口失效可以很好的运行，当tomcat采用守护进程方式启动的时候（在windows系统上以服务的方式运行，或者在un*xes系统上以jsvc的方式运行） 。
+  d、shutdown：关闭tomcat
+
+标准实现： org.apache.catalina.core.StandardServer
+
+嵌套元素：Service、GlobalNamingResources
+
+2、service元素：一个service元素代表了一个组合：一个或多个Connection组件分享一个Engine组件来处理到达的请求。一个或多个service组件必须嵌套在一个server元素内部。
+
+属性：
+   a、className：用于实现service的java类。它必须实现：org.apache.catalina.Service接口。如果没有指定，使用标准的实现。
+   b、name：这个service的显示名称。在日志消息中将会显示这个名称如果你使用标准的catalina组件。这个名字在一个特定的server中必须唯一。
+
+标准实现：org.apache.catalina.core.StandardService
+
+嵌套元素：connector（one or more）、engine（one）
+
+3、GlobalNamingResources元素：定义了server的全局的jndi资源。

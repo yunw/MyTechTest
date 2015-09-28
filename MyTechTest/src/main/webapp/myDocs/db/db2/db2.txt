@@ -1,0 +1,3 @@
+db2 list applications
+db2 force applications all
+

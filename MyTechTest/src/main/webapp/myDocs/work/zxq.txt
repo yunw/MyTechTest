@@ -1,0 +1,9 @@
+软件安装(root/Root1q2w)：
+10.25.23.32 redis(sentinel)
+10.25.23.33 redis(sentinel)
+10.25.23.34 redis(sentinel)
+10.25.23.35 redis(slave，master：38)
+10.25.23.36 redis(slave，master：39)
+10.25.23.37 redis(master、slave:37)
+10.25.23.38 redis(master)
+10.25.23.39 redis(master)

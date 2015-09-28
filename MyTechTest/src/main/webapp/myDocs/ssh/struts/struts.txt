@@ -1,0 +1,28 @@
+1、国际化乱码：properties的编码改为ISO-8859-1，然后输入中文就自动转码了。
+
+2、国际化配置：
+在struts.xml中加入：<constant name="struts.custom.i18n.resources" value="globalMessages"/>
+其中：globalMessages是国际化文件名的前缀。
+
+英文资源文件：globalMessages_cn_US.properties的内容：
+username=user name
+password=password
+login=login
+
+中文资源文件：globalMessage_zh_CN.properties的内容：
+username=\u7528\u6237\u540D
+password=\u5BC6\u7801
+login=\u767B\u5F55
+
+jsp上使用如下方式使用：
+<s:text name="username"/>
+
+action中使用如下方式使用：
+addFieldError("user.name", getText("username"));
+addActionError(getText("username"));
+addActionMessage(getText("username"));
+
+jsp中用如下标签接收action中的错误信息：
+<s:fielderror/>
+<s:actionerror/>
+<s:actionmessage/>

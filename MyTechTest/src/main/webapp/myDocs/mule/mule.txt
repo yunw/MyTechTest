@@ -1,0 +1,199 @@
+eclipse安装mule插件：打开网址：http://marketplace.eclipse.org/content/anypoint-studio
+拖曳anypoint studio安装包到eclipse workspace中就会下载安装。
+
+
+
+
+mule 概念：
+在事件驱动架构的基础上，通过对外部资源（例如：事件）发起的消息进行响应来工作。在最简单的层面上，mule应用接收并处理事件，在消息通过几个插入流里的消息处理器的时候。
+二选一的，巨大的或者流消息（streaming message）能在批处理任务（batch job）中作为记录（records）被处理。理解基础的流架构和批处理结构是理解mule的关键。本质上，每个mule流包含了
+一系列的消息处理器，来接收并处理消息。mule应用经常包含多个串联的流和/或批处理任务。
+
+流：flows
+流是这样一种结构，在它的内部串联了几个独立的元素，用于接收、处理并最终路由一个消息。你可以将许多流连接在一起来构建一个完整的应用，你可以将它部署在mule或其它的应用服务器上或云上。
+在最简单的层级上，流是消息处理事件的序列。一个消息进入一个流可能通过各种各样的处理器。
+
+批处理：batch jobs
+批处理是mule里的顶层元素，它存在于所有的mule流的外部。批处理将巨大的消息分割为mule异步处理的记录；和流处理消息相似，批处理处理记录。
+批处理包含一个或多个批处理步骤（batch steps），在它里面，按次序，包含了任意数量的消息处理器，按记录来处理。在批处理的过程中，可以使用记录级别的变量和MEL表达式来丰富、路由或以其他的方式处理记录。
+一个批处理任务会执行，当它被一个mule流中的其他的批执行器或一个批量接收输入的消息源触发的时候。当它被触发的时候，mule创建一个新的批处里实例。当所有的记录通过了所有的批处理步骤。批处理实例就结束了并且
+批处理结果就能在总结报告中指明在处理过程中哪些记录成功了，哪些记录失败了。
+
+流与子流：flows and subflows
+mule应用围绕着一个或多个流来创建。通常，一个mule应用开始处理一个消息，该消息在一个流中由一个入站的端点接收。这个流能实现所有的处理阶段，或者将消息路由到其他的流或子流里去执行特殊的任务。相较于触发其执行的流，一个流或子流能处理同步的或异步的消息。
+
+流的类型：
+A：子流
+B：同步流
+C：异步流
+
+消息源：Message Source
+mule处理外部源发起的消息（例如：事件）。例如，消息可以由一个来自移动设备的消费者请求发起，或者是一个需要进入数据库的数据的改变，或者一个saas应用中的一个新的客户id的创建。
+大多数流或批处理的第一块建筑物是一个接收器，它接收新的消息并将它们放入对列中用于处理。消息源从一个或多个外部源接收消息，从而触发流或批处理的执行。mule中的消息源经常是任意点连接器（anypoint connector）、元素，它们提供到一个
+特定外部源的连接，无论是通过标准协议（象http，ftp，smtp）或者第三方api（象Salesforce.com，Twitter，或者MongoDB）。
+
+消息处理器：mesage processors
+在mule中，消息处理器按种类分组。
+Mule 转换器（mule transformers）是两个节点（node）之间交换数据的关键，当他们允许mule将消息负载数据转换为另一个应用能理解的格式的时候。
+Mule 使用组件（components）来管理后台对特殊商业逻辑的处理，例如，当检查客户与数据库存货清单的时候。组建路由消息到正确的应用，例如一个订单执行系统。对于流中的核心的异步消息处理，mule使用分阶段的事件驱动架构（staged event-Driven Architecture SEDA）
+重要的是，组件不需要有任何的与mule相关的代码；他们可以是简单的pojos，spring beans，java beans，groovy scripts，或者web services，只要他们包含了处理数据的商业逻辑。
+组件甚至可以由其他语言开发，例如：python，js，ruby，php。
+流和批处理任务还可以包含过滤器（filter），作用域（scope）和路由器（router）。例如，你可以使用一个过滤器来过滤来自于你的应用接收的消息中的白名单中的ip地址，
+
+在大多数流中的第一个建筑块是消息源，它从一个或多个外部源接收消息，从而触发一个流实例。每次它收到一个消息，就触发一个流实例。
+通常，消息源以一个Anypoint Connector的形式出现。
+有些时候消息源将进来的消息立即放入一个队列（queue）。这允许消息源关闭用于接收消息的接收线程，并且立即打开另一个线程来接收进来的消息。
+消息只是放在队列中等待直到它到达队列的头部用于处理。因为消息被两个独立的线程顺序地处理， start-to-finish的事务处理是不可能的。
+
+有时，一个消息源能够从多个传输通道接收多个消息。例如，你能够嵌入一个http端点和一个servlet端点到一个混合的消息源。或者你可以创建一个混合的消息源来接收IMAP和POP3
+邮件。
+在某种情况下，流不需要被消息源触发。例如，在同一个应用中，一个流引用组件（flow reference component）可以触发一个不同的流。类似的，异步范围（Async Scope）能触发另一个异步执行的流（）。
+
+Mule流中的元素：
+A、connectors
+B、components
+C、Transformers
+D、filters
+E、routers
+F、scopes
+G、exceptions strategies
+
+Mule connectors：连接器
+anypoint connectors接收或者发送消息在mule和一个或多个外部源之间，例如文件、数据库、或web services。
+mule中的连接器有基于端点的（endpoint-based）和基于操作的（operation-based）。
+
+基于端点的连接器：endpoint-based connectors
+在流中，基于端点的连接器作为入站或出站的端点来配置。对流来说，入站端点作为消息源来服务。出站端点可以出现在流的中间或末尾，并且发送消息到外部系统。
+
+基于操作的连接器：operation-based connectors
+当你添加一个基于操作的连接器到你的流中，你就立即定义了一个特定的操作用于该连接器执行。
+
+http connector
+一个http connector可以被配置为一个监听器（接收入站请求）或者作为一个请求连接器（作为出站请求）。http connector一般要求一个全局的连接器配置来规定它的属性。
+例如：
+
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+    xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+     
+ 
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"  doc:name="HTTP Listener Configuration"/>
+    <http:request-config name="HTTP_Request_Configuration" host="localhost" port="8082"  doc:name="HTTP Request Configuration"/>
+ 
+    <flow name="httpexampleFlow1" >
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+        <set-payload value="foo" doc:name="Set Payload"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <http:request config-ref="HTTP_Request_Configuration" path="/" method="POST" doc:name="HTTP"/>
+    </flow>
+ 
+</mule>
+
+
+mule message structure:mule 消息结构
+mule消息是数据经由一个或多个流通过一个应用。它包含两个主要的部分：
+消息头（header）：包含了消息的元数据
+消息的有效载荷（payload）：包含了特定的商业数据
+
+一个mule消息，被嵌入到一个消息对象中。有些mule消息对象可能包含变量（variables）、附件（attachments）和异常载荷。
+
+属性和变量：properties and variables
+包含在消息头中的元数据由属性组成，它提供了关于消息的有用信息。包含在消息对象中，变量描述了有关消息的数据。
+属性和变量共享了一个共同的格式：每个独立的属性或变量都有一个名字和值。名称决定了你在mule中该如何引用这个属性或变量，值是存储在其中的信息。
+
+消息的属性和变量都有特定的作用域（scope），用来在那个消息的生命周期中定义并组织他们怎样访问。
+
+属性有两个主要的作用域：入站和出站
+
+入站属性：inbound properties
+入站属性是不可变的（immutable），由消息源自动生成并且不能被用户设置或操纵。一个消息仅仅在它的流的持续期间保持它的入站属性，当消息发送到这个流的外面，它的入站属性不会随之一起分发。
+
+出站属性：outbound properties
+出站属性是可变的，它们在流中被设置并且能变成入站属性，当消息经由传输，通过一个流从出站端点变为另一个流的入站端点的时候。相似的，它们包含的元数据变成了入站属性。
+
+变量是用户定义的关于消息的元数据，变量有三个作用域：
+流变量（flow variable）：仅用于他们存在的流。
+会话变量（session variable）：在同一个应用中由所有的流访问。
+记录变量（record variable）：仅作为批处理的一部分由记录处理。
+
+属性更可能由系统设置并调用，变量更可能由人设置。当然，这并没有严格的规则来规定属性和变量必须如此使用。
+
+Message Payload：
+有效载荷不必要保持相同，当它在一个流中旅行时，一个mule流中的各种各样的消息处理器都会影响有效载荷，通过设置、浓缩或者将它转换为一种新的格式。你也可以用MEL表达式从有效载荷中提取信息。
+
+组件：component
+组件是在消息上执行商业逻辑的消息处理器。他能让你在没有编写任何与mule规范相关的任何代码的情况下执行特定的动作。你可以删除一个组件：一个pojo，spring bean，java bean，或者
+脚本。
+
+脚本组件：scripting components
+包含：Grooy、javaScript、Python、Ruby
+
+web服务组件： web services components
+
+Http组件：HTTP components
+Logger components、Expression components、invoke components、echo components、Flow Ref Components、Batch execute components
+
+作用域：scope
+mule作用域将多个消息处理器封装在一起形成一个单一的功能单元。你可以将几个消息处理器放在一起形成一个事务单元，这样他们在处理一个消息的时候会同时成功或同时失败，例如，这样就
+可以确保正确的更新数据库。你也可以将几个消息处理器封装在一个缓存作用域中，用来存储它们的处理结果，用于重用，或者将一个消息处理器放在一个消息浓缩器作用域中，来添加消息的
+有效载荷，而不用操作原始的内容。
+
+异步作用域：Async scope
+异步作用域是一个分支处理模块，它和它的父消息流同时执行。这种类型的处理块对耗时的操作（例如打印一个文件或连接到邮件服务器）很有帮助，它们不要求发送响应到初始化它们的流。换句话说，主流在初始化并处理了异步作用域后可以继续执行；
+它不用等待异步作用域中的操作彻底完成。
+为了达到同时处理的目的，异步作用域将它收到的消息的一个备份发送到它自己的处理模块中的第一个消息处理器上，同时，它将消息的另一份备份发送到主流的下一个消息处理器上。
+因为消息的备份在一个不同的线程上操作，异步作用域不能被定义为支持请求-响应模式。相反的，他们必须实现几个支持单向处理策略中的一个。
+如果没有为异步作用域配置处理策略，mule会提供一个异步对列的处理策略。
+
+异步作用域和异步流的异同：
+异步作用域和异步流在以下几个地方是相似的：
+a）异步的处理消息。
+b）不向主流返回数据
+c）可以有自己的处理策略
+
+异步作用域与异步流有如下区别：
+a）内嵌存在于主流线程中
+b）不是由流引用组建来调用的
+c）不能重复使用
+d）不能有自己的异常捕获策略，只能从主流中继承。
+
+注意：
+尽管异步作用域接收的是消息的一个备份，但是，有效载荷并没有被拷贝。相同的有效载荷对象将被连个消息的备份所引用。换句话说，如果消息中的有效载荷（payload）
+是可变的，那么异步作用域中的消息处理器改变了有效载荷的值，异步作用域外部的消息处理器是可以看到这个被改变的值的。
+
+MEL:mule expression language
+在mule中，一个表达是就是一个被#[]包围的字符串。在运行期，mule使用MEL（作为缺省的鉴别器）来确定表达是的值。
+mule也能很好的支持其他种类的表达式（也必须被#[]包围），它们用来确定表达式的值，在MEL无法识别的时候。
+MEL遵守java风格的语法。
+上下文对象（context objects）、变量（variables）、字段（fields）
+
+------------------------------------------------------------------------------------------------------------------
+Context Objects  Description                                          Field
+-------------------------------------------------------------------------------------------------------------
+server	         运行消息处理器的操作系统	                      dateTime，env，fileSeparator，host，ip，locale，javaVersion，javaVendor，nanoSeconds，osName，osArch，osVersion，systemProperties，timeZone，tmpDir，userName，userHome，userDir 
+---------------------------------------------------------------------------------------------------------------
+mule	         应用运行的mule实例	                              clusterId，home，nodeId，version
+---------------------------------------------------------------------------------------------------------------
+application	 用户应用，当前流部署在里面                           encoding，name，standalone，workDir，registry
+----------------------------------------------------------------------------------------------------------------
+message	         消息处理器处理的一个包裹（有效载荷，附件，属性）     id，rootId，correlationId，correlationSequence，correlationGroupSize，replyTo，dataType，payload，inboundProperties，inboundAttachments，outboundProperties，outboundAttachments
+------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------
+Variables                Description                                           Field
+----------------------------------------------------------------------------------------
+flowVars	消息上的一个变量；流变量仅仅在创建它的流的内部存在             n/a
+----------------------------------------------------------------------------------------
+sessionVars	消息上的一个变量；会话变量在一个应用中可以跨越多个流而存在     n/a
+----------------------------------------------------------------------------------------
+
+MEL是一种表达式语言，不是一种编程语言，因此：
+A）它通常解析为单个的值
+B）不能返回void类型
+

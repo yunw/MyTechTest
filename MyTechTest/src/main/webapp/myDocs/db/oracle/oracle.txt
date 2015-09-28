@@ -1,0 +1,2 @@
+查看服务端字符集：
+select * from v$nls_parameters;

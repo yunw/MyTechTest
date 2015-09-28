@@ -1,0 +1,16 @@
+定位目录：
+cd /was/IBM/WebSphere/AppServer/profiles/Custom01/bin
+登录
+./wasadmin.sh -user wasadmin -password Pass1234
+设置javacore的变量
+set jvm [$AdminControl completeObjectName type=JVM,process=tcbom,*]
+生成javacore
+$AdminControl invoke $jvn dumpThreads
+
+设置heapdump的变量
+set objectName [$AdminControl queryNames WebSphere:type=JVM,process=tcbom,*]
+生成heapdump
+$AdminControl invoke $objectName generateHeapDump
+
+生成文件的存放路径
+/was/IBM/WebSphere/AppServer/profiles/Custom01

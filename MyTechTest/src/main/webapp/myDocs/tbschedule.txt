@@ -1,0 +1,117 @@
+1、下载tbschedule源码：http://code.taobao.org/svn/tbschedule
+2、执行maven命令：
+mvn clean install
+ps：在执行过程中，报错，源码的编码不是utf-8，不得不用editplus一个一个文件打开，转码存储。
+3、在自己的项目中应用：
+在自己的项目中添加依赖：
+<dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.4.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.taobao.pamirs.schedule</groupId>
+            <artifactId>tbschedule</artifactId>
+            <version>3.2.18-SNAPSHOT</version>
+            <exclusions>
+            <exclusion>
+            <artifactId>commons-lang</artifactId>
+            <groupId>commons-lang</groupId>
+            </exclusion>
+            <exclusion>
+            <artifactId>commons-beanutils-core</artifactId>
+            <groupId>commons-beanutils</groupId>
+            </exclusion>
+            </exclusions>
+        </dependency>
+        
+ps：tbschedule依赖的包比较旧，所以排除部分依赖引入。
+4、剩下的配置可以参照：
+http://code.taobao.org/p/tbschedule/wiki/tbschedule-quick-start/来配置。
+
+5、访问：
+监控：
+http://localhost:8080/ScheduleConsole/schedule/index.jsp
+管理：
+http://localhost:8080/ScheduleConsole/schedule/index.jsp?manager=true
+
+原理：
+1、创建任务：
+参考：taskTypeDeal.jsp
+创建的任务对象为：com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType
+将任务存储到zk中：
+/rootpath/baseTaskType/typename  --typename为你在创建新任务页面上输入的任务名称
+
+2、创建策略：
+参考：scheduleStrategyDeal.jsp
+创建的策略对象为：com.taobao.pamirs.schedule.strategy.ScheduleStrategy
+将策略存储到zk中：
+/rootpath/strategy/strategyname  --strategyname为你在创建新策略页面上输入的策略名称
+
+2、应用程序向tbschedule注册：
+应用程序的springBean（实现InitializingBean, ApplicationContextAware接口），
+在InitializingBean的afterPropertiesSet()方法中调用：
+tbscheduleManagerFactory = new TBScheduleManagerFactory();
+tbscheduleManagerFactory.setApplicationContext(applicationContext);//将自己的ioc容器暴露给tbschedule
+tbscheduleManagerFactory.init(p);
+tbscheduleManagerFactory.setZkConfig(convert(p));
+调用后就会在zk中建立自己的信息：
+/rootpath/baseTaskType --持久化节点
+/rootpath/strategy     --持久化节点
+/rootpath/factory      --持久化节点
+/rootpath/factory/uuid --临时排序节点
+
+
+创建任务给字段的含义：
+
+任务名称（baseTaskType）：
+
+任务处理的SpringBean（dealBeanName）：应用程序中用于定时任务的bean的名称
+
+心跳频率(秒)（heartBeatRate）：向配置中心更新心跳信息的频率
+
+处理模式（processType）：一般选sleep
+
+自定义参数(字符串)（taskParameter）：可以用这个字段给定时任务传递参数，定时任务需要自己解析该参数。
+
+每次处理完数据后休眠时间(秒)（sleepTimeInterval）：
+
+没有数据时休眠时长(秒)（sleepTimeNoData）：
+
+线程数（threadNumber）：执行定时任务的线程数
+
+每次执行数量（executeNumber）：只在bean实现IScheduleTaskDealMulti才生效
+
+假定服务死亡间隔(秒)（judgeDeadInterval）：判断一个服务器死亡的周期。为了安全，至少是心跳周期的两倍以上。用于清除死亡服务器
+
+每次获取数据量（fetchNumber）：
+
+执行结束时间（permitRunEndTime）：
+1.允许执行时段的结束时间crontab的时间格式,'20 * * * * ?' 表示在每分钟的20秒终止
+2.如果不设置，表示取不到数据就停止 
+
+执行开始时间（permitRunStartTime）：
+1.以startrun:开始，则表示开机立即启动调度.
+2.允许执行时段的开始时间crontab的时间格式
+字段                                    允许值                                       允许的特殊字符
+秒                                        0-59              , - * /
+分                                        0-59              , - * /
+小时                                    0-23              , - * /  
+日期                                    1-31              , - * ? / L W C  
+月份                                    1-12(JAN-DEC)     , - * /
+星期                                    1-7(SUN-SAT)      , - * ? / L C #
+年（可选） 留空,    1970-2099         , - * /
+举例：
+"0 0 12 * * ?"         每天中午12点触发 
+"0 15 10 ? * *"        每天上午10:15触发 
+"0 0/5 14 * * ?"       每天下午2点到下午2:55期间的每5分钟触发
+"0 0-5 14 * * ?"       每天下午2点到下午2:05期间的每1分钟触发
+"0 10,44 14 ? 3 WED"   每年三月的星期三的下午2:10和2:44触发
+
+单线程组最大任务项（maxTaskItemsOfOneThreadGroup）：每个线程组能处理的最大任务项目数目，避免随着机器的减少把正常的服务器压死，0或者空表示不限制
+
+任务项(","分隔)（taskItems）：
+1、将一个数据表中所有数据的ID按10取模，就将数据划分成了0、1、2、3、4、5、6、7、8、9供10个任务项。
+2、将一个目录下的所有文件按文件名称的首字母(不区分大小写)， 就划分成了A、B、C、D、E、F、G、H、I、J、K、L、M、N、O、P、Q、R、S、T、U、V、W、X、Y、Z供26个任务项。
+3、将一个数据表的数据ID哈希后按1000取模作为最后的HASHCODE,我们就可以将数据按[0,100)、[100,200) 、[200,300)、[300,400) 、[400,500)、[500,600)、[600,700)、[700,800)、[800,900)、 [900,1000)划分为十个任务项， 当然你也可以划分为100个任务项，最多是1000个项。
+4、任务项是进行任务分配的最小单位。一个任务队列只能由一个ScheduleServer来进行处理。但一个Server可以处理任意数量的任务项。

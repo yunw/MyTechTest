@@ -1,0 +1,65 @@
+1、流程：
+spring-web-3.2.8RELEASE.jar包中的org.springframework.web.SpringServletContainerInitializer实现了
+javax.servlet.ServletContainerInitializer接口。并且该类被@HandlesTypes标注了感兴趣的类：org.springframework.web.WebApplicationInitializer
+因此，只要应用实现了：org.springframework.web.WebApplicationInitializer，就会在web容器启动的时候被发现并调用。
+
+2、启动applicationContext：
+<context-param>
+<param-name>contextConfigLocation</param-name>
+<param-value>/WEB-INF/daoContext.xml /WEB-INF/applicationContext.xml</param-value>
+</context-param>
+<listener>
+<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+ContextLoaderListener用来启动spring的root application context，它会读取contextConfigLocation配置的xml文件（这些文件用逗号、分号或空格分割）。
+如果contextConfigLocation没有配置，默认读取/WEB-INF/applicationContext.xml文件。这些文件可以采用ant风格的路径匹配模式。例如：
+/WEB-INF/**/*Context.xml表示/WEB-INF/文件夹以及子文件夹下所有以Context.xml为后缀的文件。
+
+3、启动security过滤器链：
+<filter>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+要启用spring security，必须配置DelegatingFilterProxy过滤器来启动spring Security Filter Chain。
+
+4、上述2、3步可以用零配置的方式来启动。如果采用servlet3+，可以用AbstractSecurityWebApplicationInitializer来启动root application context和
+spring Security Filter Chain。
+
+AbstractSecurityWebApplicationInitializer的onStartup方法如下：
+
+ public final void onStartup(ServletContext servletContext)
+            throws ServletException {
+        beforeSpringSecurityFilterChain(servletContext);
+        if(configurationClasses != null) {
+            AnnotationConfigWebApplicationContext rootAppContext = new AnnotationConfigWebApplicationContext();
+            rootAppContext.register(configurationClasses);
+            servletContext.addListener(new ContextLoaderListener(rootAppContext));
+        }
+        if(enableHttpSessionEventPublisher()) {
+            servletContext.addListener("org.springframework.security.web.session.HttpSessionEventPublisher");
+        }
+        servletContext.setSessionTrackingModes(getSessionTrackingModes());
+        insertSpringSecurityFilterChain(servletContext);
+        afterSpringSecurityFilterChain(servletContext);
+    }
+    
+    可以看到：该方法添加了ContextLoaderListener监听器，启动了spring Security Filter Chain：insertSpringSecurityFilterChain(servletContext);
+    
+我们的应用可以继承：AbstractSecurityWebApplicationInitializer，提供AbstractSecurityWebApplicationInitializer需要的属性：configurationClasses。
+configurationClasses可以由WebSecurityConfigurerAdapter来提供。
+
+5、过滤器说明：
+一、BasicAuthenticationFilter
+处理http请求的基本的授权头部，将结果放入：SecurityContextHolder。
+简单的说，这个过滤器处理任何有Authorization头部，带有授权组合“basic”并且用Base64加密的“用户名：密码”令牌（token）的请求。
+例如：授权用户为：Aladdin，密码：open sesame
+那么请求头部为：Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+这个过滤器用于提供基本的授权服务于两个远程协议客户端（例如：Hessian and SOAP）作为标准的用户代理（例如：ie和netscape）
+
+
+启用csrf的方法：
+<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>

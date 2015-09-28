@@ -1,0 +1,90 @@
+启动zookeeper：D:\apache\zookeeper\zookeeper-3.4.6a\bin\zkServer.cmd
+
+伪集群：
+zoo.cfg
+tickTime=2000
+dataDir=/var/zookeeper/
+clientPort=2181
+initLimit=5
+syncLimit=2
+server.1=ip1:2888:3888
+server.2=ip2:2888:3888
+server.3=ip3:2888:3888
+
+tickTime ：基本事件单元，以毫秒为单位。它用来指示心跳，最小的 session 过期时间为两倍的 tickTime。
+dataDir ：存储内存中数据库快照的位置，如果不设置参数，更新事务日志将被存储到默认位置。这个目录在开始的时候需要为空。
+clientPort ：监听客户端连接的端口
+server.id=host:port:port：指示了不同的 ZooKeeper服务器的自身标识，作为集群的一部分的机器应该知道全体中的其它机器。用户可以从server.id=host:port:port中读取相关的信息。 
+            在服务器的 data（ dataDir 参数所指定的目录）目录下创建一个文件名为myid的文件，这个文件中仅含有一行的内容，指定的是自身的 id 值。比如，服务器“ 1 ”应该在 myid 文件中写入“ 1 ”。
+            这个 id 值必须是全体中唯一的，且大小在1到255之间。这一行配置中，第一个端口（port）是从（follower）机器连接到主（leader）机器的端口，第二个端口是用来进行leader选举的端口。
+            在这个例子中，每台机器使用三个端口，分别是：clientPort，2181； port，2888；port，3888。
+            
+ACL(access control list)访问控制列表：
+
+zookeeper ACL scheme:
+world:有一个id:anyone,代表任何人。
+auth：不使用任何id，代表任何一个被授权的用户。
+digest：使用一个username:password字符串生成一个md5哈希作为一个acl id标识符。身份验证是通过发送明文的username:password。当用于ACL表达式中的时候，将是username:base64(sha1(password))的形式。
+ip：使用客户主机的ip作为acl id标识符。设置的时候可以设置一个ip段，比如ip:192.168.1.0/16, 表示匹配前16个bit的IP段。
+
+acl 权限：
+create：可以创建一个子节点
+read：可以获取节点的数据和它的子节点列表
+write：可以设置节点的数据
+delete：可以删除一个子节点
+admin：可以设置权限
+
+zookeeper data model:
+zookeeper有一个命名空间体系，非常象一个分布式文件系统。唯一不同的是命名空间中的每个节点都有数据关联着，象孩子一样。它就像有一个文件系统，允许一个文件，也可以是一个目录。节点的路径
+都表示为规范的，绝对的，分隔的路径；不存在相对引用。在满足下列约束的前提下，任何unicode字符都可以用于路径：
+a、null字符（\u0000）不能是路径名称的一部分（这会导致C绑定的问题）。
+b、下面的字符不能使用是因为它们不能很好的显示，或者有着混乱的渲染方式：\u0001-\u001F, \u007F-\u009F。
+c、下面的字符不允许：\ud800-\uF8FF,\uFFF0-\uFFFF.
+d、“.”字符能作为其它名字的一部分，但是“.”、“..”不能单独的表示一个节点的路径。因为zookeeper不能使用相对路径。下面的路径是无效的：
+"a/b/./c"、"a/b/../c"。
+e、“zookeeper”是保留关键字。
+
+ZNodes：
+zookeeper树上的每个节点被称为znode。znode维护了一个状态结构，包含了数据改变的版本号，acl改变。状态结构也有时间戳。版本号和时间戳允许zookeeper
+校验缓存和协调更新。任何时候一个znode的数据变了，版本号就会增加。例如，无论何时，一个客户端检索数据，它也会收到数据的版本号。当一个客户端执行更新或删除，
+它必须提供它打算修改的这个znode的数据的版本号。如果它提供的版本号和实际的数据版本号不匹配，更新将失败（这个行为可以被重写）。
+znode是程序访问的主要实体。
+
+Watches：
+客户端可以在znode上设置观察者。znode发生改变将触发观察者然后清楚这个观察者。当观察者触发，zookeeper向客户端发送提醒。
+
+data access：
+存储在一个命名空间中的每个znode的数据的读写都是自动的。读获取这个znode的所有数据字节，写覆盖所有的数据。每个节点都有个acl（access control list）来决定
+谁能读写。
+zookeeper不是设计为一个通用数据库或打对象存储。实际上，它管理协调数据。这个数据可以来自于配置表，状态信息，集合点等。协调数据的不同表单的普通属性都是相对较小的：以千字节为单位。
+zookeeper客户端和服务端实现都有检查以确保znode的数据小于1M，但是数据的平均大小远小于这个值。
+
+Ephemeral Nodes（临时节点）：
+zookeeper也有临时节点的概念。这些节点和创建节点的session的存在时间一样长。当session结束时znode就被删除了。因为这个原因，临时节点不能有孩子。
+
+sequence nodes--unique naming：
+
+Zookeeper中的时间：
+Zookeeper用多种方法跟踪时间：
+
+A）zxid：zookeeper状态的每次改变都会收到一个zxid（zookeeper事务id）样式的戳记。它揭示了zookeeper所有变化的顺序。每个变化都有一个唯一的zxid。
+如果zxid1比zxid2小，那么zxid1发生在zxid2之前。
+B）版本号：一个节点的每次变化都会导致那个节点的版本号增加一。有三个版本号：version（znode的数据发生了变化）、cversion（znode的孩子发生了变化）、aversion（znode的acl发生了变化）。
+C）Ticks：当使用多服务器的zookeeper，服务器使用ticks来定义时间计时，例如状态上传，会话过期，连接过期等等。
+D）real time：zookeeper不使用真实时间，或时钟时间，除了在节点创建和修改时将时间戳放进状态结构。
+
+zookeeper stat structure：
+zookeeper里的每个znode的状态结构都由以下字段构成：
+czxid：znode创建产生的zxid。
+mzxid：znode最后一次修改产生的zxid。
+ctime：znode创建的毫秒时间。
+mtime：znode最后一次修改的毫秒时间。
+version：znode数据变化的版本号。
+cversion：znode的孩子变化的版本号。
+aversion：znode的acl变化的版本号。
+ephemeralOwner：持有znode的session的session id，如果znode是临时节点。如果不是临时节点，它的值为0。
+dataLength：znode的data字段的长度。
+unmChildren：znode孩子的数量。
+
+zookeeper session：
+zookeeper客户端和zookeeper服务确定一个会话，通过使用语言绑定创建一个服务句柄。一旦创建，句柄开始时CONNECTING状态，完成后为CONNECTED状态。

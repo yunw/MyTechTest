@@ -1,0 +1,43 @@
+websocket protocol:
+包含两个部分：握手和数据传输
+
+它和tcp以及http的关系：websocket协议是一个独立的基于tcp的协议。它与http协议唯一的关系就是：它的握手是由http server作为一个升级的请求来说明的。
+
+默认情况下，它使用80端口来建立规范的websocket连接。用443端口使websocket连接穿越传输安全层（TLS：Transport Layer Security）
+
+来自客户端的握手看起来象下面的样子：
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Origin: http://example.com
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Version: 13
+
+来自服务端的握手看起来象下面的样子：
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+Sec-WebSocket-Protocol: chat
+
+websocket uri：
+有两种方式：
+ws-URI = "ws:" "//" host [ ":" port ] path [ "?" query ]
+wss-URI = "wss:" "//" host [ ":" port ] path [ "?" query ]
+       端口组件是可选的（默认：ws是80，wss是443）
+  secure flag：如果uri中匹配到wss（不区分大小写），就说secure flag被设置
+  resource-name可以用下面的方式创建：
+  "/":如果path组件为空
+  path组件
+  "?"：如果query组件不为空
+  query组件
+  
+  
+  当我们创建WebSocket的实例时，这个WebSocket实例就已经开始向服务器发起握手请求了，不需要我们手动打开连接。
+
+　　WebSocket对象也很简单，我们会常用到它的4个回调方法 onopen onclose onerror onmessage。他们触发的实际分别为 握手完成并创建TCP/IP通道后，断开连接后，发生错误时，接收到服务端消息时。
+
+　　另外我们还常常用到一个属性 readyState 用以检查连接状态，和一个函数 send() 向服务端发送数据。
+  

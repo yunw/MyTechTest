@@ -1,0 +1,366 @@
+cascade和inverse：
+cascade负责将瞬态或游离态的关联对象持久化，但不负责维护关系。inverse负责指定关系维护者，即由谁负责更新外键关联，但不负责持久化关联对象。
+
+inverse属性（默认值：false）：
+true：由另一方维护关系
+false：由本方维护关系
+例如：
+Customer和Order的关系：
+<hibernate-mapping package="org.hibernate.tutorial.domain">
+    <class name="Customer" table="CUSTOMER" lazy="false">
+        <id name="id">
+            <generator class="native" />
+        </id>
+        <property name="name" />
+        <set name="orders" cascade="save-update" inverse="true">
+            <key column="customer_id" />
+            <one-to-many class="Order" />
+        </set>
+    </class>
+</hibernate-mapping>
+
+<hibernate-mapping package="org.hibernate.tutorial.domain">
+    <class name="Order" table="ORDERS">
+        <id name="id" column="ORDER_ID">
+            <generator class="native" />
+        </id>
+        <property name="orderName" />
+    </class>
+</hibernate-mapping>
+
+public class Customer {
+
+    private int id;
+    private String name;
+    private Set<Order> orders = new HashSet<Order>();
+    //getter setter
+}
+
+public class Order {
+    private int id;
+    private String orderName;
+    //getter setter
+}
+
+测试类：
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        session.beginTransaction();
+        
+        Customer c = new Customer();
+        
+        Set<Order> orders = new HashSet<Order>();
+
+        Order o1 = new Order();
+        o1.setOrderName("o1");
+        
+        Order o2 = new Order();
+        o2.setOrderName("o2");
+        
+        orders.add(o1);
+        orders.add(o2);
+
+        c.setName("aaa");
+        c.setOrders(orders);
+
+        session.save(c);
+        session.getTransaction().commit();
+
+
+测试一：
+customer的配置为：cascade="save-update" inverse="true"
+        
+结果：
+日志：
+Hibernate: insert into CUSTOMER (name) values (?)
+Hibernate: insert into ORDERS (orderName) values (?)
+Hibernate: insert into ORDERS (orderName) values (?)
+
+数据库：
+mysql> select * from customer;
++----+------+
+| id | name |
++----+------+
+|  1 | aaa  |
++----+------+
+1 row in set (0.00 sec)
+
+mysql> select * from orders;
++----------+-----------+-------------+
+| ORDER_ID | orderName | customer_id |
++----------+-----------+-------------+
+|        1 | o1        |        NULL |
+|        2 | o2        |        NULL |
++----------+-----------+-------------+
+2 rows in set (0.00 sec)
+
+上述结果表明：customer的配置： cascade="save-update" inverse="true"
+customer负责将瞬态的order持久化，但是并没有维护关系（customer_id为null）。
+
+测试二、
+将customer的配置改为：
+cascade="save-update" inverse="false"
+
+结果：
+日志：
+Hibernate: insert into CUSTOMER (name) values (?)
+Hibernate: insert into ORDERS (orderName) values (?)
+Hibernate: insert into ORDERS (orderName) values (?)
+Hibernate: update ORDERS set customer_id=? where ORDER_ID=?
+Hibernate: update ORDERS set customer_id=? where ORDER_ID=?
+
+数据库：
+mysql> select * from customer;
++----+------+
+| id | name |
++----+------+
+|  1 | aaa  |
++----+------+
+1 row in set (0.00 sec)
+
+mysql> select * from orders;
++----------+-----------+-------------+
+| ORDER_ID | orderName | customer_id |
++----------+-----------+-------------+
+|        1 | o1        |           1 |
+|        2 | o2        |           1 |
++----------+-----------+-------------+
+2 rows in set (0.00 sec)
+
+上述结果表明：customer的配置： cascade="save-update" inverse="false"
+customer负责将瞬态的order持久化，inverse维护关系（customer_id不为null，为主表的键值）。
+
+测试三、
+customer的配置为：
+cascade="none" inverse="true"
+
+结果：
+日志：
+Hibernate: insert into CUSTOMER (name) values (?)
+
+数据库：
+mysql> select * from customer;
++----+------+
+| id | name |
++----+------+
+|  1 | aaa  |
++----+------+
+1 row in set (0.00 sec)
+
+mysql> select * from orders;
+Empty set (0.00 sec)
+
+上述结果表明：customer在持久化的时候既不持久化关联对象也不维护关联关系。
+
+测试四A（瞬态测试）、
+将customer的配置改为：
+cascade="none" inverse="false"
+
+结果：
+日志：
+Hibernate: insert into CUSTOMER (name) values (?)
+Hibernate: update ORDERS set customer_id=? where ORDER_ID=?
+[WARNING]
+java.lang.reflect.InvocationTargetException
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.lang.reflect.Method.invoke(Method.java:497)
+        at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:293)
+        at java.lang.Thread.run(Thread.java:745)
+Caused by: org.hibernate.TransientObjectException: object references an unsaved transient instance - save the transient instance before flushing: org.hibernate.tutorial.domain.Order
+        at org.hibernate.engine.internal.ForeignKeys.getEntityIdentifierIfNotUnsaved(ForeignKeys.java:294)
+        at org.hibernate.type.EntityType.getIdentifier(EntityType.java:537)
+        at org.hibernate.type.ManyToOneType.nullSafeSet(ManyToOneType.java:165)
+        at org.hibernate.persister.collection.AbstractCollectionPersister.writeElement(AbstractCollectionPersister.java:899)
+        at org.hibernate.persister.collection.AbstractCollectionPersister.recreate(AbstractCollectionPersister.java:1308)
+        at org.hibernate.persister.collection.OneToManyPersister.recreate(OneToManyPersister.java:184)
+        at org.hibernate.action.internal.CollectionRecreateAction.execute(CollectionRecreateAction.java:67)
+        at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:465)
+        at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:351)
+        at org.hibernate.event.internal.AbstractFlushingEventListener.performExecutions(AbstractFlushingEventListener.java:350)
+        at org.hibernate.event.internal.DefaultFlushEventListener.onFlush(DefaultFlushEventListener.java:56)
+        at org.hibernate.internal.SessionImpl.flush(SessionImpl.java:1258)
+        at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:425)
+        at org.hibernate.engine.transaction.internal.jdbc.JdbcTransaction.beforeTransactionCommit(JdbcTransaction.java:101)
+        at org.hibernate.engine.transaction.spi.AbstractTransactionImpl.commit(AbstractTransactionImpl.java:177)
+        at org.hibernate.tutorial.EventManager.saveCustomer(EventManager.java:94)
+        at org.hibernate.tutorial.EventManager.main(EventManager.java:43)
+        ... 6 more
+
+数据库：
+mysql> select * from customer;
+Empty set (0.00 sec)
+
+mysql> select * from orders;
+Empty set (0.08 sec)
+
+上述结果表明：
+cascade没有持久化关联对象，inverse去更新关联关系的时候会找不到对象。导致异常，事务失败，所有的数据都无法保存。
+
+测试四B（游离态测试）、
+customer的配置为：
+cascade="none" inverse="false"
+修改测试类：
+Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        session.beginTransaction();
+        
+        Order o1 = new Order();
+        o1.setOrderName("o1");
+        session.save(o1);
+        
+        Order o2 = new Order();
+        o2.setOrderName("o2");
+        session.save(o2);
+
+        session.getTransaction().commit();
+        
+        Session session2 = HibernateUtil.getSessionFactory().getCurrentSession();
+        session2.beginTransaction();
+        
+        Customer c = new Customer();
+        
+        Set<Order> orders = new HashSet<Order>();
+        
+        orders.add(o1);
+        orders.add(o2);
+
+        c.setName("aaa");
+        c.setOrders(orders);
+
+        session2.save(c);
+        session2.getTransaction().commit();
+
+结果：
+日志：
+Hibernate: insert into ORDERS (orderName) values (?)--此时customer_id为null
+Hibernate: insert into ORDERS (orderName) values (?)--此时customer_id为null
+Hibernate: insert into CUSTOMER (name) values (?)
+Hibernate: update ORDERS set customer_id=? where ORDER_ID=?
+Hibernate: update ORDERS set customer_id=? where ORDER_ID=?
+
+数据库：
+mysql> select * from customer;
++----+------+
+| id | name |
++----+------+
+|  1 | aaa  |
++----+------+
+1 row in set (0.00 sec)
+
+mysql> select * from orders;
++----------+-----------+-------------+
+| ORDER_ID | orderName | customer_id |
++----------+-----------+-------------+
+|        1 | o1        |           1 |
+|        2 | o2        |           1 |
++----------+-----------+-------------+
+2 rows in set (0.00 sec)
+
+上述结果表明：inverse维护了对象的关联关系。
+
+测试五：
+<hibernate-mapping package="org.hibernate.tutorial.domain">
+    <class name="Customer" table="CUSTOMER" lazy="false">
+        <id name="id">
+            <generator class="native" />
+        </id>
+        <property name="name" />
+    </class>
+</hibernate-mapping>
+<hibernate-mapping package="org.hibernate.tutorial.domain">
+    <class name="Order" table="ORDERS">
+        <id name="id" column="ORDER_ID">
+            <generator class="native" />
+        </id>
+        <property name="orderName" />
+    </class>
+</hibernate-mapping>
+
+public class Customer {
+    private int id;
+    private String name;
+    //getter setter
+}
+
+public class Order {
+    private int id;
+    private String orderName;
+    private Customer customer;
+    //getter setter
+}
+
+测试类：
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        session.beginTransaction();
+        
+        Customer c = (Customer) session.load(Customer.class, 1);
+        
+        Order o1 = new Order();
+        o1.setOrderName("o1");
+        o1.setCustomer(c);
+        session.save(o1);
+        
+        Order o2 = new Order();
+        o2.setOrderName("o2");
+        o2.setCustomer(c);
+        session.save(o2);
+
+        session.getTransaction().commit();
+        
+结果：
+日志：
+Hibernate: select customer0_.id as id1_0_0_, customer0_.name as name2_0_0_ from CUSTOMER customer0_ where customer0_.id=?
+Hibernate: insert into ORDERS (orderName) values (?)
+Hibernate: insert into ORDERS (orderName) values (?)
+
+数据库：
+mysql> select * from orders;
++----------+-----------+
+| ORDER_ID | orderName |
++----------+-----------+
+|        1 | o1        |
+|        2 | o2        |
++----------+-----------+
+2 rows in set (0.00 sec)
+
+上述结果表明：order只是持久化了自己，并没有维护关系（其实它也不知道要维护什么关系，在自动建表的时候它甚至都没有关系字段）。
+
+测试六：
+添加many-to-one关系：<many-to-one name="customer" column="CUSTOMER_ID"/>
+
+<hibernate-mapping package="org.hibernate.tutorial.domain">
+    <class name="Order" table="ORDERS">
+        <id name="id" column="ORDER_ID">
+            <generator class="native" />
+        </id>
+        <property name="orderName" />
+        <many-to-one name="customer" column="CUSTOMER_ID"/>
+    </class>
+</hibernate-mapping>
+
+结果：
+日志：
+Hibernate: select customer0_.id as id1_0_0_, customer0_.name as name2_0_0_ from CUSTOMER customer0_ where customer0_.id=?
+Hibernate: insert into ORDERS (orderName, CUSTOMER_ID) values (?, ?)
+Hibernate: insert into ORDERS (orderName, CUSTOMER_ID) values (?, ?)
+
+数据库：
+mysql> select * from customer;
++----+------+
+| id | name |
++----+------+
+|  1 | aaa  |
++----+------+
+1 row in set (0.00 sec)
+
+mysql> select * from orders;
++----------+-----------+-------------+
+| ORDER_ID | orderName | CUSTOMER_ID |
++----------+-----------+-------------+
+|        1 | o1        |           1 |
+|        2 | o2        |           1 |
++----------+-----------+-------------+
+2 rows in set (0.00 sec)
+
+上述结果表明：
+many-to-one端正确地维护了关联关系。

@@ -1,0 +1,39 @@
+DR(Disaster Recovery)：灾难恢复。
+
+启动：
+bin/activemq start
+
+启动时指定配置文件（默认：conf/activemq.xml）：
+bin/activemq start xbean:examples/conf/activemq-demo.xml
+
+activemq的默认端口为：61616
+
+监控activemq：
+http://localhost:8161/admin
+
+停止：
+bin/activemq stop
+
+
+一、概念
+1、ConnectionFactory：jms规范中客户端的接口，用于创建连接到jms borker。
+2、broker：一个网络或嵌入同一个jvm的服务，用于提供消息提供者。
+注：ConnectionFactory可以被看做一个客户端的api，用于发送或接收消息，而borker是一个服务端实现。它路由消息，维护订阅和连接，确认消息和处理事务。
+3、transport：
+
+tcp transport：
+配置语法：tcp://hostname:port?key=value
+例如：
+server side：tcp://localhost:61616?transport.trace=false&transport.soTimeout=60000
+client side：tcp://localhost:61616?trace=false&soTimeout=60000
+
+二、集群
+1、Queue consumer clusters
+这个解决方案接收生产者送过来的消息，排列它们并在所有注册的消费者之间分发它们。这有如下的好处：
+A、负载在一个非常动态的方式下分发。额外的消费者可以是预分配的并附属于这个queue，在高负载期间，不需要修改这个queue的任何配置，新的消费者的行为仅仅作为另一个竞争的消费者。
+B、比系统使用负载均衡有更好的可用性。负载均衡通常依赖一个监控系统来发现哪个真实的服务是不可达的。而竞争的消费者，一个有故障的消费者不会竞争消息因此消息不会被传送给它，即使没有监控。
+C、高可靠性，如果一个消费者出故障了，这个queue里的任何没有被确认的消息都会被重新传送给其它的消费者。
+
+2、Broker clusters
+在一个jms上下文中，更通用的集群模式是：有一个jms broker的集合，一个jms client将连接这个集合中的一个。这样，如果那个broker宕机了，它将自动重连到另外一个。
+实现这个需要在jms client使用failover://协议。

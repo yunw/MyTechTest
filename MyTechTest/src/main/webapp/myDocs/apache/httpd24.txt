@@ -1,0 +1,141 @@
+解压：httpd-2.4.6-x86.zip到d:\apache
+修改d:\apache\Apache24\conf\httpd.conf
+将        Define SRVROOT "/Apache24"
+改为：Define SRVROOT "D:/apache/Apache24"
+
+Stop Apache	 	httpd -k stop
+start Apache    httpd -k start
+Restart Apache	httpd -k restart
+install Apache Service	httpd -k install
+Uninstall Apache Service	httpd -k uninstall
+Command Line Options List	httpd -h
+
+一、ajp配置apache2.4.6 + tomcat cluster
+1、修改httpd.conf
+A)将下列module放开
+#LoadModule proxy_module modules/mod_proxy.so
+#LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
+#LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
+#LoadModule proxy_connect_module modules/mod_proxy_connect.so
+#LoadModule proxy_ftp_module modules/mod_proxy_ftp.so
+#LoadModule proxy_http_module modules/mod_proxy_http.so
+#LoadModule rewrite_module modules/mod_rewrite.so
+#LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
+#LoadModule speling_module modules/mod_speling.so
+#LoadModule proxy_html_module modules/mod_proxy_html.so
+#LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+#LoadModule buffer_module modules/mod_buffer.so
+#LoadModule cache_module modules/mod_cache.so
+#LoadModule cache_disk_module modules/mod_cache_disk.so
+B)在httpd.conf文件末尾添加：
+ProxyRequests Off
+ProxyPass / balancer://loadbalancer/ stickysession=jsessionid nofailover=Off
+ProxyPassReverse / balancer://loadbalancer/
+<proxy balancer://loadbalancer> 
+BalancerMember http://127.0.0.1:8080 loadfactor=1 route=jvm1
+BalancerMember http://127.0.0.1:9080 loadfactor=1 route=jvm2
+</proxy>
+
+2、修改conf/extra/httpd-vhosts.conf文件。
+注释掉所有的dummy-host，添加以下内容
+<VirtualHost *:80> 
+         ServerAdmin zengwei.shao@samsung.com 
+         ServerName localhost 
+         ServerAlias localhost 
+         ProxyPass / balancer://cluster/ stickysession=jsessionid nofailover=On 
+         ProxyPassReverse / balancer://cluster/ 
+         ErrorLog "logs/lbtest-error.log" 
+         CustomLog "logs/lbtest-access.log" common 
+</VirtualHost>
+
+3、修改tomcat的配置：
+A)修改第一个tomcat的server.xml文件：
+将：<Engine name="Catalina" defaultHost="localhost">
+修改为：
+<Engine name="Catalina" defaultHost="localhost" jvmRoute="jvm1">
+
+将<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"/>改为：
+      <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"  channelSendOptions="6">
+<Manager className="org.apache.catalina.ha.session.BackupManager"
+expireSessionsOnShutdown="false"
+notifyListenersOnReplication="true"
+mapSendOptions="6"/>
+<!--
+<Manager className="org.apache.catalina.ha.session.DeltaManager"
+expireSessionsOnShutdown="false"
+notifyListenersOnReplication="true"/>
+-->
+<Channel className="org.apache.catalina.tribes.group.GroupChannel">
+<Membership className="org.apache.catalina.tribes.membership.McastService"
+address="228.0.0.4"
+port="45564"
+frequency="500"
+dropTime="3000"/>
+<Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
+address="auto"
+port="5001"
+selectorTimeout="100"
+maxThreads="6"/>
+<Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter">
+<Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"/>
+</Sender>
+<Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"/>
+<Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatch15Interceptor"/>
+<Interceptor className="org.apache.catalina.tribes.group.interceptors.ThroughputInterceptor"/>
+</Channel>
+<Valve className="org.apache.catalina.ha.tcp.ReplicationValve"
+filter=".*\.gif;.*\.js;.*\.jpg;.*\.png;.*\.htm;.*\.html;.*\.css;.*\.txt;"/>
+<Deployer className="org.apache.catalina.ha.deploy.FarmWarDeployer"
+tempDir="/tmp/war-temp/"
+deployDir="/tmp/war-deploy/"
+watchDir="/tmp/war-listen/"
+watchEnabled="false"/>
+<ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"/>
+</Cluster>
+
+B)修改第二个tomcat的server.xml文件：
+i)将<Server port="8005" shutdown="SHUTDOWN">修改为9005
+ii）将<Connector port="8080" protocol="HTTP/1.1" 
+               connectionTimeout="20000" 
+               redirectPort="8443" />中的8080为9080
+iii）将<Engine name="Catalina" defaultHost="localhost">在末尾加 jvmRoute="jvm2"
+iiii）<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"/>改为
+      <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"  channelSendOptions="6">
+<Manager className="org.apache.catalina.ha.session.BackupManager"
+expireSessionsOnShutdown="false"
+notifyListenersOnReplication="true"
+mapSendOptions="6"/>
+<!--
+<Manager className="org.apache.catalina.ha.session.DeltaManager"
+expireSessionsOnShutdown="false"
+notifyListenersOnReplication="true"/>
+-->
+<Channel className="org.apache.catalina.tribes.group.GroupChannel">
+<Membership className="org.apache.catalina.tribes.membership.McastService"
+address="228.0.0.4"
+port="45564"
+frequency="500"
+dropTime="3000"/>
+<Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
+address="auto"
+port="5002"
+selectorTimeout="100"
+maxThreads="6"/>
+<Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter">
+<Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"/>
+</Sender>
+<Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"/>
+<Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatch15Interceptor"/>
+<Interceptor className="org.apache.catalina.tribes.group.interceptors.ThroughputInterceptor"/>
+</Channel>
+<Valve className="org.apache.catalina.ha.tcp.ReplicationValve"
+filter=".*\.gif;.*\.js;.*\.jpg;.*\.png;.*\.htm;.*\.html;.*\.css;.*\.txt;"/>
+<Deployer className="org.apache.catalina.ha.deploy.FarmWarDeployer"
+tempDir="/tmp/war-temp/"
+deployDir="/tmp/war-deploy/"
+watchDir="/tmp/war-listen/"
+watchEnabled="false"/>
+<ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"/>
+</Cluster>
+
+4、修改项目的web.xml的配置：添加<distributable/>标签。

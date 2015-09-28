@@ -1,0 +1,7 @@
+1、dns轮询（实现负载均衡）
+2、haproxy
+3、NAT(Network Address Translation:网络地址转换)负载均衡
+4、反向代理负载均衡
+5、LVS（linux visual server）负载均衡
+
+高可用性HA（High Availability）

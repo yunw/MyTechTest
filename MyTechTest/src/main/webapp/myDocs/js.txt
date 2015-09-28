@@ -1,0 +1,20 @@
+读json数据：
+var jsObj = eval('(' + jsonStr + ')');
+
+<script>
+function getLocal() {
+	var local, language, country;
+	//ie
+	if (window.navigator.userLanguage)
+	{
+		local = window.navigator.userLanguage;
+	} else if (window.navigator.language) // firefox chrome
+	{
+		local = window.navigator.language;
+	}
+	language = local.substring(0, local.indexOf('-')).toLowerCase();
+	alert(language);
+	country = local.substring(local.indexOf("-") + 1).toUpperCase();
+	alert(language + "_" + country);
+}
+</script>

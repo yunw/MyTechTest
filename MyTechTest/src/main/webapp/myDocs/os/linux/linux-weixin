@@ -1,0 +1,667 @@
+10.91.230.232 jdk       nginx tomcat redis(master) keepalived
+
+10.91.230.233 jdk mysql nginx tomcat redis(slave) keepalived
+
+10.91.230.234 jdk mysql nginx ftp
+
+正向代理地址：10.90.1.249:80
+
+kill -QUIT `cat /usr/local/nginx/logs/nginx.pid`
+
+查看SELinux的状态
+get enforce
+
+SELINUX修改后立即生效的命令：
+setenforce 0
+
+开启防火墙80端口
+vi /etc/sysconfig/iptables
+添加一条规则
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+
+linux 查看磁盘空间大小：
+df -h
+
+拷贝文件夹及子文件夹：
+cp -r 
+
+vi打开文件后，在命令行下输入：
+/key #斜杠后面跟需要搜素的关键字
+
+windows一样显示控制台，则 ： ./catalina.sh run
+
+查看linux版本：
+cat /proc/version
+
+查看redhat系统是否安装yum包：
+rpm -qa|grep yum
+
+no acceptable C compiler found in $PATH
+
+解压tar.bz2文件：tar -jxvf archive_name.tar.bz2
+
+是否安装了gcc：
+gcc -v
+find / -name gcc
+
+安装gcc
+yum install gcc -y
+yum install gcc-c++ -y
+
+/etc/profile
+修改.bashrc文件（在用户的家目录下:/usr/home）进行环境变量的编辑，只对当前用户有用。
+修改 /etc/profile 文件进行环境变量的编辑，是对所有用户有用。大家一定要注意区别。
+profile文件在系统启动时将被运行。可在里面加入其他命令，但一定要正确，否则系统会启动不起来。
+
+配置文件立即生效:
+source /etc/profile
+
+安装jdk：
+
+一、下载：jdk-7u79-linux-x64.tar.gz到/usr/local下
+tar -zxvf jdk-7u79-linux-x64.tar.gz
+
+二、环境配置
+sudo vi /etc/profile
+在文件末尾加入：
+#set java environment
+JAVA_HOME=/usr/local/jdk1.7.0_79
+CLASSPATH=.:$JAVA_HOME/lib.tools.jar
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME CLASSPATH PATH
+保存退出
+
+三、使更改的配置立即生效
+source /etc/profile
+
+四、查看是否生效：
+java -version
+
+五、使JDK在所有用户中使用
+vi /etc/profile.d/java.sh
+在文件中添加：
+#set java environment
+JAVA_HOME=/usr/local/jdk1.7.0_79
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME CLASSPATH PATH
+保存退出
+给java.sh分配权限：
+chmod 755 /etc/profile.d/java.sh 
+
+安装tomcat：
+拷贝：apache-tomcat-7.0.61.tar.gz到/usr/local下
+一、解压：
+tar -zxvf apache-tomcat-7.0.61.tar.gz 
+
+二、设置环境变量：
+vi ~/.bashrc
+在文件末尾添加：
+export CATALINA_BASE=/usr/local/apache-tomcat-7.0.61
+export CATALINA_HOME=/usr/local/apache-tomcat-7.0.61
+保存退出
+source ~/.bashrc
+
+conf/server.xml
+<Host name="localhost" appBase="webapps">
+<Context path="WechatManageServer" docBase="WechatManageServer" debug="0"/>
+<Context path="/" docBase="wxh5" debug="0"/>
+</Host>
+
+conf/context.xml
+<!--<Valve className="com.orangefunction.tomcat.redissessions.RedisSessionHandlerValve" />
+<Manager className="com.orangefunction.tomcat.redissessions.RedisSessionManager"
+         host="10.91.230.232"
+         port="6379"
+         database="0"
+         maxInactiveInterval="60" />
+         -->
+         
+ <Valve className="com.radiadesign.catalina.session.RedisSessionHandlerValve" />
+<Manager className="com.radiadesign.catalina.session.RedisSessionManager"
+         host="10.91.230.232"
+         port="6379"
+         database="0"
+         maxInactiveInterval="60" />
+         
+
+1、 linux下的tomcat：  
+修改TOMCAT_HOME/bin/catalina.sh 
+位置cygwin=false前。
+JAVA_OPTS="-server -Xms512m -Xmx2048m -XX:PermSize=512m -XX:MaxPermSize=512m -XX:MaxNewSize=512m"
+
+linux nginx
+需要先安装：pcre-8.37.tar.gz zlib-1.2.8.tar.gz
+tar -zxvf nginx-1.9.0.tar.gz
+cd nginx-1.9.0
+./configure --with-pcre=../pcre-8.37 --with-zlib=../zlib-1.2.8
+make
+make install
+
+启动命令：
+/usr/local/nginx/sbin/nginx 
+-c <path>：指定自己的配置文件
+-t：测试配置文件是否正确
+停止命令：
+1、先查看nginx的主进程号：
+ps -ef | grep nginx
+root   1381     1 0 10:32 ? 00:00:00 nginx: master process ./nginx
+nobody 1382  1381 0 10:32 ? 00:00:00 nginx: worker process
+root   1499 19979 0 11:01 pts/0 00:00:00 grep nginx
+可以看出主进程为：1381
+kill -QUIT 1381 ：从容停止nginx
+kill -TERM 1381 ：快速停止nginx
+pkill -9 nginx ：强制停止nginx
+
+通过信号对 Nginx 进行控制
+Nginx 支持下表中的信号：
+
+信号名	作用描述
+TERM, INT	快速关闭程序，中止当前正在处理的请求
+QUIT	处理完当前请求后，关闭程序
+HUP	重新加载配置，并开启新的工作进程，关闭就的进程，此操作不会中断请求
+USR1	重新打开日志文件，用于切换日志，例如每天生成一个新的日志文件
+USR2	平滑升级可执行程序
+WINCH	从容关闭工作进程
+
+linux 安装mysql
+
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#groupadd mysql
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#useradd -r -g mysql mysql
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#cd /usr/local
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#tar zxvf mysql-5.6.24-linux-glibc2.5-x86_64.tar.gz
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#ln -s mysql-5.6.24-linux-glibc2.5-x86_64 mysql
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#cd mysql
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#chown -R mysql .
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#chgrp -R mysql .
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#scripts/mysql_install_db --user=mysql
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#chown -R root .
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#chown -R mysql data
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#bin/mysqld_safe --user=mysql &
+root@SSAVL2437 mysql-5.6.24-linux-glibc2.5-x86_64]#cp support-files/mysql.server /etc/init.d/mysql.server
+
+
+
+
+进入mysql报错：
+ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/tmp/mysql.sock'
+解决方案：ln -s /var/lib/mysql/mysql.sock /tmp/mysql.sock
+
+
+
+linux 安装redis
+tar -zxvf redis-3.0.1.tar.gz
+cd redis-3.0.1
+make test
+You need tcl 8.5 or newer in order to run the Redis test
+
+yum install tcl -y
+
+make test
+make
+make install
+src/redis-server ./redis.conf #开启服务端
+src/redis-cli    #开启客户端
+
+
+         
+nginx透传客户端ip：
+
+location / {
+            proxy_pass http://www.wechat.cn;
+            proxy_redirect off;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+然后程序中按如下方式获取客户端IP：
+/**获取客户端IP*/
+	public static String getIpAddr(HttpServletRequest request) {
+		String fromSource = "X-Real-IP";
+		String ip = request.getHeader("X-Real-IP");
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("X-Forwarded-For");
+			fromSource = "X-Forwarded-For";
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("Proxy-Client-IP");
+			fromSource = "Proxy-Client-IP";
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+			fromSource = "WL-Proxy-Client-IP";
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+			fromSource = "request.getRemoteAddr()";
+		}
+		log.debug("client ip:::::::::::::::" + fromSource);
+		return ip;
+	}
+
+linux 安装ftp：
+yum install vsftpd -y :安装
+service vsftpd restart  ：启动服务。
+基础配置自带，匿名用户访问/var/ftp/目录等，有其他要求需要更多配置
+查看ftp服务状态：
+service vsftpd status 
+service vsftpd start #启动ftp服务
+ftpusers文件位于/etc/vsftpd目录下用来记录不允许登录FTP服务器的用户,通常是系统默认的用户;
+默认情况下,root用户和它以下的用户是不允许登录FTP服务器的,如果管理员不允许某些用户登录FTP服务器,
+可以将其名字添加到该文件中,但切记每个用户名要独占一行;
+
+user_list文件也位于/etc/vsftpd目录下,它可以实现与ftpusers文件相同的功能.FTP服务器启动的时首先会检测vsftpd.conf文件,如果检测到该文件中存在如下语句:
+userlist_deny=YES
+则user_list文件中存在的用户不允许登录FTP服务器,YES为该句的默认选项
+userlist_deny=NO
+则只允许该文件中的用户登录FTP服务器,其他用户无法登录FTP服务器.该文件与ftpusers的格式相同.如要添加用户则每个用户名要独占一行
+
+配置ftp：
+1、新建用户：
+useradd wechatftp -g root -d /wechatroot -s /sbin/nologin #该用户仅用来支持FTP服务，因此不必让他登录系统
+2、设置密码
+passwd wechatftp #连续两次输入密码：123456
+3、修改SELinux参数
+setsebool ftpd_disable_trans 1
+3、修改/wechatroot权限
+chmod 775 /wechatroot
+4、设置/etc/vsftpd/vsftpd.conf
+anonymous_enable=NO    #可以限制匿名用户登录。
+local_enable=YES       #启用本地用户登录
+write_enable=YES       #设置可以进行写操作
+local_umask=022        #设定上传后文件的权限掩码
+userlist_enable=YES    #启用用户登录控制
+local_root=/wechatroot #（路径自定义）定义所有本地用户的根目录。当本地用户登入时，将被更换到此目录下。（注释则访问该用户自己目录）
+chroot_local_user=NO
+chroot_list_enable=YES
+chroot_list_file=/etc/vsftpd/chroot_list #指出被锁定在自家目录中的用户的列表文件。文件格式为一行一用户。
+                                         #当chroot_local_user=NO、chroot_list_enable=YES时，
+                                         #chroot_list中用户为锁定用户，即他们除了自己的目录，不可以访问其他目录。
+                                         #当chroot_local_user=YES、chroot_list_enable=YES时，
+                                         #chroot_list中用户为非锁定用户，他们可以访问任何其他目录。
+                                         
+                                         
+禁用selinux：
+setenforce 0
+如果永久无效：
+vi /etc/sysconfig/selinux
+SELINUX=enforcing改成：
+SELINUX=disabled
+
+创建文件：/etc/vsftpd/chroot_list
+其中只有一行：
+wechatftp
+
+安装ftp客户端：
+yum install ftp -y
+
+连接ftp服务器
+ftp 10.91.230.232
+ftp>
+上传文件：
+ftp> put localfile [remotefile]
+下载文件
+ftp> get remotefile localfile
+
+客户端上传文件到ftp服务器的子文件夹，如果该文件夹不存在，需要先用mkdir命令创建，然后上传。
+
+
+安装keepalived-1.2.16.tar.gz
+cp /home/appuser/keepalived-1.2.16.tar.gz /usr/local/src/
+cd /usr/local/src
+tar -zxvf keepalived-1.2.16.tar.gz
+cd keepalived-1.2.16
+./configure --prefix=/usr/local/keepalived
+报错：
+configure : error:
+   !!! OpenSSL is not properly installed on your system.!!!
+   !!! Can not include OpenSSL headers files.           !!!
+这个错误说明需要安装openssl-devel
+yum install openssl-devel -y
+
+./configure --prefix=/usr/local/keepalived
+make
+make install
+建立服务启动脚本，以便使用service命令控制之 
+cp /usr/local/keepalived/etc/rc.d/init.d/keepalived /etc/init.d/keepalived
+chmod +x /etc/init.d/keepalived
+修改/etc/init.d/keepalived, 寻找大约15行左右的. /etc/sysconfig/keepalived, 修改为： 
+.  /usr/local/keepalived/etc/sysconfig/keepalived, 即指向正确的文件位置
+同时在上述行下添加以下内容（将keepavlied主程序所在路径导入到环境变量PATH中）：
+PATH=$PATH:/usr/local/keepalived/sbin
+export PATH
+
+修改/usr/local/keepalived/etc/sysconfig/keepalived文件，设置正确的服务启动参数 
+KEEPALIVED_OPTIONS="-D -f /usr/local/keepalived/etc/keepalived/keepalived.conf"
+经过以上修改，keepalived基本安装即可完成，启动测试之： 
+service keepalived restart
+切勿忘记将此服务设置为开机启动
+chkconfig keepalived on
+
+配置主机/usr/local/keepalived/etc/keepalived/keepalived.conf
+
+#################################[MASTER]############################
+! Configuration File for keepalived
+
+global_defs {
+   router_id LVS_DEVEL
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth1
+    virtual_router_id 51
+    mcast_src_ip 10.91.230.232
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111222
+    }
+    virtual_ipaddress {
+        10.91.230.237
+    }
+}
+##############################[MASTER]###############################
+
+配置备机/usr/local/keepalived/etc/keepalived/keepalived.conf
+###################################[BACKUP]##########################
+! Configuration File for keepalived
+
+global_defs {
+   router_id LVS_DEVEL
+}
+
+vrrp_instance VI_1 {
+    state SLAVER
+    interface eth1
+    virtual_router_id 51
+    mcast_src_ip 10.91.230.233
+    priority 99
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111222
+    }
+    virtual_ipaddress {
+        10.91.230.237
+    }
+}
+###################################[BACKUP]##########################
+
+启动keepalived服务，使用ip addr命令查看。
+
+查看系统日志:
+tailf /var/log/messages
+
+监控程序：nginx_check
+#!/bin/bash
+#
+# chkconfig: - 57 75
+# description: nginx_check service
+
+start() {
+    echo "Starting nginx_check..."
+    echo "Starting nginx_check..." `date +%Y-%m-%d` `date +%H:%M:%S` >> /tmp/nginxCheck.log
+    
+    while :
+    do
+        if [ `ps -C nginx --no-header | wc -l` -eq 0 ]; then
+            /usr/local/nginx/sbin/nginx
+        fi
+        sleep 3
+        if [ `ps -C nginx --no-header | wc -l` -eq 0 ]; then
+            service keepalived stop
+        fi
+        sleep 3
+    done
+}
+
+stop() {
+    echo "Stopping nginx_check ..."
+    echo "Stopped nginx_check" `date +%Y-%m-%d` `date +%H:%M:%S` >> /tmp/nginxCheck.log
+}
+
+# See how we were called.
+case "$1" in
+  start)
+start
+;;
+  stop)
+stop
+;;
+  restart|force-reload)
+stop
+start
+;;
+  *)
+echo $"Usage: $0 {start|stop|restart|force-reload}"
+exit 2
+esac
+#############################################################################
+
+touch /tmp/nginxCheck.log
+chmod 777 /tmp/nginxCheck.log
+
+chmod +x nginx_check
+chkconfig --add nginx_check
+chkconfig --level 345 nginx_check on
+
+
+redis开机启动:/etc/rc.d/init.d/redisService
+**********************************************************************
+*                                                                    *
+*   前提说明：                                                                                                                                                                               *
+*   redis 安装路径： /usr/local/redis-2.8.19                             *
+*   redis 启动路径： /usr/local/redis-2.8.19/bin                         *
+*   redis 配置文件： /usr/local/redis-2.8.19/conf/redis.conf             *
+*                                                                    * 
+**********************************************************************
+
+1.配置redis启动脚本 redis_6379，脚本内容如下：
+
+#!/bin/sh
+#
+# chkconfig: - 90 10
+# description:  Redis service
+
+REDISPORT=6379
+EXEC=/usr/local/redis-2.8.19/src/redis-server
+CLIEXEC=/usr/local/redis_2.8.19/src/redis-cli
+PIDFILE=/usr/local/redis-2.8.19/redis.pid
+CONF=/usr/local/redis-2.8.19/redis.conf
+
+start() {
+    echo "Starting redis service..."
+    #echo "Starting redis service..." `date +%Y-%m-%d` `date +%H:%M:%S` >> /tmp/redisService.log
+    if [ -f $PIDFILE ]
+    then
+        echo "$PIDFILE exists, process is already running or crashed"
+    else
+        echo "Starting redis service..."
+        $EXEC $CONF
+    fi
+}
+
+stop() {
+   echo "Stopping redis service..."
+   echo "Stopping redis service..." `date +%Y-%m-%d` `date +%H:%M:%S` >> /tmp/redisService.log
+   if [ ! -f $PIDFILE ]
+   then
+       echo "$PIDFILE does not exist, process is not running"
+   else
+       PID=$(cat $PIDFILE)
+       echo "Stopping..."
+       $CLIEXE -p $REDISPORT shutdown
+       while [ -x /proc/${PID} ]
+       do
+           echo "Waitting for redis to shutdown..."
+           sleep1
+       done
+       echo "redis stopped"
+   fi
+}
+
+case "$1" in
+    start)
+start
+;;
+    stop)
+stop
+;;
+    restart|force-reload)
+stop
+start
+;;
+    *)
+echo $"Usage: $0 {start|stop|restart|force-reload}"
+esac
+
+
+注：两点说明
+    ①：启动脚本前面必须添加：
+    # chkconfig:   2345 90 10
+    # description:  Redis is a persistent key-value database
+    
+    否则在chkconfig --add redis_6379时会报一下错误: 
+    service redis does not support chkconfig
+
+    ②：注意脚本格式 if [ 之间有空格， = 两端有空格
+    
+2.将该脚本放在 /etc/rc.d/init.d/ 目录下：
+  chkconfig --add redis_6379
+  chkconfig redis_6379 on 
+  
+3.通过以上步骤，即可通过service redis_6379 stop|start|restart 等命令启停脚本；
+
+
+nginx开机自启动（nginxService）：
+#!/bin/bash
+#
+# chkconfig: 2345 85 58
+# description: nginx auto run service
+
+start() {
+    echo "Starting nginx..."
+    echo "Starting nginx..." `date +%Y-%m-%d` `date +%H:%M:%S` >> /tmp/nginxService.log
+    /usr/local/nginx/sbin/nginx
+}
+
+stop() {
+    echo "Stopping nginx..." `date +%Y-%m-%d` `date +%H:%M:%S` >> /tmp/nginxService.log
+    kill -QUIT `cat /usr/local/nginx/logs/nginx.pid`
+}
+
+# See how we were called.
+case "$1" in
+  start)
+start
+;;
+  stop)
+stop
+;;
+  restart|force-reload)
+stop
+start
+;;
+  *)
+echo $"Usage: $0 {start|stop|restart|force-reload}"
+exit 2
+esac
+
+exit 0
+
+将nginxService拷贝dao/etc/rc.d/init.d文件夹下，修改属性：
+chmod 755 nginxService
+chkconfig --add nginxService
+chkconfig nginxService on
+touch /tmp/nginxService.log
+chmod 777 /tmp/nginxService.log
+重启生效
+
+
+
+redis集群：
+redis sentinel
+####master  sentinel.conf##################################################
+##sentinel实例之间的通讯端口
+port 26379
+####sentinel需要监控的master信息：<mastername> <masterIP> <masterPort> <quorum>.
+####<quorum>应该小于集群中slave的个数,只有当至少<quorum>个sentinel实例提交"master失效" 才会认为master为ODWON("客观"失效) .
+sentinel monitor mymaster 127.0.0.1 6379 2
+####授权密码，在安全的环境中可以不设置
+sentinel auth-pass mymaster luyx30
+####master被当前sentinel实例认定为“失效”(SDOWN)的间隔时间
+sentinel down-after-milliseconds mymaster 30000
+####当新master产生时，同时进行“slaveof”到新master并进行同步复制的slave个数。
+##在salve执行salveof与同步时，将会终止客户端请求。
+##此值较大，意味着“集群”终止客户端请求的时间总和和较大。
+##此值较小,意味着“集群”在故障转移期间，多个salve向客户端提供服务时仍然使用旧数据。
+sentinel parallel-syncs mymaster 1
+####failover过期时间，当failover开始后，在此时间内仍然没有触发任何failover操作，当前sentinel将会认为此次failoer失败。
+sentinel failover-timeout mymaster 900000
+###################################################################################################
+
+
+ftp主从同步配置（采用Rsync+sersync）：
+一、配置目标服务器（10.91.230.234）：
+
+1、安装rsync：
+
+a）查看rsync是否已经安装：
+
+find / -name rsync
+查询结果：
+/usr/xinetd.d/rsync
+/usr/bin/rsync
+说明rsync已经安装。
+否则：
+tar -xzvf  rsync-3.1.0.tar.gz 
+cd rsync-3.1.0
+./configure --prefix=/usr/local/rsync 
+make
+make install
+
+b）创建rsync配置文件rsync.conf：
+log file = /var/log/rsyncd.log 
+pidfile = /var/run/rsyncd.pid 
+lock file = /var/run/rsync.lock 
+secrets file = /etc/rsync.pass 
+motd file = /etc/rsyncd.Motd 
+[md]
+path = /wechatroot 
+comment = md 
+uid = root 
+gid = root 
+port=873 
+use chroot = no 
+read only = no 
+list = no 
+max connections = 200
+timeout = 600
+auth users = md
+hosts allow = 10.91.230.233 
+#hosts deny = 10.91.230.232
+:wq
+chmod 600 /etc/rsync.conf
+
+c）创建用户认证文件
+vi /etc/rsync.scrt 
+md:123456 
+:wq
+chmod 600 /etc/rsync.scrt
+
+一、配置源服务器
+1、安装rsync：
+a）查看rsync是否已经安装：
+find / -name rsync
+查询结果：
+/usr/xinetd.d/rsync
+/usr/bin/rsync
+说明rsync已经安装。
+b）创建密码认证文件：
+vi rsync.pass
+123456
+:wq
+chmod 600 rsync.pass

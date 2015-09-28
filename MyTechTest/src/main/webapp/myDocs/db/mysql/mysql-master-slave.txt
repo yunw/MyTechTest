@@ -1,0 +1,166 @@
+一、下载mysql非安装版压缩文件：mysql-5.6.23-winx64.zip
+
+二、解压到d盘：d:/database/mysql/mysql-5.6.23-winx64，然后在相同路径下拷贝两份d:/database/mysql/mysql-5.6.23-winx64
+        重命名为：d:/database/mysql/mysql-5.6.23-winx64-slave0
+                    和：d:/database/mysql/mysql-5.6.23-winx64-slave1
+  
+       设置MYSQL_HOME=d:/database/mysql/mysql-5.6.23-winx64
+       将%MYSQL_HOME%\bin加入path环境变量。
+
+三、配置mysql
+1、主服务器配置：
+将d:/database/mysql/mysql-5.6.23-winx64/my-default.ini重命名为：my.ini
+my.ini:
+[mysqld]
+ log_bin = mysql-bin
+ basedir = D:/database/mysql/mysql-5.6.23-winx64
+ datadir = D:/database/mysql/mysql-5.6.23-winx64/data
+ port = 3306
+ server_id = 1
+ character_set_server = utf8
+
+2、从服务器配置：
+a)从服务器1：
+将d:/database/mysql/mysql-5.6.23-winx64-slave0/my-default.ini重命名为：my.ini
+my.ini:
+[mysqld]
+ basedir = D:/database/mysql/mysql-5.6.23-winx64-slave0
+ datadir = D:/database/mysql/mysql-5.6.23-winx64-slave0/data
+ port = 3307
+ server_id = 2
+ character_set_server = utf8
+ #slave-skip-errors=1062,1053,1146 #跳过指定error no类型的错误
+ slave-skip-errors=all #跳过所有错误
+ 
+ b)从服务器2：
+将d:/database/mysql/mysql-5.6.23-winx64-slave1/my-default.ini重命名为：my.ini
+my.ini:
+[mysqld]
+ basedir = D:/database/mysql/mysql-5.6.23-winx64-slave1
+ datadir = D:/database/mysql/mysql-5.6.23-winx64-slave1/data
+ port = 3308
+ server_id = 3
+ character_set_server = utf8
+ slave-skip-errors=all #跳过所有错误
+ 
+3、在主服务器d:/database/mysql/mysql-5.6.23-winx64下创建文件：auto.cnf
+打开auto.cnf，加入内容(uuid的值可以用java语言的java.util.UUID.randomUUID()来生成)：
+[auto]
+server_uuid=639b3ca1-d3dd-4c37-b34b-415f1f2a713d
+
+同上，在从服务器0也创建auto.cnf，并加入内容：
+[auto]
+server_uuid=3702ae8c-0daa-4d08-b959-9fdf244b4885
+
+在从服务器1也创建auto.cnf，并加入内容：
+[auto]
+server_uuid=3be2d1c0-0bc5-4780-8926-dde871af5844
+
+创建上述三个文件的目：因为主从服务器都在一台电脑里，
+因此，主从服务器的server_uuid可能相同，通过auto.cnf明确指定server_uuid为不同的值，可以区分两个服务器。
+
+四、创建主从服务：
+1、创建主服务：
+点击win7左下角的开始按钮，在运行框中输入：cmd。在菜单中选中cmd.exe，右键点击，在浮动菜单中选“以管理员身份运行”。
+在dos窗口中输入：
+mysqld --install mysql --defaults-file=D:/database/mysql/mysql-5.6.23-winx64/my.ini
+如果出现下面的结果，说明服务创建成功：
+Service successfully installed.
+
+2、创建从服务：
+  同样，重新打开一个dos窗口（运行从服务0）。
+ 在dos窗口中输入：mysqld --install mysql-slave0 --defaults-file=D:/database/mysql/mysql-5.6.23-winx64-slave0/my.ini
+
+重新打开一个dos窗口（运行从服务1）。
+ 在dos窗口中输入：mysqld --install mysql-slave1 --defaults-file=D:/database/mysql/mysql-5.6.23-winx64-slave1/my.ini
+
+3、在主服务器dos窗口中输入：net start mysql
+如果出现：
+The mysql service is starting.
+The mysql service was started successfully.
+ 说明已经启动mysql主服务了。
+ 
+ 注意：服务创建之后并非处于启动状态，所以需要上述命令来启动服务。
+ 
+  然后输入：mysql -h localhost -P 3306 -u root
+ 最后会出现：
+ mysql>
+ 提示符
+ 说明已经登录上mysql主服务了。
+测试：
+输入命令：use mysql
+输入查询语句：select host, user, password from user;
++-----------+------+-------------------------------------------+
+| host      | user | password                                  |
++-----------+------+-------------------------------------------+
+| localhost | root |                                           |
+| 127.0.0.1 | root |                                           |
+| ::1       | root |                                           |
+| localhost |      |                                           |
++-----------+------+-------------------------------------------+
+4 rows in set (0.06 sec)
+
+设置数据库密码：set password = password('123456');
+退出数据库（quit），然后重新进入：mysql -h localhost -P 3306 -u root -p123456
+
+  同样，在从服务器dos窗口a中输入：net start mysql-slave0
+  然后输入：mysql -h localhost -P 3307 -u root
+  就可以登录从服务器了
+测试：
+输入命令：use mysql
+输入查询语句：select host, user, password from user;
+
+从服务1操作同上。设置两个从服务器的密码都为：123456。
+
+五、创建复制账号：
+在主服务器上创建一个账号用于复制：
+CREATE USER 'slave234'@'10.91.230.234' IDENTIFIED BY 'slavepass234';
+GRANT REPLICATION SLAVE ON *.* TO 'slave234'@'10.91.230.234';
+输入查询语句：select host, user, password from user;
+可以看到账号已经创建好了。
+
+注：可以为每个从服务创建不同的账号用于复制，也可以所有的从服务使用相同的账号（本手册采用相同账号）。
+
+六、查看主服务器状态：
+  输入：SHOW MASTER STATUS;
+可以看到结果：
++------------------+----------+--------------+------------------+-------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++------------------+----------+--------------+------------------+-------------------+
+| mysql-bin.000001 |     720  |              |                  |                   |
++------------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+  
+七、配置从服务器，执行复制：
+在刚才打开的从服务器dos窗口
+输入：
+CHANGE MASTER TO
+ MASTER_HOST='10.91.230.233',
+ MASTER_PORT=3306,
+ MASTER_USER='slave234',
+ MASTER_PASSWORD='slavepass234',
+ MASTER_DELAY = 0,
+ MASTER_LOG_FILE='mysql-bin.000016',
+ MASTER_LOG_POS=4400;
+ 
+ 其中：MASTER_LOG_FILE、MASTER_LOG_POS的值就是主服务器状态查询中的File、Position的值。
+ 
+ 最后启动从服务器的复制功能：
+输入：start slave;
+ 
+ 至此，主从配置已经完成，并已经可以执行复制了。
+ 
+ 八、测试主从服务器的配置：
+ 在主服务器建表：
+ drop table if exists t_test;
+ create table t_test(id int);
+ insert into t_test (id) values (1);
+在主服务器执行查询：
+select id from t_test;
+可以看到结果。
+
+然后到从服务器窗口执行查询：
+select id from t_test;
+也可以看到结果。
+
+打完收工。

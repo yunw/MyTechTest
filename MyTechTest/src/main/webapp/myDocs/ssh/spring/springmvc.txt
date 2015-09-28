@@ -1,0 +1,18 @@
+1、dispatchServlet的默认配置
+spring-webmvc.jar的org.springframework.web.servlet包下有个DispatcherServlet.properties文件。
+   该文件保存了一系列bean的默认实现。
+   
+2、dispatcherServlet处理request的顺序：
+   A）搜索WebApplicationContext并将它作为一个属性绑定到该request，后面controller或其他的元素在处理中就可以用到它。它默认绑定在如下的key上：
+       DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE
+   B）local resolver被绑定到该request，后续处理的时候可以使用（渲染视图，准备数据等等），如果不需要本地解析，可以不要它。
+   C）theme resolver被绑定到该request
+   D）如果你声明了一个multipart file resolver，这个请求被视为multipart；如果multipart被发现，请求就被包装进MultipartHttpServletRequest。
+   E）一个适当的handler被搜索。如果handler被发现，执行链就被分配给这个handler（preprocessors, postprocessors, and controllers）被执行，目的是准备model或rendering
+   F）如果一个model返回了，view已经渲染了。如果没有model返回（可能是preprocessor or postprocessor拦截了这个请求，可能因为安全原因），没有view被渲染，因为这个request已经被执行了。
+
+
+
+
+   
+   

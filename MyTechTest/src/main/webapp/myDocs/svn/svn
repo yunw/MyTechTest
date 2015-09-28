@@ -1,0 +1,11 @@
+版本控制方案：lock-modify-unlock、copy-modify-merge（svn、cvs等采用这种方式）
+
+查看SVN版本信息：
+svn --version
+查看命令帮助：
+svn help subcommand
+例如：查看merge命令的功能：
+svn help merge
+
+apache 加载了mod_dav_svn模块之后。可以使用：
+SVNPathAuthz指令：以路径为基础的访问权限检查，该指令默认为“on”，如果设置为“off”，就会关闭路径权限检查。

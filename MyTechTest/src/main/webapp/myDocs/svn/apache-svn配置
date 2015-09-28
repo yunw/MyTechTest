@@ -1,0 +1,60 @@
+1、下载：httpd-2.2.25-win32-x86-no_ssl.msi、Setup-Subversion-1.8.9-1.msi
+
+2、安装：httpd-2.2.25-win32-x86-no_ssl.msi，路径：d:/Apache2.2， 安装完之后，测试：http://localhost/
+
+3、安装Setup-Subversion-1.8.9-1.msi，路径：d:/Subversion
+
+4、创建目录：d:/svnhome
+
+5、将：d:/Subversion/bin目录下的mod_dav_svn.so、mod_authz_svn.so拷贝到d:/Apache2.2/modules目录下
+
+6、将d:/Apache2.2/bin加入系统环境变量：path
+
+7、创建passwd文件
+假设用户名与密码的文件放在d:/svnhome/passwd。在命令行输入：
+htpasswd –cm d:/svnhome/passwd yourname 
+上述命令将在d:/svnhome下面创建一个名为passwd的文件，创建第一个用户(yourname)，同时生成密码认证文件，c参数为create,m参数为MD5加密方式，p则表示密码不用加密的形式。
+执行后需要输入密码和确认密码。最后出现下述信息：
+Adding password for user yourname
+表明用户创建成功。以后创建第二个用户的时候，就不用加入c，不然会覆盖掉之前的passwd文件（对于已存在的用户，可以运行上述命令，输入新密码，即可修改密码）。
+
+8、使用svnadmin create命令创建项目库：
+svnadmin create d:/svnhome/SAFE4J
+
+9、修改d:/Apache2.2/conf/httpd.conf文件
+将LoadModule dav_module modules/mod_dav.so前的“#”去掉，在下面增加：
+LoadModule dav_svn_module modules/mod_dav_svn.so
+LoadModule authz_svn_module modules/mod_authz_svn.so
+两行
+在文件的最后添加：
+<Location /home>
+    DAV svn
+    SVNParentPath d:/svnhome #多个svn仓库共同的父目录
+    AuthType Basic
+    AuthName "Subversion home repository"
+    AuthuserFile d:/svnhome/passwd
+    #AuthzSVNAccessFile d:/svnhome/authz
+    require valid-user
+</Location>
+
+<Location /SAFE4J>
+    DAV svn
+    SVNParentPath d:/svnhome/SAFE4J
+    AuthType Basic
+    AuthName "Subversion struts app repository"
+    AuthuserFile d:/svnhome/passwd
+    #AuthzSVNAccessFile d:/svnhome/authz
+    require valid-user
+</Location>
+
+10、重启apache服务，打开浏览器，输入：http://localhost/SAFE4J/
+输入用户名、密码:
+网页显示：
+SAFE4J Reversion 0:/
+
+11、修改访问目录的权限文件d:/svnhome/authz如下(注意，要顶格写，最左边不能有空格)：
+[SAFE4J:/]
+admin = rw #读写权限
+abfme = r  #只读权限
+
+打完收功

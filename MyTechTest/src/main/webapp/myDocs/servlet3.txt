@@ -1,0 +1,6 @@
+1、javax.servlet.ServletContainerInitializer接口：
+    ServletContainerInitializer的实现（fully qualified class name）必须绑定在jar包的META-INF/services目录中的一个叫做
+javax.servlet.ServletContainerInitializer的文件中。
+        容器在启动时使用JAR服务API(JAR Service API)来发现ServletContainerInitializer的实现类，并且容器将读取在这些类上使用 @HandlesTypes注解来指定的类集合（感兴趣的类）。
+随后容器将扫描WEB-INF/lib目录下JAR包中的所有类，任何继承或实现这个集合中的类的类都交给这些实现类的 onStartup()方法处理。
+  javax.servlet.annotation.HandlesTypes注解声明了能够被ServletContainerInitializer的实现处理的类型。

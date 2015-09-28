@@ -1,0 +1,208 @@
+linux mysql 表名不区分大小写：
+my.cnf中添加参数：
+lower_case_table_names=1
+
+创建数据库并指定字符集：
+CREATE DATABASE IF NOT EXISTS db_name DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+例如：
+CREATE DATABASE IF NOT EXISTS wechat DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+
+创建用户并赋权限：
+CREATE USER 'Administrator'@'localhost' IDENTIFIED BY '1234';
+grant all privileges on testdb to 'Administrator'@'localhost';
+
+设置数据库密码：
+set password = password('123456');
+
+列出所有数据库 
+show databases;
+
+show create database db_name;
+
+修改表结构：
+ALTER [IGNORE] TABLE tbl_name alter_spec [, alter_spec ...]
+
+alter_specification:
+ADD [COLUMN] create_definition [FIRST | AFTER column_name ]
+or ADD INDEX [index_name] (index_col_name,...)
+or ADD PRIMARY KEY (index_col_name,...)
+or ADD UNIQUE [index_name] (index_col_name,...)
+or ALTER [COLUMN] col_name {SET DEFAULT literal | DROP DEFAULT}
+or CHANGE [COLUMN] old_col_name create_definition
+or MODIFY [COLUMN] create_definition
+or DROP [COLUMN] col_name
+or DROP PRIMARY KEY
+or DROP INDEX index_name
+or RENAME [AS] new_tbl_name
+or table_options
+例如：
+alter table tbl_name add col_name varchar(50);
+alter table tbl_name modify col_name varchar(200);
+
+
+#关闭mysql的自动提交功能
+[mysqld]
+autocommit=0
+
+#启动服务
+net start mysql-slave
+
+#停止服务
+net stop mysql-slave
+
+#删除服务
+mysqld --remove mysql-slave
+
+#使用数据库
+use mysql
+
+#登录数据库
+# -P port -p password
+mysql -h localhost -P 3307 -u root 
+
+#查看mysql版本
+SELECT VERSION(), CURRENT_DATE;
+
+#查看表的索引
+show index in table_name;
+
+#查看mysql的系统变量
+show variables;
+show variables like 'autocommit%';
+
+#查看slave状态，\G的作用是格式化输出
+show slave status \G;
+
+#查看所有表名：
+show tables;
+
+#查看表结构：
+describe table_name;
+
+#查看建表语句：
+show create table table_name;
+
+#建表使用utf8
+create table (
+...
+) ENGINE=InnoDB default charset=utf8;
+
+时间函数：
+ADDDATE(date,INTERVAL expr unit)
+unit Value             Expected expr Format
+MICROSECOND               MICROSECONDS
+SECOND                    SECONDS
+MINUTE                    MINUTES
+HOUR                      HOURS
+DAY                       DAYS
+WEEK                      WEEKS
+MONTH                     MONTHS
+QUARTER                   QUARTERS
+YEAR                      YEARS
+SECOND_MICROSECOND        'SECONDS.MICROSECONDS'
+MINUTE_MICROSECOND        'MINUTES:SECONDS.MICROSECONDS'
+MINUTE_SECOND             'MINUTES:SECONDS'
+HOUR_MICROSECOND          'HOURS:MINUTES:SECONDS.MICROSECONDS'
+HOUR_SECOND               'HOURS:MINUTES:SECONDS'
+HOUR_MINUTE               'HOURS:MINUTES'
+DAY_MICROSECOND           'DAYS HOURS:MINUTES:SECONDS.MICROSECONDS'
+DAY_SECOND                'DAYS HOURS:MINUTES:SECONDS'
+DAY_MINUTE                'DAYS HOURS:MINUTES'
+DAY_HOUR                  'DAYS HOURS'
+YEAR_MONTH                'YEARS-MONTHS'
+例如：
+adddate(current_timestamp(),interval 1 day)
+
+日期格式化：
+可用DATE_FORMAT( ) 来格式化DATE 或DATETIME 值，以便得到所希望的格式。根据format字符串格式化date值:
+
+  %S, %s 两位数字形式的秒（ 00,01, . . ., 59）
+
+  %i 两位数字形式的分（ 00,01, . . ., 59）
+
+  %H 两位数字形式的小时，24 小时（00,01, . . ., 23）
+
+  %h, %I 两位数字形式的小时，12 小时（01,02, . . ., 12）
+
+  %k 数字形式的小时，24 小时（0,1, . . ., 23）
+
+  %l 数字形式的小时，12 小时（1, 2, . . ., 12）
+
+  %T 24 小时的时间形式（h h : m m : s s）
+
+  %r 12 小时的时间形式（hh:mm:ss AM 或hh:mm:ss PM）
+
+  %p AM 或P M
+
+  %W 一周中每一天的名称（ S u n d a y, Monday, . . ., Saturday）
+
+  %a 一周中每一天名称的缩写（ Sun, Mon, . . ., Sat）
+
+  %d 两位数字表示月中的天数（ 00, 01, . . ., 31）
+
+  %e 数字形式表示月中的天数（ 1, 2， . . ., 31）
+
+ %D 英文后缀表示月中的天数（ 1st, 2nd, 3rd, . . .）
+
+  %w 以数字形式表示周中的天数（ 0 = S u n d a y, 1=Monday, . . ., 6=Saturday）
+
+  %j 以三位数字表示年中的天数（ 001, 002, . . ., 366）
+
+  % U 周（0, 1, 52），其中Sunday 为周中的第一天
+
+  %u 周（0, 1, 52），其中Monday 为周中的第一天
+
+  %M 月名（J a n u a r y, February, . . ., December）
+
+  %b 缩写的月名（ J a n u a r y, February, . . ., December）
+
+  %m 两位数字表示的月份（ 01, 02, . . ., 12）
+
+  %c 数字表示的月份（ 1, 2, . . ., 12）
+
+  %Y 四位数字表示的年份
+
+  %y 两位数字表示的年份
+
+  %% 直接值“%”
+  
+查询数据：
+查询当前这周的数据 
+SELECT name,submittime FROM enterprise WHERE YEARWEEK(date_format(submittime,'%Y-%m-%d')) = YEARWEEK(now()); 
+
+查询上周的数据 
+SELECT name,submittime FROM enterprise WHERE YEARWEEK(date_format(submittime,'%Y-%m-%d')) = YEARWEEK(now())-1; 
+
+查询当前月份的数据 
+select name,submittime from enterprise where date_format(submittime,'%Y-%m')=date_format(now(),'%Y-%m') 
+
+查询距离当前现在6个月的数据 
+select name,submittime from enterprise where submittime between date_sub(now(),interval 6 month) and now(); 
+
+mysql备份mysqldump脚本：
+#!/bin/sh
+BACKUP_DIR=/mysql_bak
+DATABASE=wechat
+LOGFILE=$BACKUP_DIR/data_backup.log
+DATE=`date '+%Y%m%d-%H%M'`
+DUMPFILE=$DATABASE-$DATE.sql
+ARCHIVE=$DATABASE-$DATE.sql.tar.gz
+
+if [ ! -d $BACK_DIR ];then
+mkdir -p "$BACKUP_DIR"
+fi
+
+echo " ">> $LOGFILE
+echo "-------------------------">> $LOGFILE
+echo "BACKUP DATE: " $(date +"%Y-%m-%d %H:%M:%S")>> $LOGFILE
+echo "-------------------------">> $LOGFILE
+
+cd $BACKUP_DIR
+/usr/local/mysql/bin/mysqldump --opt $DATABASE -uroot -p1234 > /$BACKUP_DIR/$DUMPFILE
+if [[ $? == 0 ]]; then
+tar czvf $ARCHIVE $DUMPFILE >> $LOGFILE 2>&1
+echo "[$ARCHIVE] Backup Successful!" >> $LOGFILE
+rm -f $DUMPFILE
+else
+echo "Database Backup Fail!" >> $LOGFILE
+fi

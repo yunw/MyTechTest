@@ -1,0 +1,425 @@
+mqtt(Message Queuing Telemetry Transport):消息队列遥测传输。IBM开发的一个即时通讯协议。国内很多企业都广泛使用MQTT作为Android手机客户端与服务器端推送消息的协议。
+Broker：代理。
+AMQP，即Advanced Message Queuing Protocol。一个提供统一消息服务的应用层标准高级消息队列协议,是应用层协议的一个开放标准,为面向消息的中间件设计。基于此协议的客户端与消息中间件可传递消息，并不受客户端/中间件不同产品，不同开发语言等条件的限制。Erlang中的实现有 RabbitMQ等。
+epmd(Erlang Port Mapper Daemon)：erlang集群节点间端口映射守护进程
+例如：
+epmd -names
+epmd: up and running on port 4369 with data:
+name rabbit at port 25672
+
+安装rabbitmq之前必须安装erlang。
+
+一、安装erlang
+1、下载erlang：
+wget http://www.rabbitmq.com/releases/erlang/erlang-17.4-1.el6.x86_64.rpm
+2、安装
+yum install -y erlang-17.4-1.el6.x86_64.rpm
+3、配置erlang环境：
+vi /etc/profile
+export PATH=$PATH:/usr/lib64/erlang/bin
+:wq
+source /etc/profile
+4、安装完成，查看结果：
+whereis erlang
+
+二、安装rabbitmq
+1、下载rabbitmq
+wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.4/rabbitmq-server-3.5.4-1.noarch.rpm
+2、安装：
+yum install -y rabbitmq-server-3.5.4-1.noarch.rpm
+3、此时rabbitmq还没有作为守护进程开始运行。要想在系统启动之后默认以守护进程方式启动，需要执行：
+chkconfig rabbitmq-server on
+4、之后就可以用命令控制rabbitmq server的启动/停止/重启了：
+/sbin/service rabbitmq-server stop/start/restart
+5、启动网页控制台：
+rabbitmq-plugins enable rabbitmq_management
+/sbin/service rabbitmq-server restart
+6、打开浏览器，输入：
+http://ip:15672
+就会出现登录界面
+7、添加用户：
+rabbitmqctl add_user admin admin
+rabbitmqctl list_users
+8、给用户admin赋权限
+rabbitmqctl set_permissions -p "/" admin ".*" ".*" ".*"  --给用户admin赋予操作虚拟主机“/”的全部权限
+rabbitmqctl list_permissions -p /
+
+rabbitmqctl set_permissions -p /myvhost tonyg "^tonyg-.*" ".*" ".*"
+上述命令赋予用户tonyg访问虚拟主机“/myvhost”的权利，该用户拥有对虚拟主机“/myhost”的完全的读写权限，并对名称以“tonyg-”开始的资源具有配置权限。
+
+9、给用户指定角色
+rabbitmqctl set_user_tags admin administrator
+rabbitmqctl list_users
+10、在登录界面输入用户名/密码：admin/admin即可进入console了。
+
+
+访问控制（access control）：
+当服务第一次运行的时候，它会检测到它的数据库没有初始化或已经被删除了，它会用如下资源来初始化新的数据库：
+a）一个虚拟主机，名字是：“/”
+b）一个用户：guest，默认密码是：guest。它被赋予全部的权限访问虚拟主机“/”。
+
+guest用户只能通过localhost访问
+默认情况下，guest用户不能远程连接到broker上；而只能通过环回接口（例如：localhost）连接。
+这是通过loopback_users配置来实现的。如果你希望guest能远程访问。
+可以如下配置rabbitmq.config：
+[{rabbit, [{loopback_users, []}]}].
+
+权限是如何起作用的：
+
+当一个amqp客户端与一个amqp服务端建立连接的时候，它指定了一个要在里面执行操作的虚拟主机。
+第一层的访问控制在这个点就实行了，服务器检查用户是否有访问该虚拟主机的任何权限，如果没有，就拒绝连接。
+资源（resource），例如：交换器（exchange）和对列（queue），是某个特定虚拟主机中的命名实体；每个虚拟主机中的相同的名字代表着不同的资源。
+当某种操作在资源上执行的时候，第二层的访问控制就实行了。
+rabbitmq对一个资源上的配置、写和读进行了区分。配置操作创建或销毁资源，或者改变它们的行为。写操作向一个资源中注入消息。
+读操作从一个资源中检索消息。
+In order to perform an operation on a resource the user must have been granted the appropriate permissions 
+for it. The following table shows what permissions on what type of resource are required for all the 
+AMQP commands which perform permission checks.
+为了在资源上执行操作，用户在它上面必须被赋予权限。下表显示了权限在哪种类型的资源上是必须的。
+---------------------------------------------------------------------------------------------------
+|  AMQP command     |                   | configure  |         write          |     read          |
+---------------------------------------------------------------------------------------------------
+exchange.declare    |  (passive=false)  | exchange   |                        |                   |  
+---------------------------------------------------------------------------------------------------
+exchange.declare    |  (passive=true)   |            |                        |                   |    
+---------------------------------------------------------------------------------------------------
+exchange.declare    |  (with AE)        |  exchange  |  exchange (AE)         |  exchange         |
+---------------------------------------------------------------------------------------------------
+exchange.delete     |                   |  exchange  |                        |                   |      
+---------------------------------------------------------------------------------------------------
+queue.declare       | (passive=false)   | queue      |                        |                   |
+---------------------------------------------------------------------------------------------------
+queue.declare       |  (passive=true)   |            |                        |                   |       
+---------------------------------------------------------------------------------------------------
+queue.declare       |  (with DLX)       |      queue | exchange (DLX)         |  queue            |
+---------------------------------------------------------------------------------------------------
+queue.delete        |                   |  queue     |                        |                   |
+---------------------------------------------------------------------------------------------------
+exchange.bind       |                   |            | exchange (destination) | exchange (source) |
+---------------------------------------------------------------------------------------------------
+exchange.unbind     |                   |            | exchange (destination) | exchange (source) |
+---------------------------------------------------------------------------------------------------
+queue.bind          |                   |            |       queue            |  exchange         |
+---------------------------------------------------------------------------------------------------
+queue.unbind        |                   |            |       queue            |   exchange        |
+---------------------------------------------------------------------------------------------------
+basic.publish       |                   |            |    exchange            |                   |    
+---------------------------------------------------------------------------------------------------
+basic.get           |                   |            |                        |    queue          |
+---------------------------------------------------------------------------------------------------
+basic.consume       |                   |            |                        |    queue          |
+---------------------------------------------------------------------------------------------------
+queue.purge         |                   |            |                        |    queue          |
+---------------------------------------------------------------------------------------------------
+
+权限表示为三组一套的正则表达式：每组对应于每个虚拟主机的配置、写和读。用户被赋予各自的操作资源的权限，使用名字匹配的正则表达式。
+（注意：方便起见，在执行权限检查时，rabbitmq映射到amqp的默认交换器的空白名字是“amq.default”）
+
+正则表达式'^$'只能匹配空字符串，涵盖了所有资源并有效地阻止用户执行任何操作。标准的amqp资源名字都有一个amq.的前缀。服务器生成的名字都有amq.gen.的前缀。
+例如：'^(amq\.gen.*|amq\.default)$'让用户访问服务器生成的名字与默认的交换器。
+空字符串''是'^$'的同义词并与其有相同的权限约束。
+
+rabbitmq能缓存权限检查的结果，基于每个渠道每个连接。因此改变用户的权限只有在用户重连才起作用。
+
+
+默认的，RabbitMQ会一个一个的发送信息给下一个消费者(consumer)，而不考虑每个任务的时长等等，且是一次性分配，并非一个一个分配。
+平均的每个消费者将会获得相等数量的消息。这样分发消息的方式叫做round-robin（循环）。
+
+消息确认：
+如果消费者开启了自动确认模式（autoAck=true），那么rabbitMQ发送消息给消费者之后，就会立即删除该消息。这意味着：如果一个消费者在消费消息的过程中，进程死掉，那么这个消息就会丢失。
+为此，我们需要关闭自动确认模式。然后在消费者接收并成功处理之后手动发送确认信息，rabbitMQ收到该确认信息后就可以自由的删除该消息了；如果消费者进程死掉，rabbitMQ会将消息发送给别的消费者。
+这样，消息就不会在某个消费者进程死掉的时候丢失消息了。
+
+消息没有超时的概念：RabbitMQ只有在消费者连接死掉之后才会重新发送消息，即使一个消费者处理消息花费了很长时间也是没有关系的。
+
+消息持久化：
+如果rabbitMQ进程停止了或进程死掉了，它就会丢失对列和消息。为了确保消息不丢失，我们必须保证对列和消息都持久化。
+首先，必须保证rabbitMQ不丢失对列。需要申明：
+boolean durable = true;
+channel.queueDeclare("hello", durable, false, false, null);
+注：如果hello这个对列已经被申明过了，那么不能再一次用不同的参数去申明它，否则会返回错误。
+至此，我们能确保对列不会丢失，即使rabbitMQ重启了。
+其次，我们必须确保消息被持久化了——通过设置MessageProperties（它实现了BasicProperties），给它一个值：PERSISTENT_TEXT_PLAIN
+channel.basicPublish("", "task_queue", 
+            MessageProperties.PERSISTENT_TEXT_PLAIN,
+            message.getBytes());
+注：消息持久化并不能完全保证消息不丢失。尽管它告诉rabbitMQ要将消息写入磁盘，但是仍然存在一个很短的时间窗口：rabbitMQ接收了消息但还没有来得及写入磁盘。
+而且，rabbitMQ并非对每个消息都执行磁盘同步（fsync(2)），它可能只是将消息写入缓存而不是磁盘。这种持久化的保证不是很强力，但是对大多数简单任务是足够的。
+如果需要更强的保证可以使用发布确认（ publisher confirms）。
+
+公平调度(Fair dispatch)：
+我们可能会想到，有一种情况，例如：有两个worker（即消费者线程），如果所有的奇数消息都很重，而偶数消息都很轻。那么其中的一个worker就会一直忙，另一个却很空。
+rabbitMQ不知道这个情况，而只会均匀的发送消息给worker。
+之所以这样，是因为rabbitMQ在发送消息前没有查看worker那里还有多少还未应答的消息，而只是盲目的循环发送消息给消费者。
+为了避免这种情况，我们可以使用basicQos方法，设置其prefetchCount = 1。这告诉rabbitMQ不要同时给一个消费者超过一个消息。后者，换句话说，不要给一个worker消息在它处理并返回前一个消息的应答前。
+相反，它会将消息发送给一个空闲的worker。
+可以在消费者线程中添加：
+int prefetchCount = 1;
+channel.basicQos(prefetchCount);
+
+注：如果所有的worker都很忙，对列可能被填满，你需要对此保持警惕，可能需要采取增加更多的worker或其他的策略。
+
+exchange：
+rabbitMQ中的关于消息的核心思想是：生产者永不直接发送消息到对列。事实上，生产者甚至经常不知道消息是否要发送到对列。
+反而，生产者仅仅能够发送消息到exchange。exchange是一个很简单的东西。它一边从生产者这里接收消息，另一边将消息
+推送到对列里。exchange必须精确地知道如何处理它接收到的消息。它将会放入某个特定的对列？还是放入许多对列？或者将它丢弃。
+这些规则由exchange类型来定义。
+这些exchange类型是合法的：direct，topic，headers和fanout。我们将焦点放在最后一个——fanout。让我们
+创建一个这个类型的exchange，并且调用它的logs：
+channel.exchangeDeclare("logs","fanout");
+fanout exchange很简单。也许从名字你就能猜出，它只是将它收到的所有消息广播到所有的对列。这对我们的日志来说刚刚好。
+
+列出服务器上的所有exchanges：
+rabbitmqctl list_exchanges
+Listing exchanges ...
+        direct
+amq.direct      direct
+amq.fanout      fanout
+amq.headers     headers
+amq.match       headers
+amq.rabbitmq.log        topic
+amq.rabbitmq.trace      topic
+amq.topic       topic
+logs    fanout
+...done.
+在这个列表中，有些是以amq.*开头的exchange，还有一个默认（没有名字）的exchange。这些都是默认创建的，但这些都不太可能是你现在需要使用的。
+
+nameless exchange
+在以前，我们对exchange一无所知，但我们任然能发送消息到对列。这是可能的，因为我们使用了一个默认的exchange，就是我们用空字符串（""）定义的那个exchange。
+channel.basicPublish("","hello",null,message.getBytes());
+第一个参数就是exchange的名字。空字符串表示默认或者无名exchange：消息被路由到一个拥有特定的routingKey的对列中，如果这样的对列存在的话。
+现在，我们可以用我们自己命名的exchange来发布了：
+channel.basicPublish("logs","",null,message.getBytes());
+
+临时对列：temporary queues
+给对列一个名字是很重要的，当你想在生产者和消费者之间共享这个对列的时候。
+但这不是我们的日志面对的情况。我们希望知道所有的日志消息，而不仅仅只是它们的一个子集。我们也就仅仅对当前流进来的消息感兴趣而不是旧的消息。
+为了解决这个问题，我们需要做两件事。
+首先，无论什么时候我们连接到rabbit，我们需要一个新鲜的空的对列。要做到这一点，我们可以创建一个对列，给它一个随机的名字，或者，更胜一筹——让服务器
+为我们选择一个随机的名字。
+其次，一旦我们与消费者的连接断开，对列将自动被删除。
+在java客户端，当我们提供一个没有参数的queueDeclare()，我们就创建了一个非持久化，唯一的，自动删除的对列，并且它的名字是自动生成的：
+String queueName = channel.queueDeclare().getQueue();
+
+绑定：bindings
+我们已经建立了一个fanout类型的exchange和一个对列。现在我们需要告诉exchange发送消息到我们的对列。exchange和对列之间的关系被称为绑定：
+channel.queueBind(queueName,"logs","");
+从现在开始，logs exchange就可以追加消息到我们的对列了。
+绑定可以被简单的解读为：对列对来自这个exchange的消息感兴趣。
+绑定可以有一个额外的routingKey参数。
+channel.queueBind(queueName,exchangeName,"black");
+绑定key的含义依赖于exchange的类型。fanout类型的exchange简单的忽略掉这个值。
+
+
+如果没有对列绑定到exchange，消息就会丢失，但这对我们来说是ok的；如果没有消费者监听我们可以安全的丢弃消息。
+
+direct exchange：
+direct exchange背后的路由法则很简单：消息进入哪个对列取决于对列的routingKey精确的匹配消息的routingKey。如果有多个对列的routingKey匹配上了，
+direct exchange的行为就和fanout exchange的行为很相似，它将消息广播到所有匹配上的对列中。
+
+topic exchange:
+发送到topic exchange的消息不能有任意的routingKey——它必须是一个单词的列表，被点（.）分割。单词可以是任意的，它们通常带有连接上来的消息的某些特征。
+一些有效的routingKey的例子："stock.usd.nyse","nyse.vmw","quick.orange.rabbit"。routingKey最长255字节。
+topic exchange的逻辑与direct exchange很相似——一个消息带有某个特定routingKey将被发送到所有的对列，如果这些对列匹配上了绑定的key。关于绑定key，
+这里有两个比较重要的规则：
+*可以代替一个单词
+#可以代替零个或多个单词。
+例如：*.a可以匹配：aaa.a和bbb.a，但不匹配a.b.a
+    #.a可以匹配：aaa.a、bbb.a和a.b.a
+即使一个routingKey在一个对列上多次匹配上，消息也只会发送一次。
+注：topic exchange是最有能力的一种exchange，它可以实现其他exchange的功能。
+当一个queue绑定的时候的绑定key为“#”，它可以接收所有的消息，不管routingKey是什么，此时，它就像一个fanout exchange。
+当特殊字符“*”、“#”都没有在绑定时使用的时候，它就像一个direct exchange。
+
+Remote procedure call (RPC)
+在一个远程的机器上运行方法并等待它的返回结果。
+
+callback queue:
+通过rabbitMQ进行rpc调用是很简单的。客户端发送一个请求消息，服务器返回一个响应消息。为了接收响应我们需要在请求的时候发送一个回调对列地址。
+我们可以使用一个默认对列（在java客户端它是独立）。代码如下：
+callbackQueueName = channel.queueDeclare().getQueue();
+BasicProperties props = new BasicProperties
+                            .Builder()
+                            .replyTo(callbackQueueName)
+                            .build();
+channel.basicPublish("", "rpc_queue", props, message.getBytes());
+
+Correlation Id
+上面的代码中我们为每个rpc请求创建了一个回调对列。这是非常低效的。幸运的是，我们有更好的方法——为每个客户端仅创建一个回调对列。
+这提出了一个新问题：这个对列中收到的响应属于哪个请求的？这就要用到 correlation id。我们在每个请求中为它设置一个唯一的值。以后，当我们的回调对列
+收到消息的时候我们会去看这个属性，基于它我们就匹配响应对应的请求了。如果我们看见一个不知道的correlation id的值，我们可以安全的抛弃它——它不属于我们的请求。
+
+
+
+Clustering and High Availability:
+在rabbitmq集群中，所有的定义（exchange，bindings，users等等）都镜像到所有的cluster上。对列的行为不同，默认情况下，它只属于一个节点，但是可以选择让它属于几个或全部节点。
+无论在哪里，对列对所有的节点来说都是可见和可到达的。
+对列可以选择被镜像到多个节点。每个被镜像的对列都由一个master和一个或多个slave组成，最老的slave将被升级为master，如果老的master因为任何原因失效。发布到对列的消息会复制到所有的slave。
+无论消费者连接到哪个节点都会连接到master上，当master确认消息后slave会删除消息。对列镜像因此提高了可用性，但不跨节点分配负载。
+   这意味着在集群中，无法在网络分区之间无缝的拷贝，因此，不建议使用WAN（广域网）访问。
+   
+policy：
+policy自动匹配exchange和对列，并帮助确定它们的行为。每个exchange或对列至少匹配一个policy，每个针对exchange或对列的policy都有一个key-value的映射。
+每次当一个exchange或对列创建的时候，就要匹配一次policy，而不仅仅是policy被创建的时候。
+
+配置镜像:
+对列通过policy启用镜像。；policy可以在任何时候改变。创建一个没有镜像的对列然后在稍后一点将它变成一个镜像的是合法的（反之亦然）。一个没有镜像的对列和一个没有slave的镜像对列
+有一点区别：前者没有镜像的基础设施并且运行更快。
+  为了将对列变为镜像的，需要创建一个policy来匹配它，并且设置policy的ha-mode和（可选的）ha-params：
+  ha-mode    ha-params       result
+  all         无                                     queue被镜像到集群中的所有节点。当一个新节点加入到集群，对列会镜像到这个节点。
+  exactly    count          对列被镜像到集群中的count个节点上。如果集群中的节点数比count少，对列镜像到所有节点。如果集群节点比count多，当一个包含镜像的节点宕机，一个新的
+                                                                                    镜像将在另一个节点上创建。
+  nodes      node names     对列将被镜像到node names指定的节点上。如果node names指定的节点不再集群中，不会导致错误。当对列被申明的时候node names中的节点没有一个
+                                                                                   在线，那么对列将在客户端正连接到的那个节点上创建。
+“nodes”policy与主节点迁移：
+设置或修改一个“nodes”policy可能导致主节点失败，如果主节点不在新policy的节点列表中的话。为了防止消息丢失，rabbitmq将保持主节点存在，直到至少一个slave已经同步（即使这需要很长时间）。
+一旦同步完成，主节点就被当作失败处理：消费者与主节点的连接将断开并需要重新连接。
+例如：一个对列在[A B]（A是主节点）节点上，然后设置nodes policy为[C D]。那么一开始是[A C D]，一旦对列在新的镜像[C D]上同步完成，A节点就会关闭。
+
+未同步的从节点：
+一个节点可以在任何时候加入集群。依赖于对列的配置，当一个节点加入集群的时候，对列可能加入一个从对列到这个节点。在这一刻，新的从对列是空的：它不包含对列的任何已经存在的内容。这个从对列将接受
+发布到这个对列的新消息。随着时间的推移，消息不断从对列的尾部流出，最终从对列和主队列就保持一致了。这个时候，就可以认为从对列和主队列已经完全同步了。
+新的从对列不会包含在它创建以前就存在的消息，除非对列被执行显式同步。因为在执行显式同步的时候，对列会变得反应迟钝。因此比较好的做法是：对活动的对列作自然同步，非活动的对列作显式同步。
+
+
+cluster:
+erlang节点使用cookie来确定节点之间能否互相通信——两个节点要想互相通信它们必须有相同的cookie。cookie就是由数字字母组成的字符串，长度不限。每个集群节点之间
+必须有相同的cookie。这个cookie也被rabbitmq的工具使用，如：rabbitmqctl和rabbitmq-plugins。
+
+当rabbitmq服务启动的时候，erlang将自动创建一个随机的cookie文件。最简单的方法是，允许一个节点创建文件，然后拷贝这个文件到其他的节点。
+在unix系统里，这个文件放在：/var/lib/rabbitmq/.erlang.cookie或者$HOME/.erlang.cookie下面。
+
+查看集群状态：rabbitmqctl cluster_status
+[root@SSSVL0028 ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@SSSVL0028 ...
+[{nodes,[{disc,[rabbit@SSSVL0028]}]},
+ {running_nodes,[rabbit@SSSVL0028]},
+ {cluster_name,<<"rabbit@SSSVL0028.smc.saicmotor.com">>},
+ {partitions,[]}]
+
+[root@SSSVL0029 ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@SSSVL0029 ...
+[{nodes,[{disc,[rabbit@SSSVL0029]}]},
+ {running_nodes,[rabbit@SSSVL0029]},
+ {cluster_name,<<"rabbit@SSSVL0029.smc.saicmotor.com">>},
+ {partitions,[]}]
+ 
+[root@SSSVL0030 ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@SSSVL0030 ...
+[{nodes,[{disc,[rabbit@SSSVL0030]}]},
+ {running_nodes,[rabbit@SSSVL0030]},
+ {cluster_name,<<"rabbit@SSSVL0030.smc.saicmotor.com">>},
+ {partitions,[]}]
+
+cluster的三台机器为：
+10.25.23.37     SSSVL0028.smc.saicmotor.com SSSVL0028
+10.25.23.38     SSSVL0029.smc.saicmotor.com SSSVL0029
+10.25.23.39     SSSVL0030.smc.saicmotor.com SSSVL0030
+
+1、集群节点间需能互相访问，故每个集群节点的hosts文件应包含集群内所有节点的信息以保证互相解析
+故修改三台机器的/etc/hosts文件：
+将
+10.25.23.37     SSSVL0028.smc.saicmotor.com SSSVL0028
+10.25.23.38     SSSVL0029.smc.saicmotor.com SSSVL0029
+10.25.23.39     SSSVL0030.smc.saicmotor.com SSSVL0030
+加入hosts文件中，保证三台机器能互相访问。
+
+2、将三台中的一台机器的/var/lib/rabbitmq/.erlang.cookie内容拷贝到另两台的同名文件中。
+3、建立集群：
+[root@SSSVL0029 ~]# rabbitmqctl stop_app
+Stopping node rabbit@SSSVL0029 ...
+[root@SSSVL0029 ~]# rabbitmqctl join_cluster rabbit@SSSVL0030
+Clustering node rabbit@SSSVL0029 with rabbit@SSSVL0030 ...
+[root@SSSVL0029 ~]# rabbitmqctl start_app
+Starting node rabbit@SSSVL0029 ...
+
+[root@SSSVL0028 ~]# rabbitmqctl stop_app
+Stopping node rabbit@SSSVL0028 ...
+You have new mail in /var/spool/mail/root
+[root@SSSVL0028 ~]# rabbitmqctl join_cluster rabbit@SSSVL0030
+Clustering node rabbit@SSSVL0028 with rabbit@SSSVL0030 ...
+[root@SSSVL0028 ~]# rabbitmqctl start_app
+Starting node rabbit@SSSVL0028 ...
+
+4、查看集群状态：
+[root@SSSVL0029 ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@SSSVL0029 ...
+[{nodes,[{disc,[rabbit@SSSVL0028,rabbit@SSSVL0029,rabbit@SSSVL0030]}]},
+ {running_nodes,[rabbit@SSSVL0028,rabbit@SSSVL0030,rabbit@SSSVL0029]},
+ {cluster_name,<<"rabbit@SSSVL0030.smc.saicmotor.com">>},
+ {partitions,[]}]
+
+[root@SSSVL0030 ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@SSSVL0030 ...
+[{nodes,[{disc,[rabbit@SSSVL0028,rabbit@SSSVL0029,rabbit@SSSVL0030]}]},
+ {running_nodes,[rabbit@SSSVL0028,rabbit@SSSVL0029,rabbit@SSSVL0030]},
+ {cluster_name,<<"rabbit@SSSVL0030.smc.saicmotor.com">>},
+ {partitions,[]}]
+
+[root@SSSVL0028 ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@SSSVL0028 ...
+[{nodes,[{disc,[rabbit@SSSVL0028,rabbit@SSSVL0029,rabbit@SSSVL0030]}]},
+ {running_nodes,[rabbit@SSSVL0029,rabbit@SSSVL0030,rabbit@SSSVL0028]},
+ {cluster_name,<<"rabbit@SSSVL0030.smc.saicmotor.com">>},
+ {partitions,[]}]
+
+5、集群建立完毕，按照上述步骤，可以添加新的节点到集群中。
+
+
+
+java client:
+Using Lists of Hosts:
+Address[] addrArr = new Address[]{ new Address(hostname1, portnumber1)
+                                 , new Address(hostname2, portnumber2)};
+Connection conn = factory.newConnection(addrArr);
+上述代码将试图连接到hostname1:portnumber1，如果失败了就连接到hostname2:portnumber2，数组中第一个连接成功的连接被返回。具体做法就是对每一组hostname:portnumber，
+循环调用factory.newConnection()，直到有一个成功为止。
+
+Consumer thread pool
+默认情况下，消费者线程会自动在一个新的ExecutorService线程池中分配。如果需要在newConnection()方法中更好的控制ExecutorService线程池，可以自己提供ExecutorService线程池。
+那么这个线程池会替代默认提供的线程池。示例代码如下：
+ExecutorService es = Executors.newFixedThreadPool(20);
+Connection conn = factory.newConnection(es);
+当connection关闭的时候默认的ExecutorService将会调用shutdown()，但用户提供的ExecutorService不会调用shutdown()。客户端必须确保客户提供的ExecutorService最终会
+shutdown（通过调用它的shutdown()方法），以预防jvm终止。
+
+Automatic Recovery From Network Failures：网络故障自动恢复
+Connection Recovery：连接恢复
+客户端和rabbitmq节点之间的连接可能会失败。rabbitmq java client支持自动恢复连接和拓扑结构（queue，exchange，binding，consumer）。
+对许多应用来说，自动恢复采用如下的步骤：
+>Reconnect
+>Restore connection listeners
+>Re-open channels
+>Restore channel listeners
+>Restore channel basic.qos setting, publisher confirms and transaction settings
+
+topology recovery包含下列动作，对每个channel都执行：
+>Re-declare exchanges (except for predefined ones)
+>Re-declare queues
+>Recover all bindings
+>Recover all consumers
+为了确保自动连接恢复，需要设置：
+ConnectionFactory factory = new ConnectionFactory();
+factory.setAutomaticRecoveryEnabled(true);
+如果提供的是一个地址列表，恢复的时候会随机选择一个。
+
+Topology Recovery：包含exchange，queue，binding，consumer。默认是可以的，也可以关闭：
+ConnectionFactory factory = new ConnectionFactory();
+Connection conn = factory.newConnection();
+factory.setAutomaticRecoveryEnabled(true);
+factory.setTopologyRecoveryEnabled(false);
+
+为了让Topology Recovery可能，rabbitmq java client维护了一个已申明的queue，exchange和binding的缓存。这个缓存是针对每个连接的。
+rabbitmq java client在下列情况下试图使缓存条目无效：
+When queue is deleted.
+When exchange is deleted.
+When binding is deleted.
+When consumer is cancelled on an auto-deleted queue.
+When queue or exchange is is unbound from an auto-deleted exchange.
+使用自动连接恢复，可以显式的删除已经知道不再使用或者已经被删除的缓存条目，来净化客户端的topology缓存。这些方法：Channel#queueDelete, Channel#exchangeDelete, Channel#queueUnbind, and Channel#exchangeUnbind
+在rabbitmq3.3.x中是幂等的。
+
+
+
+AMQP(Advanced Message Queuing Protocol)：

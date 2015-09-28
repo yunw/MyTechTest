@@ -1,0 +1,169 @@
+/**
+ * This does several things. 
+ * First it creates a global variable called 'MyApp' - all of your Application's 
+ * classes (such as its Models, Views and Controllers) will reside under this single namespace, 
+ * which drastically lowers the chances of colliding global variables.
+ * 
+ * When the page is ready and all of your JavaScript has loaded, your Application's launch function is called, 
+ * at which time you can run the code that starts your app. Usually this consists of creating a Viewport, 
+ * as we do in the example above.
+ * 
+ * 这段代码做了如下几件事：1、创建了一个全局变量：MyApp —— 你的应用中的所有的类（例如它的模型、视图、控制器），都属于这个单一的命名空间
+ * 2、当页面已经准备好并且所有的js都已经加载了，你的应用的launch方法就会被调用，在这个时候你就可以运行启动你程序的代码。通常这包含一个创建视图的动作，
+ * 就像我们在下面的例子中展示的那样。
+ */
+Ext.application({
+    name: 'MyApp',
+    launch: function() {
+        Ext.create('Ext.container.Viewport', {
+            items: {
+                html: 'My App'
+            }
+        });
+    }
+});
+
+/**
+ * Telling Application about the rest of the app
+ * 
+ * Because an Ext.app.Application represents an entire app, 因为Ext.app.Application代表着一个完整的应用。
+ * we should tell it about the other parts of the app - namely the Models, Views and Controllers 
+ * that are bundled with the application. Let's say we have a blog management app; 
+ * we might have Models and Controllers for Posts（帖子） and Comments（评论）, 
+ * and Views for listing, adding and editing Posts and Comments. 
+ * Here's how we'd tell our Application about all these things:
+ */
+Ext.application({
+    name: 'Blog',
+    models: ['Post', 'Comment'],
+    controllers: ['Posts', 'Comments'],
+
+    launch: function() {
+       // ...
+    }
+});
+
+/**
+ * Controllers are the glue that binds an application together. 
+ * All they really do is listen for events (usually from views) and take some action. 
+ * 
+ * The init function is a special method that is called when your application boots. 
+ * It is called before the Application's launch function is executed so gives a hook point to run any code 
+ * before your Viewport is created.
+ * 
+ * Here's how we might create a Controller to manage Users:
+ */
+Ext.define('MyApp.controller.Users', {
+    extend: 'Ext.app.Controller',
+
+    init: function() {
+        console.log('Initialized Users! This happens before the Application launch function is called');
+    }
+});
+
+/**
+ * The init function is a great place to set up how your controller interacts with the view, 
+ * and is usually used in conjunction with another Controller function - control. 
+ * 初始化方法是一个设置你的控制器和视图互动的好地方，它经常和另一个控制方法——control——结合使用。
+ * 
+ * The control function makes it easy to listen to events on your view classes 
+ * and take some action with a handler function. 
+ * 
+ * Let's update our Users controller to tell us when the panel is rendered:
+ */
+Ext.define('MyApp.controller.Users', {
+    extend: 'Ext.app.Controller',
+
+    init: function() {
+        this.control({
+            'viewport > panel': {
+                render: this.onPanelRendered
+            }
+        });
+    },
+
+    onPanelRendered: function() {
+        console.log('The panel was rendered');
+    }
+});
+
+
+/**
+ * xtype:
+ * 
+ * Every component has a specific xtype, which is its Ext-specific type name, 
+ * along with methods for checking the xtype like getXType and isXType. 
+ * This is the list of all valid xtypes:
+ * 
+ * 
+ * xtype            Class
+ * -------------    ------------------
+ * button           Ext.button.Button
+ * buttongroup      Ext.container.ButtonGroup
+ * colorpalette     Ext.picker.Color
+ * component        Ext.Component
+ * container        Ext.container.Container
+ * cycle            Ext.button.Cycle
+ * dataview         Ext.view.View
+ * datepicker       Ext.picker.Date
+ * editor           Ext.Editor
+ * editorgrid       Ext.grid.plugin.Editing
+ * grid             Ext.grid.Panel
+ * multislider      Ext.slider.Multi
+ * panel            Ext.panel.Panel
+ * progress         Ext.ProgressBar
+ * slider           Ext.slider.Single
+ * spacer           Ext.toolbar.Spacer
+ * splitbutton      Ext.button.Split
+ * tabpanel         Ext.tab.Panel
+ * treepanel        Ext.tree.Panel
+ * viewport         Ext.container.Viewport
+ * window           Ext.window.Window
+ * 
+ * Toolbar components
+ * ---------------------------------------
+ * paging           Ext.toolbar.Paging
+ * toolbar          Ext.toolbar.Toolbar
+ * tbfill           Ext.toolbar.Fill
+ * tbitem           Ext.toolbar.Item
+ * tbseparator      Ext.toolbar.Separator
+ * tbspacer         Ext.toolbar.Spacer
+ * tbtext           Ext.toolbar.TextItem
+ * 
+ * Menu components
+ * ---------------------------------------
+ * menu             Ext.menu.Menu
+ * menucheckitem    Ext.menu.CheckItem
+ * menuitem         Ext.menu.Item
+ * menuseparator    Ext.menu.Separator
+ * menutextitem     Ext.menu.Item
+ * 
+ * Form components
+ * ---------------------------------------
+ * form             Ext.form.Panel
+ * checkbox         Ext.form.field.Checkbox
+ * combo            Ext.form.field.ComboBox
+ * datefield        Ext.form.field.Date
+ * displayfield     Ext.form.field.Display
+ * field            Ext.form.field.Base
+ * fieldset         Ext.form.FieldSet
+ * hidden           Ext.form.field.Hidden
+ * htmleditor       Ext.form.field.HtmlEditor
+ * label            Ext.form.Label
+ * numberfield      Ext.form.field.Number
+ * radio            Ext.form.field.Radio
+ * radiogroup       Ext.form.RadioGroup
+ * textarea         Ext.form.field.TextArea
+ * textfield        Ext.form.field.Text
+ * timefield        Ext.form.field.Time
+ * trigger          Ext.form.field.Trigger
+ * 
+ * Chart components
+ * ---------------------------------------
+ * chart            Ext.chart.Chart
+ * barchart         Ext.chart.series.Bar
+ * columnchart      Ext.chart.series.Column
+ * linechart        Ext.chart.series.Line
+ * piechart         Ext.chart.series.Pie
+ * 
+ */

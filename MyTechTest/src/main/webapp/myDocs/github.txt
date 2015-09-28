@@ -1,0 +1,13 @@
+github:yinsl 2225646595/yin_slin123
+
+https://github.com/login
+
+https://github.com/yinsl/TechTest.git
+
+https://github.com/yinsl/CMS.git
+
+
+rsa private key:C:\Users\IBM_ADMIN\.ssh\id_rsa
+
+Who are you? Mr. yin.
+What's your name? yin.
