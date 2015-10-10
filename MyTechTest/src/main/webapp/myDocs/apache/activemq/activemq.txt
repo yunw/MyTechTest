@@ -1,6 +1,17 @@
+mqtt(Message Queuing Telemetry Transport):消息队列遥测传输。IBM开发的一个即时通讯协议。国内很多企业都广泛使用MQTT作为Android手机客户端与服务器端推送消息的协议。
+AMQP(Advanced Message Queuing Protocol):一个提供统一消息服务的应用层标准高级消息队列协议,是应用层协议的一个开放标准,为面向消息的中间件设计。基于此协议的客户端与消息中间件可传递消息，并不受客户端/中间件不同产品，不同开发语言等条件的限制。Erlang中的实现有 RabbitMQ等。
+
+
 DR(Disaster Recovery)：灾难恢复。
 
 启动：
+on windows:
+#activemq5.9 or older
+bin/activemq  
+#activemq5.10 or newer
+bin/activemq start 
+
+on unix:
 bin/activemq start
 
 启动时指定配置文件（默认：conf/activemq.xml）：

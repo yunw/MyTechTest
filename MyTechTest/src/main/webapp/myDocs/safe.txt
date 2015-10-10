@@ -1,4 +1,4 @@
-jira: Pass1234
+Gerrit、jira: abfme/Pass1234
 
 10.91.240.191
 

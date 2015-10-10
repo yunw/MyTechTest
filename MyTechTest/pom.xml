@@ -8,11 +8,15 @@
 	<name>MyTechTest Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
+		<activemq.client.version>5.12.0</activemq.client.version>
+		<activemq.version>5.7.0</activemq.version>
+		<camel.version>2.15.3</camel.version>
 		<commons.digester.version>2.1</commons.digester.version>
 		<commons.lang.version>2.6</commons.lang.version>
 		<commons.pool2.version>2.4.2</commons.pool2.version>
 		<dbcp.version>6.0.44</dbcp.version>
 		<dom4j.version>1.6.1</dom4j.version>
+		<geronimo.jms.version>1.1.1</geronimo.jms.version>
 		<gson.version>2.3.1</gson.version>
 		<guice.version>4.0</guice.version>
 		<httpclient.version>4.5.1</httpclient.version>
@@ -27,14 +31,48 @@
 		<log4j.version>1.2.17</log4j.version>
 		<lucene.version>5.3.0</lucene.version>
 		<maven.test.skip>false</maven.test.skip>
+		<mqtt.client.version>1.11</mqtt.client.version>
 		<pdfbox.version>1.8.10</pdfbox.version>
 		<poi.version>3.13</poi.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<qpid.jms.client.version>0.5.0</qpid.jms.client.version>
 		<quartz.version>2.2.1</quartz.version>
+		<spring.jms.version>4.2.1.RELEASE</spring.jms.version>
 		<spring.rabbit.version>1.5.0.RELEASE</spring.rabbit.version>
 		<spring.security.version>3.2.6.RELEASE</spring.security.version>
+		<stompjms.client.version>1.19</stompjms.client.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-client</artifactId>
+			<version>${activemq.client.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.fusesource.stompjms</groupId>
+			<artifactId>stompjms-client</artifactId>
+			<version>${stompjms.client.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jms_1.1_spec</artifactId>
+			<version>${geronimo.jms.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.fusesource.mqtt-client</groupId>
+			<artifactId>mqtt-client</artifactId>
+			<version>${mqtt.client.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.qpid</groupId>
+			<artifactId>qpid-jms-client</artifactId>
+			<version>${qpid.jms.client.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-core</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
@@ -106,10 +144,10 @@
 			<version>${poi.version}</version>
 		</dependency>
 		<dependency>
-    <groupId>javax.servlet</groupId>
-    <artifactId>javax.servlet-api</artifactId>
-    <version>${javax.servlet.api.version}</version>
-</dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${javax.servlet.api.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>jfree</groupId>
 			<artifactId>jfreechart</artifactId>

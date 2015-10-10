@@ -1,3 +1,5 @@
+分布式文件系统mfs（moosefs）
+
 CDN的全称是ContentDeliveryNetwork,即内容分发网络
 
 java -cp ./A.jar;./B.jar;. xxx.HelloWord

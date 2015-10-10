@@ -11,3 +11,6 @@ rsa private key:C:\Users\IBM_ADMIN\.ssh\id_rsa
 
 Who are you? Mr. yin.
 What's your name? yin.
+
+git clone --depth=14 https://github.com/angular/angular-phonecat.git
+--depth=14 #只下载最近的14个提交结果，该选项可让下载更快更小。

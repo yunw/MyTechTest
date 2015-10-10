@@ -22,7 +22,7 @@ tar -zxvf redis-3.0.3.tar.gz
 cd redis-3.0.3
 make && make PREFIX=/usr/local/redis install
 
-3、配置master、slave
+3、配置redis
 cp /data/Downloads/redis-3.0.3/utils/redis_init_script /etc/rc.d/init.d/redis
 vi /etc/rc.d/init.d/redis
 然后将redis文件的内容修改如下：
@@ -194,3 +194,53 @@ A）删除slave节点：
 
 B）删除主节点：
 删除主节点的方法和从节点相同，但是，主节点必须是空的，不能有哈希槽，如果有，必须先移到其它节点。
+
+
+版本平滑升级（3.0.3 --> 3.0.4）：
+一、slave节点升级：
+a）停止slave节点的服务
+service redis stop
+b）升级版本
+cd /data/Downloads
+wget http://download.redis.io/releases/redis-3.0.4.tar.gz
+tar -zxvf redis-3.0.4.tar.gz
+cd redis-3.0.4
+make && make PREFIX=/usr/local/redis install #PREFIX的值必须和以前的安装路径相同
+c）启动slave节点的服务
+service redis start
+
+二、master节点升级：
+a）用redis-cli登录要升级的master节点对应的slave节点中的一个
+b）在这个slave节点上执行命令：
+CLUSTER FAILOVER
+c）查看原master节点的状态，当它变为slave节点后，采用slave节点升级方案执行。
+
+config get * 查询所有支持的参数的当前值
+
+config get *slave* #查询参数中包含slave关键字的参数的当前值
+127.0.0.1:6379> config get *slave*
+ 1) "repl-ping-slave-period"
+ 2) "10"
+ 3) "slave-priority"
+ 4) "100"
+ 5) "min-slaves-to-write"
+ 6) "0"
+ 7) "min-slaves-max-lag"
+ 8) "10"
+ 9) "cluster-slave-validity-factor"
+10) "10"
+11) "slave-serve-stale-data"
+12) "yes"
+13) "slave-read-only"
+14) "yes"
+15) "slaveof"
+16) "10.25.23.104 6379"
+127.0.0.1:6379> config get slaveof
+1) "slaveof"
+2) "10.25.23.104 6379"
+
+config get slaveof #查看slaveof参数的当前值
+127.0.0.1:6379> config get slaveof 
+1) "slaveof"
+2) "10.25.23.104 6379"
+
