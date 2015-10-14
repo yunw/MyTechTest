@@ -28,7 +28,9 @@ public class CallBackAsynFileReadWriteDemo {
 		MyCompletionHandler handler = new MyCompletionHandler(pos, buffer);
 		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file, EnumSet.of(StandardOpenOption.READ), pool);
 		channel.read(buffer, 0, channel, handler);
-		pool.awaitTermination(5, TimeUnit.SECONDS);
+		System.out.println(handler.isEnd());
+		while(!handler.isEnd()) {
+		}
 		pool.shutdown();
 	}
 
@@ -44,6 +46,7 @@ class MyCompletionHandler implements CompletionHandler<Integer, AsynchronousFile
 	// need to keep track of the next position.
 	int pos = 0;
 	ByteBuffer buffer = null;
+	boolean isEnd = false;
 
 	ExecutorService pool = new ScheduledThreadPoolExecutor(3);
 
@@ -56,6 +59,7 @@ class MyCompletionHandler implements CompletionHandler<Integer, AsynchronousFile
 			buffer.flip();
 			attachment.read(buffer, pos, attachment, this);
 		} else {
+			isEnd = true;
 			return;
 		}
 	}
@@ -63,6 +67,10 @@ class MyCompletionHandler implements CompletionHandler<Integer, AsynchronousFile
 	public void failed(Throwable exc, AsynchronousFileChannel attachment) {
 		System.err.println("Error!");
 		exc.printStackTrace();
+	}
+
+	public boolean isEnd() {
+		return isEnd;
 	}
 
 }
