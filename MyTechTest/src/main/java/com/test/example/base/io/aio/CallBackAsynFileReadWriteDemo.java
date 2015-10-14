@@ -10,7 +10,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 回调的方式异步读取文件内容
@@ -26,12 +25,15 @@ public class CallBackAsynFileReadWriteDemo {
 		int pos = 0;
 		ByteBuffer buffer = ByteBuffer.allocate(1000);
 		MyCompletionHandler handler = new MyCompletionHandler(pos, buffer);
-		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file, EnumSet.of(StandardOpenOption.READ), pool);
-		channel.read(buffer, 0, channel, handler);
+		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file, EnumSet.of(StandardOpenOption.READ),
+		        pool);
+			channel.read(buffer, 0, channel, handler);
+		
 		System.out.println(handler.isEnd());
-		while(!handler.isEnd()) {
+		while (!handler.isEnd()) {
 		}
 		pool.shutdown();
+		channel.close();
 	}
 
 }
