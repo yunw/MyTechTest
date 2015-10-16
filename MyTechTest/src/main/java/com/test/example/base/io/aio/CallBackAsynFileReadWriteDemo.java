@@ -10,6 +10,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 回调的方式异步读取文件内容
@@ -25,14 +26,20 @@ public class CallBackAsynFileReadWriteDemo {
 		int pos = 0;
 		ByteBuffer buffer = ByteBuffer.allocate(1000);
 		MyCompletionHandler handler = new MyCompletionHandler(pos, buffer);
-		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file, EnumSet.of(StandardOpenOption.READ),
-		        pool);
-			channel.read(buffer, 0, channel, handler);
-		
+		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file, EnumSet.of(StandardOpenOption.READ), pool);
+		channel.read(buffer, 0, channel, handler);
+
 		System.out.println(handler.isEnd());
-		while (!handler.isEnd()) {
+		for (;;) {
+//			System.out.print(".");
+			if (handler.isEnd()) {
+				System.out.println("-------------end--------------");
+				break;
+			} 
 		}
+		System.out.println(handler.isEnd());
 		pool.shutdown();
+		pool.awaitTermination(1, TimeUnit.SECONDS);
 		channel.close();
 	}
 
@@ -45,7 +52,6 @@ class MyCompletionHandler implements CompletionHandler<Integer, AsynchronousFile
 		this.buffer = buffer;
 	}
 
-	// need to keep track of the next position.
 	int pos = 0;
 	ByteBuffer buffer = null;
 	boolean isEnd = false;
@@ -55,12 +61,12 @@ class MyCompletionHandler implements CompletionHandler<Integer, AsynchronousFile
 	public void completed(Integer result, AsynchronousFileChannel attachment) {
 		if (result != -1) {
 			pos += result;
-			// 这里必须读取0,result直接的buffer，否则会读取到垃圾数据
 			System.out.print(new String(buffer.array(), 0, result));
 
 			buffer.flip();
 			attachment.read(buffer, pos, attachment, this);
 		} else {
+			System.out.println("-------------read ended----------------------");
 			isEnd = true;
 			return;
 		}

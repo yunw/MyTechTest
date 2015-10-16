@@ -88,3 +88,33 @@ unmChildren：znode孩子的数量。
 
 zookeeper session：
 zookeeper客户端和zookeeper服务确定一个会话，通过使用语言绑定创建一个服务句柄。一旦创建，句柄开始时CONNECTING状态，完成后为CONNECTED状态。
+
+zkCli.sh操作：
+./zkCli.sh [-server host:port]
+[zk: localhost:2181(CONNECTED) 0] ls
+[zk: localhost:2181(CONNECTED) 1] ls /
+[taobao-pamirs-schedule, registry, cpts, brokers, zookeeper, test, hbase-unsecure, yarn-leader-election, hadoop-ha, dubbo, admin, BackendManager, controller_epoch, rmstore, consumers, tbscheduledemo, zzzcreate, config, hbase]
+[zk: localhost:2181(CONNECTED) 2] create /cfg -
+Created /cfg
+[zk: localhost:2181(CONNECTED) 10] create /cfg/properties a=b
+Created /cfg/properties
+[zk: localhost:2181(CONNECTED) 12] get /cfg/properties
+a=b
+cZxid = 0x100011aef
+ctime = Thu Oct 15 10:55:17 CST 2015
+mZxid = 0x100011aef
+mtime = Thu Oct 15 10:55:17 CST 2015
+pZxid = 0x100011aef
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 3
+numChildren = 0
+
+addauth scheme auth:
+addauth digest test:aaa
+setAcl path acl:
+#'test:vUtFteQU15A8l5nPNBf2CF2CIKY='由：org.apache.zookeeper.server.auth.DigestAuthenticationProvider.generateDigest("test:aaa");生成
+setAcl /cfg/redis/properties digest:test:vUtFteQU15A8l5nPNBf2CF2CIKY=:rw
+
