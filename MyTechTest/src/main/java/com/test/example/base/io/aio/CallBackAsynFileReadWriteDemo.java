@@ -6,10 +6,6 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.EnumSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,24 +18,15 @@ public class CallBackAsynFileReadWriteDemo {
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 		Path file = Paths.get("D:/test/test1.txt");
-		ExecutorService pool = new ScheduledThreadPoolExecutor(3);
 		int pos = 0;
 		ByteBuffer buffer = ByteBuffer.allocate(1000);
 		MyCompletionHandler handler = new MyCompletionHandler(pos, buffer);
-		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file, EnumSet.of(StandardOpenOption.READ), pool);
+		AsynchronousFileChannel channel = AsynchronousFileChannel.open(file);
 		channel.read(buffer, 0, channel, handler);
 
-		System.out.println(handler.isEnd());
-		for (;;) {
-//			System.out.print(".");
-			if (handler.isEnd()) {
-				System.out.println("-------------end--------------");
-				break;
-			} 
-		}
-		System.out.println(handler.isEnd());
-		pool.shutdown();
-		pool.awaitTermination(1, TimeUnit.SECONDS);
+		TimeUnit.SECONDS.sleep(1);
+		
+		System.out.println(handler.isEnd);
 		channel.close();
 	}
 
@@ -56,10 +43,9 @@ class MyCompletionHandler implements CompletionHandler<Integer, AsynchronousFile
 	ByteBuffer buffer = null;
 	boolean isEnd = false;
 
-	ExecutorService pool = new ScheduledThreadPoolExecutor(3);
-
 	public void completed(Integer result, AsynchronousFileChannel attachment) {
 		if (result != -1) {
+			System.out.println("...................................");
 			pos += result;
 			System.out.print(new String(buffer.array(), 0, result));
 

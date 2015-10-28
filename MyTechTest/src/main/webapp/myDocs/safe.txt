@@ -1,4 +1,6 @@
 Gerrit、jira: abfme/Pass1234
+http://10.25.3.104:8090/xwiki : abfme/Pass1234
+vdi:10.91.240.191 abfme/Pass1212
 
 10.91.240.191
 

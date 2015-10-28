@@ -1,0 +1,189 @@
+ha-master eth1: 10.25.23.103
+ ha-slave eth1: 10.25.23.104
+ rabbitmq eth1: 10.25.23.106~10.25.23.110
+           VIP: 10.25.23.237
+
+yum install -y kernel-devel openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+
+
+cd /data/Downloads
+wget http://fossies.org/linux/misc/haproxy-1.6.1.tar.gz
+wget http://www.keepalived.org/software/keepalived-1.2.19.tar.gz
+
+tar zxvf haproxy-1.6.1.tar.gz
+cd haproxy-1.6.1
+make TARGET=linux26 ARCH=x86_64 &&　make install PREFIX=/usr/local/haproxy 
+cp /usr/local/haproxy/sbin/haproxy /usr/sbin/
+#备注：本版本的examples/haproxy.init文件有个bug：第97行的quiet_check()方法少了个花括号：“{”，因此需要修改该文件后再执行拷贝操作
+cp examples/haproxy.init /etc/init.d/haproxy
+chmod +x /etc/init.d/haproxy
+mkdir /etc/haproxy
+vi /etc/haproxy/haproxy.cfg
+
+global  
+    maxconn 51200  
+    chroot /usr/local/haproxy  
+    uid 0  
+    gid 0  
+    daemon  
+    #quiet  
+    nbproc 1 #进程数  
+    pidfile /var/run/haproxy.pid  
+  
+defaults  
+        mode http #默认的模式mode { tcp|http|health }，tcp是4层，http是7层，health只会返回OK  
+        #retries 2 #两次连接失败就认为是服务器不可用，也可以通过后面设置  
+        option redispatch #当serverId对应的服务器挂掉后，强制定向到其他健康的服务器  
+        option abortonclose #当服务器负载很高的时候，自动结束掉当前队列处理比较久的链接  
+        timeout connect 5000ms #连接超时  
+        timeout client 30000ms #客户端超时  
+        timeout server 30000ms #服务器超时  
+        #timeout check 2000 #=心跳检测超时  
+        log 127.0.0.1 local0 err #[err warning info debug]  
+        balance roundrobin                     #负载均衡算法  
+#        option  httplog                        #日志类别,采用httplog  
+#        option  httpclose   #每次请求完毕后主动关闭http通道,ha-proxy不支持keep-alive,只能模拟这种模式的实现  
+#        option  dontlognull  
+#        option  forwardfor  #如果后端服务器需要获得客户端真实ip需要配置的参数，可以从Http Header中获得客户端ip  
+  
+#配置haproxy web监控，查看统计信息
+listen proxy_monitor  
+        bind 0.0.0.0:8888 #监听端口  
+        option httplog #采用http日志格式  
+        stats refresh 30s #统计页面自动刷新时间 
+        #设置haproxy监控地址为http://localhost:8888/stats  
+        stats uri /stats
+        #统计页面密码框上提示文本
+        stats realm Haproxy Manager
+        stats auth admin:admin #统计页面用户名和密码设置  
+        #stats hide-version #隐藏统计页面上HAProxy的版本信息  
+
+listen rabbitmq_local_cluster 
+        bind 0.0.0.0:56720 #用当前机器56720端口，代理10.25.23.106~10.25.23.110五台rabbit机器的5672端口。
+        # 配置TCP模式 
+        mode tcp 
+        #option httpclose ：HAProxy会针对客户端的第一条请求的返回添加cookie并返回给客户端，客户端发送后续请求时会发送此cookie到HAProxy，HAProxy会针对此cookie分发到上次处理此请求的服务器上，如果服务器不能忽略此cookie值会影响处理结果。如果避免这种情况配置此选项，防止产生多余的cookie信息。
+        #option forwardfor ：如果服务器上的应用程序想记录发起请求的客户端的IP地址，需要在HAProxy上配置此选项，这样HAProxy会把客户端的IP信息发送给服务器，在HTTP请求中添加"X-Forwarded-For"字段。
+        #option originalto ：如果服务器上的应用程序想记录发起请求的原目的IP地址，需要在HAProxy上配置此选项，这样HAProxy会添加"X-Original-To"字段。
+        #option dontlognull ：保证HAProxy不记录上级负载均衡发送过来的用于检测状态没有数据的心跳包。 
+        server SSSVL0306 10.25.23.106:5672 check weight 1 minconn 1 maxconn 5 check inter 40000
+        server SSSVL0307 10.25.23.107:5672 check weight 1 minconn 1 maxconn 5 check inter 40000
+        server SSSVL0308 10.25.23.108:5672 check weight 1 minconn 1 maxconn 5 check inter 40000
+        server SSSVL0309 10.25.23.109:5672 check weight 1 minconn 1 maxconn 5 check inter 40000
+        server SSSVL0310 10.25.23.110:5672 check weight 1 minconn 1 maxconn 5 check inter 40000
+        
+启动haproxy（以守护模式运行）：
+haproxy -f /etc/haproxy/haproxy.cfg -D
+
+
+A、安装keepalived（master、slave）：
+tar -zxvf keepalived-1.2.19.tar.gz
+cd keepalived-1.2.19
+./configure --prefix=/usr/local/keepalived
+make && make install
+cp /usr/local/keepalived/etc/rc.d/init.d/keepalived /etc/rc.d/init.d/
+chkconfig --add keepalived
+chkconfig keepalived on
+cp /usr/local/keepalived/etc/sysconfig/keepalived /etc/sysconfig/
+mkdir /etc/keepalived
+cp /usr/local/keepalived/etc/keepalived/keepalived.conf /etc/keepalived/
+cp /usr/local/keepalived/sbin/keepalived /usr/sbin/
+
+MASTER:
+vi /etc/keepalived/keepalived.conf
+
+! Configuration File for keepalived
+vrrp_script check_haproxy {
+        script "/etc/keepalived/check_haproxy.sh"
+        interval 2
+        weight 2
+}
+
+global_defs
+{
+    router_id master_210
+}
+
+vrrp_instance VI_1 {
+        state MASTER
+        interface eth1
+        virtual_router_id 151
+        priority 100
+        advert_int 1
+        authentication {
+            auth_type PASS
+            auth_pass 1111
+        }
+
+virtual_ipaddress {
+        10.25.23.237
+    }
+
+track_script {
+        check_haproxy
+    }
+
+}
+
+BACKUP:
+vi /etc/keepalived/keepalived.conf
+
+! Configuration File for keepalived
+vrrp_script check_haproxy {
+        script "/etc/keepalived/check_haproxy.sh"
+        interval 2
+        weight 2
+    }
+
+global_defs
+{
+    router_id slave_211
+}
+
+vrrp_instance VI_1 {
+        state BACKUP
+        interface eth1
+        virtual_router_id 151
+        priority 50
+        advert_int 1
+        authentication {
+            auth_type PASS
+            auth_pass 1111
+        }
+
+virtual_ipaddress {
+        10.25.23.237
+    }
+
+track_script {
+        check_haproxy
+    }
+
+}
+
+检测脚本:
+mkdir /data/haproxy
+vi /etc/keepalived/check_haproxy.sh
+#!/bin/bash
+/etc/init.d/haproxy status &> /dev/null || /etc/init.d/haproxy restart &> /dev/null
+if [ $? -ne 0 ];then
+/etc/init.d/keepalived stop &> /dev/null
+fi
+
+chmod +x /etc/keepalived/check_haproxy.sh
+
+绑定虚拟ip：
+#本命令设置vip，断电之后就失效
+ifconfig eth1:0 10.25.23.237 netmask 255.255.255.0 up
+
+永久保存，断电后也会存在：
+cd /etc/sysconfig/network-scripts
+cp ifcfg-eth1 ifcfg-eth1:0
+vi ifcfg-eth1:0
+修改ifcfg-eth1:0文件的下列属性（master，slave做相应改变）：
+#原来的值
+DEVICE=eth1
+IPADDR=10.25.23.103
+#修改后的值
+DEVICE=eth1:0
+IPADDR=10.25.23.237

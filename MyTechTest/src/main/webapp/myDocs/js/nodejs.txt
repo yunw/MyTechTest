@@ -1,0 +1,108 @@
+express获取参数有三种方法：官网介绍如下
+Checks route params (req.params), ex: /user/:id    --获取路径变量（path variable）
+Checks query string params (req.query), ex: ?id=12 --获取get方法的查询参数
+Checks urlencoded body params (req.body), ex: id=  --获取post方法的表单参数
+
+下载：
+https://nodejs.org/download/release/v4.2.1/node-v4.2.1-x64.msi
+
+安装：
+双击：node-v4.2.1-x64.msi
+选择安装路径：e:/nodejs/v4.2.1，然后一路默认安装。
+安装默认会在环境变量path中写入：E:\nodejs\v4.2.1\
+因此，可以在cmd中直接运行js文件。
+
+nodejs使用Google的V8虚拟机（Google的Chrome浏览器使用的JavaScript执行环境），来解释和执行JavaScript代码。
+Node.js事实上既是一个运行时环境，同时又是一个库；它有许多有用的模块，它们可以简化很多重复的劳作，比如向终端输出字符串。
+
+Node.js原生的工作方式：它是事件驱动的，这也是它为什么这么快的原因。
+Node.js以单进程、单线程模式运行，内部单线程高效率地维护事件循环队列来实现的，没有多线程的资源占用和上下文切换。
+
+npm（Node Package Manager）：是一个NodeJS包管理和分发工具，已经成为了非官方的发布Node模块（包）的标准。
+
+require('http');#Node.js原生提供的http模块对象。
+console.log()是javascript和Nodejs共同的调试接口。
+
+npm install <package name>：安装nodejs的依赖包
+npm install formidable --
+
+
+创建helloworld.js文件，内容如下：
+console.log("Hello World");
+保存在：E:\nodejs\v4.2.1\test文件夹下。
+打开cmd，进入：E:\nodejs\v4.2.1\test
+然后运行：
+node helloworld.js就会在cmd上打印：
+Hello World
+
+windows下express模块的安装：
+1、
+E:\nodejs\v4.2.1> npm install -g express-generator
+C:\Users\Administrator\AppData\Roaming\npm\express -> C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator\bin\express
+express-generator@4.13.1 C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator
+├── sorted-object@1.0.0
+├── commander@2.7.1 (graceful-readlink@1.0.1)
+└── mkdirp@0.5.1 (minimist@0.0.8)
+
+E:\nodejs\v4.2.1>express -V
+4.13.1
+可以看到express安装到：C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator下面了。
+
+2、
+E:\nodejs\v4.2.1>express C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator
+
+3、
+E:\nodejs\v4.2.1>c:
+E:\nodejs\v4.2.1>cd C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator
+C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator>npm install
+
+4、
+C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator>npm start
+
+5、
+http://localhost:3000
+出现：Welcome to Express说明安装成功
+
+全局安装和本地安装的区别：
+本地安装：安装在执行npm命令时的位置的./node_modules目录下：
+例如：E:\>npm install formidable
+将安装在E:\node_modules目录下面。
+
+全局安装：
+安装在C:\Users\Administrator\AppData\Roaming\npm\node_modules下面，并且
+C:\Users\Administrator\AppData\Roaming\npm被放入用户变量path中。因此该用户（执行npm命令的用户）可以在命令行执行。
+
+使用express快速构建nodejs项目（参考：http://cwbuecheler.com/web/tutorials/2013/node-express-mongo/）：
+打开cmd转到目录：e：\
+执行命令：
+E:\>express app     #创建项目
+E:\app>npm install  #安装依赖
+E:\app>npm start    #启动项目
+打开浏览器：
+http://localhost:3000/
+就会出现：Welcome to Express
+
+构建helloworld页面：
+1、编辑：E:\app\routes\index.js文件
+在module.exports = router;上方添加：
+/* GET Hello World page. */
+router.get('/helloworld', function(req, res) {
+    res.render('helloworld', { title: 'Hello, World!' });
+});
+
+2、在E:\app\views下添加文件：helloworld.jade。内容如下：
+extends layout
+
+block content
+  h1= title
+  p Hello world! Welcome to #{title}
+
+3、重启服务：
+ctrl-c杀死服务然后npm start启动服务。在浏览器中输入：
+http://localhost:3000/helloworld
+就会出现：Hello world! Welcome to Hello, World!
+
+错误：Cannot find module 'mysql'
+解决：
+1、在package.json中添加：dependencies  "mysql": "~2.9.0"
+2、执行：npm install

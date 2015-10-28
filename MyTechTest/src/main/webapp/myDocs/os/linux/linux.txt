@@ -19,9 +19,14 @@ $#：传递给程序的总的参数数目
 $?：上一个代码或程序在shell中退出的情况。如果正常退出则为0，否则为非0值。
 $*：传递给程序的所有参数组成的字符串。
 
-
 查看linux版本：
-cat /proc/version
+[root@SSSVL0304 Downloads]# cat /proc/version
+Linux version 2.6.32-504.el6.x86_64 (mockbuild@c6b9.bsys.dev.centos.org) (gcc version 4.4.7 20120313 (Red Hat 4.4.7-11) (GCC) ) #1 SMP Wed Oct 15 04:27:16 UTC 2014
+[root@SSSVL0304 Downloads]# cat /etc/issue
+CentOS release 6.6 (Final)
+Kernel \r on an \m
+[root@SSSVL0304 kernels]# uname -r
+2.6.32-504.el6.x86_64
 
 ssh登录远程机器：
 ssh username@ipaddr
@@ -118,3 +123,18 @@ eth0代表网卡一、eth1代表网卡二
 
 route命令：
 用于显示和操作ip路由表。
+
+/dev/null：
+把/dev/null 看作"黑 洞" . 它非常等价于一个只写文件. 所有写入它的内容都会永远丢失. 而尝试从它那儿读取内容则什么也读不到. 然而, /dev/null 对命令行和脚本都非常的有 用。
+A、禁止标准输出：
+cat $filename >/dev/null # 文件内容丢失，而不会输出到标准输出
+B、禁止标准错误：
+rm $badname 2>/dev/null # 这样错误信息[标准错误]就被丢到太平洋去了
+
+/dev/zero：
+像/dev/null 一样, /dev /zero也是一个伪文件 , 但它实际上产生连续不断的null的流（二进制的零流，而不是ASCII型的）. 
+写入它的输出会丢失不见, 而从/dev/zero 读出一连串的null也比较困难, 虽然这也能通过od 或 一个十六进制编辑器来做到. 
+/dev/zero 主要的用处是用来创建一个指定长度用于初始化的空文件，就像临时交换文件.
+关于 /dev/zero 的另一个应用是为特定的目的而用零去填充一个指定大小的文件, 如挂载一个文件系统到环回设备 （loopback device）
+或"安全地" 删除一个文件
+最后值得一提的是, ELF二进制文件利用了/dev/zero .

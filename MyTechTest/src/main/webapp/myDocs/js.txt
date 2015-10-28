@@ -18,3 +18,39 @@ function getLocal() {
 	alert(language + "_" + country);
 }
 </script>
+
+比较运算符：
+假定x = 5
+运算符           描述                            例子
+==      等于（值相等）        x==8 为 false；x==5为true；x=="5"为true
+===     全等（值和类型）    x===5 为 true；x==="5" 为 false
+!=      不等于                        x!=8 为 true；x!=5为false；x!="5"为false
+>       大于                            x>8 为 false
+<       小于                            x<8 为 true
+>=      大于或等于                x>=8 为 false
+<=      小于或等于                x<=8 为 true
+
+逻辑运算符：
+给定 x=6 以及 y=3，下表解释了逻辑运算符：
+运算符      描述              例子
+&&    and    (x < 10 && y > 1) 为 true
+||    or     (x==5 || y==5) 为 false
+!     not    !(x==y) 为 true
+
+在js逻辑运算中，0、""、null、false、undefined、NaN都会判为false
+例如：
+if (0) {
+      alert(0);
+  } else {
+      alert(1);
+  }
+  会打印1。
+  
+几乎所有语言（也包括js）中||和&&都遵循“短路”原理，如&&中第一个表达式为假就不会去处理第二个表达式，而||正好相反。 
+因此：
+if(a >=5){ 
+alert("你好"); 
+} 
+可以写成： 
+a >= 5 && alert("你好"); 
+但是后一种写法被jshint认为是不好的写法，会出警告：Expected an assignment or function call and instead saw an expression

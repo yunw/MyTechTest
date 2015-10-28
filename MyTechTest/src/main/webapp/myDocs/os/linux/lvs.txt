@@ -1,0 +1,35 @@
+lvs + keepalived +nginx 这个架构就是 lvs 作为了前端 
+keepalived+nginx 这个是用nginx作为前端 
+一个是四层的架构 一个是七层架构
+要是不缺机器 就上前者
+
+LVS(linux virtual server)：是一种集群(Cluster)技术，采用IP负载均衡技术和基于内容请求分发技术。
+调度器具有很好的吞吐率，将请求均衡地转移到不同的服务器上执行，且调度器自动屏蔽掉服务器的故障，
+从而将一组服务器构成一个高性能的、高可用的虚拟服务器。整个服务器集群的结构对客户是透明的，而且无需修改客户端和服务器端的程序。
+
+为此，在设计时需要考虑系统的透明性、可伸缩性、高可用性和易管理性。一般来说，LVS集群采用三层结构。
+
+LVS主要组成部分：
+负载调度器（load balancer/ Director）：它是整个集群对外面的前端机，负责将客户的请求发送到一组服务器上执行，而客户认为服务是来自一个IP地址（我们可称之为虚拟IP地址）上的。
+服务器池（server pool/ Realserver）：是一组真正执行客户请求的服务器，执行的服务一般有WEB、MAIL、FTP和DNS等。
+共享存储（shared storage）：它为服务器池提供一个共享的存储区，这样很容易使得服务器池拥有相同的内容，提供相同的服务。
+
+LVS负载均衡方式：
+1、Virtual Server via Network Address Translation NAT（VS/NAT）：网络地址映射
+VS/NAT是一种最简单的方式，所有的RealServer只需要将自己的网关指向Director即可。客户端可以是任意操作系统，
+但此方式下，一个Director能够带动的RealServer比较有限。在VS/NAT的方式下，Director也可以兼为一台RealServer。
+
+2、Virtual Server via IP Tunneling(VS/TUN)：IP隧道
+IP隧道（IP tunneling）是将一个IP报文封装在另一个IP报文的技术，这可以使得目标为一个IP地址的数据报文能被封装和转发到另一个IP地址。
+IP隧道技术亦称为IP封装技术（IP encapsulation）。IP隧道主要用于移动主机和虚拟私有网络（Virtual Private Network），
+在其中隧道都是静态建立的，隧道一端有一个IP地址，另一端也有唯一的IP地址。它的连接调度和管理与VS/NAT中的一样，只是它的报文转发方法不同。
+调度器根据各个服务器的负载情况，动态地选择一台服务器，将请求报文封装在另一个IP报文中，再将封装后的IP报文转发给选出的服务器；
+服务器收到报文后，先将报文解封获得原来目标地址为 VIP 的报文，服务器发现VIP地址被配置在本地的IP隧道设备上，
+所以就处理这个请求，然后根据路由表将响应报文直接返回给客户。
+
+3、Virtual Server via Direct Routing(VS/DR)：直接路由
+VS/DR方式是通过改写请求报文中的MAC地址部分来实现的。Director和RealServer必需在物理上有一个网卡通过不间断的局域网相连。
+ RealServer上绑定的VIP配置在各自Non-ARP的网络设备上(如lo或tunl),Director的VIP地址对外可见，
+ 而RealServer的VIP对外是不可见的。RealServer的地址即可以是内部地址，也可以是真实地址。
+ 
+三种负载均衡方式比较：

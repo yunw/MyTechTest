@@ -114,7 +114,11 @@ numChildren = 0
 
 addauth scheme auth:
 addauth digest test:aaa
+
 setAcl path acl:
 #'test:vUtFteQU15A8l5nPNBf2CF2CIKY='由：org.apache.zookeeper.server.auth.DigestAuthenticationProvider.generateDigest("test:aaa");生成
 setAcl /cfg/redis/properties digest:test:vUtFteQU15A8l5nPNBf2CF2CIKY=:rw
 
+
+create [-s] [-e] path data acl  #其中"-s"表示创建一个"有序"节点,"-e"表示创建一个临时节点.默认为持久性节点
+create /cfg/properties a=b
