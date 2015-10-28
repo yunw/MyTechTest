@@ -1,7 +1,12 @@
+yum install -y openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+iptables -I INPUT -p tcp --dport 4369 -j ACCEPT
+iptables -I INPUT -p tcp --dport 25672 -j ACCEPT
+
 一、安装配置erlang：
 cd /data/Downloads
 wget http://www.rabbitmq.com/releases/erlang/erlang-17.4-1.el6.x86_64.rpm
-yum install -y erlang-17.4-1.el6.x86_64.rpm
+#yum install -y erlang-17.4-1.el6.x86_64.rpm
+rpm -ivh erlang-17.4-1.el6.x86_64.rpm
 
 vi /etc/profile
 
@@ -14,8 +19,8 @@ source /etc/profile
 
 二、安装rabbitmq
 cd /data/Downloads
-wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.4/rabbitmq-server-3.5.4-1.noarch.rpm
-yum install -y rabbitmq-server-3.5.4-1.noarch.rpm
+wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.6/rabbitmq-server-3.5.6-1.noarch.rpm
+yum install -y rabbitmq-server-3.5.6-1.noarch.rpm
 
 chkconfig rabbitmq-server on
 /sbin/service rabbitmq-server start
@@ -37,6 +42,7 @@ http://10.25.23.106:15672
 在登录界面输入用户名/密码：admin/admin即可进入console了。
 
 
+
 三、创建集群：
 注1：为了保证集群能运行，必须保证：4369、25672可以访问。
 注2：集群的通信是通过erlang的消息传递，因此集群的所有节点必须有相同的erlang cookie。
@@ -46,6 +52,7 @@ http://10.25.23.106:15672
 1、集群节点间需能互相访问，故每个集群节点的hosts文件应包含集群内所有节点的信息以保证互相解析
 故修改五台机器的/etc/hosts文件：
 将
+10.25.23.101     SSSVL0301
 10.25.23.106     SSSVL0306
 10.25.23.107     SSSVL0307
 10.25.23.108     SSSVL0308
@@ -119,3 +126,14 @@ rabbitmqctl set_policy ha-two "^two\." '{"ha-mode":"exactly","ha-params":2,"ha-s
 含义：虚拟主机“/”上的以“two”开头的对列会自动镜像到集群中的两个节点上，消息自动同步，该策略的优先级为0。
 
 详细策略配置规则参考：http://www.rabbitmq.com/parameters.html
+
+集群bug修复版升级：
+service rabbitmq-server stop
+cd /data/Downloads
+wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.6/rabbitmq-server-3.5.6-1.noarch.rpm
+yum install -y rabbitmq-server-3.5.6-1.noarch.rpm
+service rabbitmq-server start
+升级完成：在浏览器中输入：
+http://ip:15672/
+网页右上角显示的是升级后的版本号。
+注意：先升级磁盘节点，后升级内存节点。
