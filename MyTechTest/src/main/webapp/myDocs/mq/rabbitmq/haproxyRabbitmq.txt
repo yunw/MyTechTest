@@ -15,6 +15,8 @@ cd haproxy-1.6.1
 make TARGET=linux26 ARCH=x86_64 &&　make install PREFIX=/usr/local/haproxy 
 cp /usr/local/haproxy/sbin/haproxy /usr/sbin/
 #备注：本版本的examples/haproxy.init文件有个bug：第97行的quiet_check()方法少了个花括号：“{”，因此需要修改该文件后再执行拷贝操作
+vi examples/haproxy.init
+#shift + :97 （shift键和冒号键，然后输入97跳转到第97行）
 cp examples/haproxy.init /etc/init.d/haproxy
 chmod +x /etc/init.d/haproxy
 mkdir /etc/haproxy
