@@ -31,6 +31,7 @@
 		<log4j.version>1.2.17</log4j.version>
 		<lucene.version>5.3.0</lucene.version>
 		<maven.test.skip>false</maven.test.skip>
+		<mongo.version>2.13.3</mongo.version>
 		<mqtt.client.version>1.11</mqtt.client.version>
 		<pdfbox.version>1.8.10</pdfbox.version>
 		<poi.version>3.13</poi.version>
@@ -45,15 +46,20 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>${mongo.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-client</artifactId>
 			<version>${activemq.client.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>${zookeeper.version}</version>
-        </dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>${zookeeper.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.fusesource.stompjms</groupId>
 			<artifactId>stompjms-client</artifactId>
