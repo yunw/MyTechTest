@@ -7,13 +7,13 @@ import java.util.Properties;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.WriteResult;
 import com.mongodb.util.JSON;
 
 public class MongoTest {
@@ -47,22 +47,107 @@ public class MongoTest {
 		}
 	}
 
+	public static DBObject findOne(String collectionName, String key, Object value) {
+		return db.getCollection(collectionName).findOne(new BasicDBObject(key, value));
+	}
+
+	public static DBCursor find(String collectionName, String key, Object value) {
+		return db.getCollection(collectionName).find((new BasicDBObject(key, value)));
+	}
+	
+	/**
+	 * 查询满足条件的对象集
+	 * 
+	 * @param collectionName
+	 * @param key
+	 * @param valueList 查询条件
+	 * @return
+	 */
+	public static DBCursor findIn(String collectionName, String key, List<Object> valueList) {
+		BasicDBObject query =new BasicDBObject();
+		query.put(key, new BasicDBObject("$in", valueList));
+		return db.getCollection(collectionName).find(query);
+	}
+	
+	/**
+	 * 查询符合逻辑操作的对象集合
+	 * 
+	 * @param collectionName
+	 * @param key
+	 * @param logicOperator 例如: "$gt"、"$lt"
+	 * @param value
+	 * @return
+	 */
+	public static DBCursor findByLogicOperator(String collectionName, String logicOperator, String key, Object value) {
+		BasicDBObject query =new BasicDBObject();
+		query.put(key, new BasicDBObject(logicOperator, value));
+		return db.getCollection(collectionName).find(query);
+	}
+
+	public static WriteResult insert(String collectionName, DBObject dbObject) {
+		return db.getCollection(collectionName).insert(dbObject);
+	}
+
+	public static WriteResult insertList(String collectionName, List<DBObject> dbObjectList) {
+		return db.getCollection(collectionName).insert(dbObjectList);
+	}
+
+	public static WriteResult update(String collectionName, DBObject oldObject, DBObject newObject) {
+		return db.getCollection(collectionName).update(oldObject, newObject);
+	}
+
 	public static void main(String[] args) throws Exception {
-
-		// 查询所有的聚集集合
-		for (String name : db.getCollectionNames()) {
-			System.out.println("collectionName: " + name);
+//		test0();
+//		 test1();
+		// test2();
+		// test3();
+//		test4();
+//		 test5();
+		 test6();
+	}
+	
+	private static void test6() {
+		DBCursor cursor = findByLogicOperator("users", "$lt", "age", 24);
+		while(cursor.hasNext()) {
+			System.out.println(cursor.next());
 		}
+	}
+	
+	private static void test5() {
+		List<Object> valueList = new ArrayList<>();
+		valueList.add("n");
+		valueList.add("m");
+		DBCursor cursor = findIn("users", "name0", valueList);
+		while(cursor.hasNext()) {
+			System.out.println(cursor.next());
+		}
+	}
 
-		DBCollection users = db.getCollection("users");
-		
-		DBObject user = new BasicDBObject();
-	    user.put("name", "hoojo");
-	    user.put("age", 24);
-	    add(users, user);
+	private static void test4() {
+		DBObject obj = findOne("users", "name0", "hoojo0");
+		System.out.println(obj);
+		DBObject newObject = new BasicDBObject();
+		newObject.put("name0", "n");
+		newObject.put("age", 22);
+		update("users", new BasicDBObject("name0", "hoojo0"), newObject);
+	}
+
+	private static void test3() {
+		DBCursor cursor = find("users", "name", "hoojo");
+		while (cursor.hasNext()) {
+			System.out.println(cursor.next());
+		}
+	}
+
+	private static void test2() {
+		DBObject obj = findOne("users", "name", "hoojo");
+		System.out.println(obj);
+	}
+
+	private static void test1() {
 
 		// 查询所有的数据
-		DBCursor cur = users.find();
+		DBCursor cur = db.getCollection("users").find();
 		while (cur.hasNext()) {
 			System.out.println(cur.next());
 		}
@@ -70,9 +155,30 @@ public class MongoTest {
 		System.out.println(cur.getCursorId());
 		System.out.println(JSON.serialize(cur));
 	}
-
-	public static void add(DBCollection collection, DBObject dbObject) {
-		collection.insert(dbObject);
+	
+	private static void test0() {
+		List<DBObject> list = new ArrayList<>();
+		DBObject user1 = new BasicDBObject();
+		user1.put("name", "name1");
+		user1.put("age", 22);
+		list.add(user1);
+		
+		DBObject user2 = new BasicDBObject();
+		user2.put("name", "name2");
+		user2.put("age", 23);
+		list.add(user2);
+		
+		DBObject user3 = new BasicDBObject();
+		user3.put("name", "name3");
+		user3.put("age", 24);
+		list.add(user3);
+		
+		DBObject user4 = new BasicDBObject();
+		user4.put("name", "name4");
+		user4.put("age", 25);
+		list.add(user4);
+		
+		insertList("users", list);
 	}
 
 }
