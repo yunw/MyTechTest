@@ -54,32 +54,40 @@ public class MongoTest {
 	public static DBCursor find(String collectionName, String key, Object value) {
 		return db.getCollection(collectionName).find((new BasicDBObject(key, value)));
 	}
-	
+
 	/**
 	 * 查询满足条件的对象集
 	 * 
 	 * @param collectionName
 	 * @param key
-	 * @param valueList 查询条件
+	 * @param valueList
+	 *            查询条件
 	 * @return
 	 */
 	public static DBCursor findIn(String collectionName, String key, List<Object> valueList) {
-		BasicDBObject query =new BasicDBObject();
+		BasicDBObject query = new BasicDBObject();
 		query.put(key, new BasicDBObject("$in", valueList));
 		return db.getCollection(collectionName).find(query);
 	}
 	
+	public static DBCursor findMod(String collectionName, String key, Integer mod, Integer remainder) {
+		BasicDBObject query = new BasicDBObject();
+		query.put(key, new BasicDBObject("$mod", new Integer[]{mod, remainder}));
+		return db.getCollection(collectionName).find(query);
+	}
+
 	/**
 	 * 查询符合逻辑操作的对象集合
 	 * 
 	 * @param collectionName
 	 * @param key
-	 * @param logicOperator 例如: "$gt"、"$lt"
+	 * @param logicOperator
+	 *            例如: "$gt"、"$lt"、"$gte"、"$lte"、"$ne"
 	 * @param value
 	 * @return
 	 */
 	public static DBCursor findByLogicOperator(String collectionName, String logicOperator, String key, Object value) {
-		BasicDBObject query =new BasicDBObject();
+		BasicDBObject query = new BasicDBObject();
 		query.put(key, new BasicDBObject(logicOperator, value));
 		return db.getCollection(collectionName).find(query);
 	}
@@ -97,28 +105,36 @@ public class MongoTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-//		test0();
-//		 test1();
+//		 test0();
+		 test1();
 		// test2();
 		// test3();
-//		test4();
-//		 test5();
-		 test6();
+		// test4();
+		// test5();
+//		test6();
+		test7();
 	}
 	
-	private static void test6() {
-		DBCursor cursor = findByLogicOperator("users", "$lt", "age", 24);
-		while(cursor.hasNext()) {
+	private static void test7() {
+		DBCursor cursor = findMod("users", "age", 7, 1);
+		while (cursor.hasNext()) {
 			System.out.println(cursor.next());
 		}
 	}
-	
+
+	private static void test6() {
+		DBCursor cursor = findByLogicOperator("users", "$lt", "age", 24);
+		while (cursor.hasNext()) {
+			System.out.println(cursor.next());
+		}
+	}
+
 	private static void test5() {
 		List<Object> valueList = new ArrayList<>();
 		valueList.add("n");
 		valueList.add("m");
 		DBCursor cursor = findIn("users", "name0", valueList);
-		while(cursor.hasNext()) {
+		while (cursor.hasNext()) {
 			System.out.println(cursor.next());
 		}
 	}
@@ -151,33 +167,30 @@ public class MongoTest {
 		while (cur.hasNext()) {
 			System.out.println(cur.next());
 		}
-		System.out.println(cur.count());
-		System.out.println(cur.getCursorId());
-		System.out.println(JSON.serialize(cur));
 	}
-	
+
 	private static void test0() {
 		List<DBObject> list = new ArrayList<>();
 		DBObject user1 = new BasicDBObject();
 		user1.put("name", "name1");
 		user1.put("age", 22);
 		list.add(user1);
-		
+
 		DBObject user2 = new BasicDBObject();
 		user2.put("name", "name2");
 		user2.put("age", 23);
 		list.add(user2);
-		
+
 		DBObject user3 = new BasicDBObject();
 		user3.put("name", "name3");
 		user3.put("age", 24);
 		list.add(user3);
-		
+
 		DBObject user4 = new BasicDBObject();
 		user4.put("name", "name4");
 		user4.put("age", 25);
 		list.add(user4);
-		
+
 		insertList("users", list);
 	}
 

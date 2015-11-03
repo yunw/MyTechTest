@@ -72,6 +72,9 @@ http://localhost:3000
 安装在C:\Users\Administrator\AppData\Roaming\npm\node_modules下面，并且
 C:\Users\Administrator\AppData\Roaming\npm被放入用户变量path中。因此该用户（执行npm命令的用户）可以在命令行执行。
 
+更新依赖库：
+npm update –g
+
 使用express快速构建nodejs项目（参考：http://cwbuecheler.com/web/tutorials/2013/node-express-mongo/）：
 打开cmd转到目录：e：\
 执行命令：

@@ -27,6 +27,8 @@ whereis erlang
 wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.4/rabbitmq-server-3.5.4-1.noarch.rpm
 2、安装：
 yum install -y rabbitmq-server-3.5.4-1.noarch.rpm
+安装完后：/usr/sbin下有三个脚本：rabbitmqctl rabbitmq-plugins rabbitmq-server可直接运行。
+
 3、此时rabbitmq还没有作为守护进程开始运行。要想在系统启动之后默认以守护进程方式启动，需要执行：
 chkconfig rabbitmq-server on
 4、之后就可以用命令控制rabbitmq server的启动/停止/重启了：
@@ -427,3 +429,18 @@ AMQP(Advanced Message Queuing Protocol)：
 
 Federation Plugin（联合插件）：
 该插件可让exchange和queue联合。一个联合的exchange和queue可以从一个或多个upstreams（其它broker上的exchange和queue）接收消息。
+
+rabbitmq.config 和 rabbitmq-env.conf的默认地址：
+这两个文件默认情况下不会建立，在不同的平台上，他们的地址是不同的：
+       Generic UNIX - $RABBITMQ_HOME/etc/rabbitmq/
+             Debian - /etc/rabbitmq/
+                RPM - /etc/rabbitmq/
+Mac OS X (Homebrew) - ${install_prefix}/etc/rabbitmq/, the Homebrew prefix is usually /usr/local
+            Windows - %APPDATA%\RabbitMQ\
+如果rabbitmq-env.conf文件不存在，它只能手工在默认位置建立。
+如果rabbitmq.config文件不存在，它可以手工建立。如果要改变它的默认地址，可以设置：RABBITMQ_CONFIG_FILE环境变量。
+改变之后重启服务就可以。
+
+rpm的默认日志文件在：/var/log/rabbitmq目录下。可创建rabbitmq-env.conf文件，添加变量：
+RABBITMQ_LOG_BASE=/app/rabbitmq/logs改变日志路径。
+RABBITMQ_MNESIA_BASE=/app/rabbitmq/data改变数据文件的路径。

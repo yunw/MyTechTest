@@ -69,7 +69,8 @@ mule中的连接器有基于端点的（endpoint-based）和基于操作的（op
 当你添加一个基于操作的连接器到你的流中，你就立即定义了一个特定的操作用于该连接器执行。
 
 http connector
-一个http connector可以被配置为一个监听器（接收入站请求）或者作为一个请求连接器（作为出站请求）。http connector一般要求一个全局的连接器配置来规定它的属性。
+一个http connector可以被配置为一个监听器（接收入站请求）或者作为一个请求连接器（作为出站请求）。
+http connector一般要求一个全局的连接器配置来规定它的属性。
 例如：
 
 <?xml version="1.0" encoding="UTF-8"?>
@@ -197,3 +198,9 @@ MEL是一种表达式语言，不是一种编程语言，因此：
 A）它通常解析为单个的值
 B）不能返回void类型
 
+启动/停止mule studio
+Run Mule on Unix
+$MULE_HOME/bin/mule start|stop
+
+Run Mule on Windows
+$MULE_HOME\bin\mule.bat start|stop
