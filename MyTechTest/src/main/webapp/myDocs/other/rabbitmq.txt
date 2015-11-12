@@ -55,7 +55,7 @@ rabbitmqctl list_users
 10、在登录界面输入用户名/密码：admin/admin即可进入console了。
 
 
-访问控制（access control）：
+访问控制（access control）：http://www.rabbitmq.com/man/rabbitmqctl.1.man.html
 当服务第一次运行的时候，它会检测到它的数据库没有初始化或已经被删除了，它会用如下资源来初始化新的数据库：
 a）一个虚拟主机，名字是：“/”
 b）一个用户：guest，默认密码是：guest。它被赋予全部的权限访问虚拟主机“/”。
@@ -65,6 +65,12 @@ guest用户只能通过localhost访问
 这是通过loopback_users配置来实现的。如果你希望guest能远程访问。
 可以如下配置rabbitmq.config：
 [{rabbit, [{loopback_users, []}]}].
+
+
+rabbitmqctl add_vhost test #创建虚拟主机
+rabbitmqctl delete_vhost test #删除虚拟主机
+rabbitmqctl set_permissions [-p vhostpath] {user} {conf} {write} {read} #设置指定用户的权限
+rabbitmqctl clear_permissions [-p vhostpath] {username}  #清楚指定用户的权限
 
 权限是如何起作用的：
 

@@ -3,7 +3,8 @@ ha-master eth1: 10.25.23.103
  rabbitmq eth1: 10.25.23.106~10.25.23.110
            VIP: 10.25.23.237
 
-yum install -y kernel-devel openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+yum install -y kernel-devel openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel 
+yum install -y curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
 
 
 cd /data/Downloads
@@ -12,6 +13,7 @@ wget http://www.keepalived.org/software/keepalived-1.2.19.tar.gz
 
 tar zxvf haproxy-1.6.1.tar.gz
 cd haproxy-1.6.1
+uname -a
 make TARGET=linux26 ARCH=x86_64 &&　make install PREFIX=/usr/local/haproxy 
 cp /usr/local/haproxy/sbin/haproxy /usr/sbin/
 #备注：本版本的examples/haproxy.init文件有个bug：第97行的quiet_check()方法少了个花括号：“{”，因此需要修改该文件后再执行拷贝操作
@@ -189,3 +191,6 @@ IPADDR=10.25.23.103
 #修改后的值
 DEVICE=eth1:0
 IPADDR=10.25.23.237
+
+启动：
+service keepalived start

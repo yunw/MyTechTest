@@ -1,0 +1,4 @@
+Angular 提供了3种方法来创建并注册我们自己的 service。
+Factory
+Service
+Provider

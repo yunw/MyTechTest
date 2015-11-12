@@ -1,3 +1,162 @@
+JWT(json web token):
+
+js 对象:js对象是键/值对的集合，或者字符串到值映射的集合。对象由{}包围。
+var book = {
+    topic : "javascript",
+    fat : true
+};
+通过"."或者"[]"来访问对象属性。
+book.topic;
+book["fat"];
+book.author = 'Jack'; //通过赋值创建一个新属性。
+book.contents = {};   //{}是一个空对象，它没有属性。
+
+js算术运算的上溢（overflow）、下溢（underflow）、被零整除的规则：
+js的数字运算结果超出js表示所能表示的上限（上溢）。结果为一个特殊的无穷大值（infinity）。相同的，负数超出了表示范围，结果为（-infinity）。
+下溢是运算结果无限接近于零，并且比js能表示的最小值还小，这时候js返回0。负数发生下溢返回-0。
+被零整除js并不报错。它只是简单的返回无穷大或负无穷大。但是零除以零是没有意义的，这种运算返回的是一个非数字的值：NaN（not a number）。
+无穷大除以无穷大，给任意负数做开放运算或者算术运算符与非数字或无法转换为数字的操作数一起运算，都返回NaN。
+2/0      ==> infinity
+-2/0     ==> -infinity
+1/1e2000 ==> 0
+0/0      ==> NaN
+"a"/0    ==> NaN
+-"a"     ==> NaN
+
+null undefined:
+typeof(null)       ==>object
+typeof(undefined)  ==>undefined
+null == undefined  ==>true
+null === undefined ==>false
+除了null、undefined之外的任何对象都有toString()方法。
+
+js全局对象：
+全局对象的属性是全局定义的符号，js程序可以直接使用。当js解释器启动时（或浏览器加载新页面时），它将创建一个新的全局对象，并给它一组定义的
+初始属性：
+全局属性：undefined、Infinity、NaN
+全局函数：isNaN()、parseInt()、eval()
+构造函数：Date()、RegExp()、String()、Object()、Array()
+全局对象：Math、JSON
+在代码的最顶级——不在任何函数内的js代码——可以使用js关键字this来引用全局对象：
+var global = this; //定义一个引用全局对象的全局变量。
+在客户端js中，在其表示的浏览器窗口中的所有js代码中，Window对象充当了全局对象。这个全局Window对象有一个属性window引用其自身。
+它可以代替this来引用全局对象。
+如果代码申明了一个全局变量，这个全局变量就是全局对象的一个属性。
+
+包装对象：
+字符串、数字、布尔值都有对应的包装对象：String()、Number()、Boolean()。原始值和包装对象的类型是不相同的。
+var b = true;
+var B = new Boolean(b);
+b == B    ==> true
+b === B   ==> false
+typeof(b) ==> boolean
+typeof(B) ==> object
+
+js的原始值：
+null、undefined、布尔值、数字、字符串。原始值是不可变的。
+
+布尔值：
+undefined、null、false、""、0、-0、NaN为false，其他都为true
+
+
+js数组：以数字为索引的列表。数组以[]为边界。
+var primes = [2,3,6,9]; //拥有4个值的数组。
+primes[0];   //==>2，数组中的第一个元素(索引为0)
+primes.length //==>4。数组元素的个数。
+primes[7] = 9; //通过赋值来添加新元素。
+primes.length //==>8，数组的长度被上述赋值语句改变了，但是，第5、6、7个元素都没有赋值，因此，它们的值都是“undefined”
+
+js 变量：是无类型的，可以被赋予任何类型的值；同一个变量也可以被赋予不同类型的值。
+变量由关键字var来声明。
+在非严格模式下：
+如果给一个没有使用var关键字声明的变量赋值，js实际上会给全局对象创建一个同名属性，并且它们工作起来像一个正确声明了的全局变量。
+在严格模式下会报错。
+函数内声明的变量只在函数体内有效，是局部变量（如果在函数体内变量没有用var声明，其实还是全局变量），函数参数也是局部变量，局部变量优先级高于同名的全局变量。
+var scope = "global";
+function checkScope() {
+    var scope = "local";
+    myScope = "local";  //全局变量！！！
+    return scope;       //返回局部变量的值，而不是全局变量的值。
+}
+checkScope();   //==>local
+
+函数作用域和声明提前：
+java等语言在{}内都有自己的作用域，被称为块级作用域，js没有块级作用域，而是使用函数作用域：变量在声明它们的函数体以及这个函数体嵌套的任意函数体
+内都是有定义的。
+js的函数作用域是指在函数内声明的变量在整个函数内都是可见的，这意味着变量在声明之前就可用了。这个特性被非正式的称为声明提前。即：js函数里声明的所有
+变量（不包括赋值）都被提前至函数的顶部。声明提前这步操作是在js引擎的预编译期进行的，是在代码开始运行之前。例如：
+var scope = "global";
+function f() {
+  console.log(scope);   //输出undefined，而不是global
+  var scope = "local";  //变量在这里赋值，但变量的作用域是整个函数体
+  console.log(scope);   //输出local
+}
+上述代码和下述代码等价：
+var scope = "global";
+function f() {
+  var scope;          //在函数顶部声明局部变量
+  console.log(scope); //变量存在，但未赋值
+  scope = "local";    //初始化变量
+  console.log(scope); //输出期望的值：local
+}
+js程序员习惯将变量的声明放在函数的顶部，而不是放在靠近使用它的地方，这使得源代码更清晰的反映了变量的真实作用域。
+
+作为属性的变量：
+当声明一个js的全局变量时，实际上是定义了全局对象的一个属性。当使用var声明一个变量时，创建的这个属性是不可配置的，是无法通过delete运算符删除的。
+在非严格模式下，给一个未声明的对象赋值,js会自动创建一个全局变量，以这种方式创建的变量是全局对象的可配置属性，可以用delete删除。
+var trueval = 1;           //声明一个不可删除的全局变量
+fakevar = 2;               //创建全局对象的一个可删除的属性
+this.fakevar2 = 3;         //同上
+console.log(fakevar);      //==> 2
+console.log(fakevar2);     //==> 3
+delete trueval;            //变量并未被删除
+delete fakevar;            //变量被删除
+delete this.fakevar2;      //同上
+console.log(trueval);      //==> 1
+console.log(this.fakevar); //==>undefined
+console.log(this.fakevar2);//==>undefined
+js全局变量是全局对象的属性，js可以允许使用this关键字来引用全局对象。
+
+作用域链：
+  js是基于词法作用域的语言：通过阅读包含变量定义在内的数行源码就能知道变量的作用域。全局变量在程序中始终是有定义的。局部变量在声明它的函数体
+内以及其所嵌套的函数体内始终是有定义的。
+      每一段js代码（全局代码或函数）都有一个与之关联的作用域链。这个作用域链是一个对象列表或链表，这组对象定义了这段代码“作用域中”的变量。当js需要
+查找变量x的值的时候（这个过程称作“变量解析”），它会从链中的第一个对象开始查找，如果这个对象有一个叫x的属性，则会直接使用这个属性的值，如果没有，
+则继续查找链上的下一个对象；如果还没有，则继续查找下一个对象，以此类推。如果作用域链上没有任何 一个对象包含属性x，那么就认为这段代码的作用域链
+上不存在x，并最终抛出一个引用错误异常（ReferenceError）。
+      在js的最顶层代码中（也就是不包含在任何函数定义内的代码），作用域链由一个全局对象组成。在不包含嵌套的函数体内，作用域链上有两个对象，第一个
+是定义函数参数和局部变量的对象，第二个是全局对象。在一个嵌套的函数体内，作用域链上至少有三个对象。
+      当定义一个函数时，它实际上保存一个作用域链。当调用这个函数时，它创建一个新的对象来存储它的局部变量，并将这个对象添加至保存的那个作用域链上，同时
+创建一个新的更长的表示函数调用作用域的链。对于嵌套函数来讲，每次调用外部函数时，内部函数又会重新定义一遍。因为每次调用外部函数的时候，作用域链都是
+不同的。内部函数在每次定义的时候都有微妙的差别：在每次调用外部函数时，内部函数的代码都是相同的，但关联这段代码的作用域链是不同的。
+      作用域链对于理解with语句是非常有帮助的，同样对理解闭包的概念也至关重要。
+
+js运算符：
+in：该运算符希望它的左操作数是一个字符串或可以转换为字符串，希望它的右操作数是一个对象。如果右侧的对象拥有一个名为左操作数的属性名，表达式为true。
+var point = {x :1, y: 1}; //定义一个对象
+"x" in point;             //==>true：对象有一个名为“x”的属性
+"z" in point;             //==>false：对象没有一个名为“z”的属性
+"toString" in point;      //==>true：对象继承了“toString()”方法
+var data = [7,8,9]; //拥有三个元素的数组
+"0" in data;        //==>true：数组包含索引为0的元素        
+1 in data;          //==>true：数组包含索引为1的元素
+3 in data;          //==>false：数组不包含索引为3的元素
+
+&&操作符：
+L && R：如果左侧表达式的值为假，返回左表达式的值，否则返回右侧表达式的值。
+var o = {x:1};
+var p = null;
+o && o.x; //==>1：o是一个对象，是真值，因此返回右侧表达式的值：o.x。
+p && p.x  //==>null：p是假值，直接返回左侧表达式的值，忽略右侧表达式的计算。
+&&运算符的这种行为有时称为“短路”。
+
+||运算符：
+L || R：如果左侧表达式的值为真，返回左侧表达式的值，否则返回右侧表达式的值。
+var o = {x : 1};
+var p = null;
+o||p;         //==>o：o是对象，为真，直接返回。
+p||o.x;       //==>1：p为假，返回右侧表达式o.x的值:1
+
 读json数据：
 var jsObj = eval('(' + jsonStr + ')');
 
@@ -54,3 +213,45 @@ alert("你好");
 可以写成： 
 a >= 5 && alert("你好"); 
 但是后一种写法被jshint认为是不好的写法，会出警告：Expected an assignment or function call and instead saw an expression
+
+理解JAVASCRIPT中hasOwnProperty()的作用
+hasOwnProperty()使用方法：
+object.hasOwnProperty(proName)
+其中参数object是必选项。一个对象的实例。
+proName是必选项。一个属性名称的字符串值。
+如果 object 具有指定名称的属性，那么JavaScript中hasOwnProperty函数方法返回 true；反之则返回 false。
+此方法无法检查该对象的原型链中是否具有该属性；该属性必须是对象本身的一个成员。
+在下例中，所有的 String 对象共享一个公用 split 方法。下面的代码将输出 false 和 true。
+var s = new String("JScript");
+print(s.hasOwnProperty("split"));
+print(String.prototype.hasOwnProperty("split"));
+
+void
+void是一个操作符，该操作符指定要计算一个表达式但是不返回值。
+void 操作符用法格式如下：
+1. javascrīpt:void (expression)
+2. javascrīpt:void expression
+expression 是一个要计算的 Javascrīpt 标准的表达式。
+从void 0 === undefined的值为true说起：
+void运算符不管其后的表达式是什么，都返回undefined。并且，void会对其后的运算数作取值操作，因此若属性有个getter函数，那么就会调用该函数（可能产生副作用）。
+void 运算符对表达式求值，并返回 undefined。在希望求表达式的值，但又不希望脚本的剩余部分看见这个结果时，该运算符最有用。
+那么为什么不直接使用undefined呢？
+undefined在JavaScript中并不属于保留字/关键字，因此在IE5.5~8中我们可以将其当作变量那样对其赋值（IE9+及其他现代浏览器中赋值给undefined将无效）
+var undefinedBackup = undefined;
+undefined = 1;
+// 显示"undefined"
+console.log(typeof undefinedBackup);  
+// 在IE5.5~8中显示"number"，其他浏览器中则显示"undefined"
+console.log(typeof undefined);
+
+{}定义map对象：
+var map={
+    key1:'abc',
+    key2:'def'
+};
+这样定义即可。动态赋值如下：
+map.key3='12';
+如果key也是动态的，则如下处理
+var key='aaa';
+map[key]='34';
+注意：在javascript语言中，key的值只能是字符串，不能是其它的。

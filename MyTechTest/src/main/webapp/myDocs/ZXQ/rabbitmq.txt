@@ -1,3 +1,4 @@
+sudo su - root #转为root用户
 sudo yum install -y openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
 sudo iptables -I INPUT -p tcp --dport 4369 -j ACCEPT
 sudo iptables -I INPUT -p tcp --dport 15672 -j ACCEPT
@@ -61,8 +62,8 @@ http://10.25.23.106:15672
 注1：为了保证集群能运行，必须保证：4369、25672可以访问。
 注2：集群的通信是通过erlang的消息传递，因此集群的所有节点必须有相同的erlang cookie。
 注3：集群的节点上运行的erlang、rabbitmq的版本必须相同。
-注4：visual host、exchange、user、permission都会在集群的所有节点上镜像；对列可能只在一个节点上，或镜像到多个节点。
-注5：客户端连接到任意一个节点，都可以看到集群中的所有的对列，即使对列并不在该节点上。
+注4：visual host、exchange、user、permission都会在集群的所有节点上镜像；队列可能只在一个节点上，或镜像到多个节点。
+注5：客户端连接到任意一个节点，都可以看到集群中的所有的队列，即使队列并不在该节点上。
 1、集群节点间需能互相访问，故每个集群节点的hosts文件应包含集群内所有节点的信息以保证互相解析
 故修改五台机器的/etc/hosts文件：
 将
@@ -85,7 +86,7 @@ sudo vi /var/lib/rabbitmq/.erlang.cookie #IBFHTAJYDQCSRKESDAUT
 3、添加集群节点：
 a）在10.25.23.107上执行：
 sudo rabbitmqctl stop_app
-sudo rabbitmqctl join_cluster rabbit@SCSV00170
+sudo rabbitmqctl join_cluster rabbit@SSSVL0306
 sudo rabbitmqctl start_app
 sudo rabbitmqctl cluster_status
 
@@ -127,6 +128,9 @@ rabbitmqctl stop_app
 rabbitmqctl reset
 rabbitmqctl start_app
 rabbitmqctl cluster_status
+注意：因为集群的首个节点默认为集群名称（rabbit@SSSVL0306）。因此将首节点（rabbit@SSSVL0306）删除后再添加到集群的时候，因为节点名称和集群名称
+相同，rabbitmqctl join_cluster rabbit@SSSVL0306 这个命令会报错。可执行下述命令：rabbitmqctl join_cluster rabbit@SSSVL0307
+即，将节点改一下（join_cluster后的节点是当前集群中随机的节点）
 
 6、策略管理：
 rabbitmqctl set_policy [-p vhostpath] [--priority priority] [--apply-to apply-to] {name} {pattern} {definition}
@@ -141,7 +145,7 @@ rabbitmqctl set_policy federate-me "^amq\." '{"federation-upstream-set":"all"}' 
 含义：策略名称：federate-me；所有以“amq.”开头的虚拟主机为“/”的exchange都会匹配，策略优先级为1。
 
 rabbitmqctl set_policy ha-two "^two\." '{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic"}' --apply-to queues
-含义：虚拟主机“/”上的以“two”开头的对列会自动镜像到集群中的两个节点上，消息自动同步，该策略的优先级为0。
+含义：虚拟主机“/”上的以“two”开头的队列会自动镜像到集群中的两个节点上，消息自动同步，该策略的优先级为0。
 
 详细策略配置规则参考：http://www.rabbitmq.com/parameters.html
 
