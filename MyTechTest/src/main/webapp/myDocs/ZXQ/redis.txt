@@ -17,13 +17,13 @@ mkdir /data/logs/redis
 mkdir /data/redis
 mkdir /data/Downloads
 cd /data/Downloads
-wget http://download.redis.io/releases/redis-3.0.3.tar.gz
-tar -zxvf redis-3.0.3.tar.gz
-cd redis-3.0.3
+wget http://download.redis.io/releases/redis-3.0.5.tar.gz
+tar -zxvf redis-3.0.5.tar.gz
+cd redis-3.0.5
 make && make PREFIX=/usr/local/redis install
 
 3、配置redis
-cp /data/Downloads/redis-3.0.3/utils/redis_init_script /etc/rc.d/init.d/redis
+cp /data/Downloads/redis-3.0.5/utils/redis_init_script /etc/rc.d/init.d/redis
 vi /etc/rc.d/init.d/redis
 然后将redis文件的内容修改如下：
 #!/bin/sh
@@ -72,7 +72,7 @@ esac
 chkconfig --add redis
 chkconfig redis on
 
-cp /data/Downloads/redis-3.0.3/redis.conf /etc/redis/6379.conf
+cp /data/Downloads/redis-3.0.5/redis.conf /etc/redis/6379.conf
 vi /etc/redis/6379.conf
 将如下属性的值按下列值进行配置：
 daemonize yes
@@ -96,30 +96,30 @@ sentinel parallel-syncs mymaster1 1
 
 二、集群：
 1、创建：
-/data/Downloads/redis-3.0.3/src/redis-trib.rb create --replicas 1 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379 10.25.23.104:6379 10.25.23.105:6379 10.25.23.106:6379
+/data/Downloads/redis-3.0.5/src/redis-trib.rb create --replicas 1 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379 10.25.23.104:6379 10.25.23.105:6379 10.25.23.106:6379
 上述命令创建集群，每个master都有一个slave，具体就是：101-103为master，104-106为对应的slave。
 
 2、添加master节点到集群：
-/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node 10.25.23.107:6379 10.25.23.101:6379
+/data/Downloads/redis-3.0.5/src/redis-trib.rb add-node 10.25.23.107:6379 10.25.23.101:6379
 10.25.23.107:6379为要添加的master节点
 10.25.23.101:6379为集群中存在的一个随机master节点
 
 3、添加slave节点到集群：
 A）添加到slave节点最少的一个master节点上：
-/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node --slave 10.25.23.108:6379 10.25.23.101:6379
+/data/Downloads/redis-3.0.5/src/redis-trib.rb add-node --slave 10.25.23.108:6379 10.25.23.101:6379
 10.25.23.108:6379为要添加的slave节点
 10.25.23.101:6379为集群中存在的一个随机master节点
 该命令并不意味着10.25.23.108:6379会成为10.25.23.101:6379的slave节点，而是会在集群中slave节点最少的master节点中随机选择一个master节点。
 
 B）添加slave节点到指定master节点：
-/data/Downloads/redis-3.0.3/src/redis-trib.rb add-node --slave --master-id 02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.108:6379 10.25.23.101:6379
+/data/Downloads/redis-3.0.5/src/redis-trib.rb add-node --slave --master-id 02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.108:6379 10.25.23.101:6379
 3c3a0c74aae0b56170ccb03a76b60cfe7dc1912e为指定的master节点的master-id。该id可以用cluster nodes命令查看。
 10.25.23.108:6379为要添加的slave节点
 10.25.23.101:6379为集群中存在的一个随机master节点
 
 4、重新分配哈希槽：
 A）从所有节点中抽取哈希槽到目标节点：
-/data/Downloads/redis-3.0.3/src/redis-trib.rb reshard 10.25.23.101:6379
+/data/Downloads/redis-3.0.5/src/redis-trib.rb reshard 10.25.23.101:6379
 ......
 How many slots do you want to move (from 1 to 16384)? 100
 What is the receiving node ID? 02af16ac8a70c0857cfa420cc18405025fb36396
@@ -153,7 +153,7 @@ cluster nodes命令的输出说明：
 第九列：Slots served...
 
 B）从指定节点抽取哈希槽到目标节点：
-/data/Downloads/redis-3.0.3/src/redis-trib.rb reshard 10.25.23.101:6379
+/data/Downloads/redis-3.0.5/src/redis-trib.rb reshard 10.25.23.101:6379
 ......
 How many slots do you want to move (from 1 to 16384)? 10
 What is the receiving node ID? 02af16ac8a70c0857cfa420cc18405025fb36396
@@ -196,15 +196,15 @@ B）删除主节点：
 删除主节点的方法和从节点相同，但是，主节点必须是空的，不能有哈希槽，如果有，必须先移到其它节点。
 
 
-版本平滑升级（3.0.3 --> 3.0.4）：
+版本平滑升级（3.0.3 --> 3.0.5）：
 一、slave节点升级：
 a）停止slave节点的服务
 service redis stop
 b）升级版本
 cd /data/Downloads
-wget http://download.redis.io/releases/redis-3.0.4.tar.gz
-tar -zxvf redis-3.0.4.tar.gz
-cd redis-3.0.4
+wget http://download.redis.io/releases/redis-3.0.5.tar.gz
+tar -zxvf redis-3.0.5.tar.gz
+cd redis-3.0.5
 make && make PREFIX=/usr/local/redis install #PREFIX的值必须和以前的安装路径相同
 c）启动slave节点的服务
 service redis start

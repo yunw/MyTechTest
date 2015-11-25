@@ -2,3 +2,12 @@ Angular 提供了3种方法来创建并注册我们自己的 service。
 Factory
 Service
 Provider
+
+scope是html和单个controller之间的桥梁，数据绑定就靠他了。
+rootscope是各个controller中scope的桥梁。用rootscope定义的值，可以在各个controller中使用。
+$rootScope.name设置的变量，在所有controller里面都是可以直接用{{$root.name}}来显示的
+
+$on、$emit和$broadcast使得event、data在controller之间的传递变的简单。
+$emit只能向parent controller传递event与data
+$broadcast只能向child controller传递event与data
+$on用于接收event与data

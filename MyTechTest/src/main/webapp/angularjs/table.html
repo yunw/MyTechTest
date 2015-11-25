@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<!-- <style>
+table, th, td {
+	border: 1px solid grey;
+	border-collapse: collapse;
+	padding: 5px;
+}
+
+table tr:nth-child(odd) {
+	background-color: #f1f1f1;
+}
+
+table tr:nth-child(even) {
+	background-color: #ffffff;
+}
+</style> -->
+</head>
+<body>
+    <div ng-app="myApp" ng-controller="customersCtrl">
+
+        <table>
+            <tr ng-repeat="x in names | orderBy : 'Country'">
+                <td>{{ $index + 1 }}</td>
+                <td ng-if="$odd" style="background-color: #f1f1f1">{{ x.Name }}</td>
+                <td ng-if="$even">{{ x.Name }}</td>
+                <td ng-if="$odd" style="background-color: #f1f1f1">{{ x.Country | uppercase }}</td>
+                <td ng-if="$even" style="background-color: #f1f1f1">{{ x.Country | uppercase }}</td>
+            </tr>
+        </table>
+
+    </div>
+    <script src="js/angular-1.4.7.min.js"></script>
+    <script src="js/customer-json.js"></script>
+</body>
+</html>

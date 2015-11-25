@@ -3,6 +3,24 @@ Checks route params (req.params), ex: /user/:id    --获取路径变量（path v
 Checks query string params (req.query), ex: ?id=12 --获取get方法的查询参数
 Checks urlencoded body params (req.body), ex: id=  --获取post方法的表单参数
 
+npm install --save 与 npm install --save-dev的区别：
+前者放在package.json 的dependencies中，生产环境用，后者放在devDependencies里面，开发环境用
+
+全局安装和本地安装的区别：
+本地安装：安装在执行npm命令时的位置的./node_modules目录下：
+例如：E:\>npm install formidable
+将安装在E:\node_modules目录下面。
+
+全局安装(-g)：
+安装在C:\Users\Administrator\AppData\Roaming\npm\node_modules下面，并且
+C:\Users\Administrator\AppData\Roaming\npm被放入用户变量path中。因此该用户（执行npm命令的用户）可以在命令行执行。
+
+debug:
+windows下：
+set DEBUG=express:* node ./bin/www
+npm start
+就可以看到详细的调试信息
+
 下载：
 https://nodejs.org/download/release/v4.2.1/node-v4.2.1-x64.msi
 
@@ -63,14 +81,6 @@ C:\Users\Administrator\AppData\Roaming\npm\node_modules\express-generator>npm st
 http://localhost:3000
 出现：Welcome to Express说明安装成功
 
-全局安装和本地安装的区别：
-本地安装：安装在执行npm命令时的位置的./node_modules目录下：
-例如：E:\>npm install formidable
-将安装在E:\node_modules目录下面。
-
-全局安装：
-安装在C:\Users\Administrator\AppData\Roaming\npm\node_modules下面，并且
-C:\Users\Administrator\AppData\Roaming\npm被放入用户变量path中。因此该用户（执行npm命令的用户）可以在命令行执行。
 
 更新依赖库：
 npm update –g

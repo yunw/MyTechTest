@@ -4,6 +4,10 @@ server.exe redis.conf
 启动sentinel：
 redis-server /path/to/sentinel.conf --sentinel
 
+pipeline:
+client打包多条命令一起发出，不需要等待单条命令的响应返回，而redis服务端会处理完多条命令后会将多条命令的处理结果打包到一起返回给客户端。
+需要注意到是用pipeline方式打包命令发送，redis必须在处理完所有命令前先缓存起所有命令的处理结果。打包的命令越多，缓存消耗内存也越多。所以并不是打包的命令越多越好。
+
 redis删除过期key：消极和积极
 消极：访问过期key的时候删除，缺陷：过期key长时间没有被访问。
 积极：

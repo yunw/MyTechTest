@@ -1,0 +1,100 @@
+1、cpu
+lscpu命令查看cpu的统计信息：
+[root@SSSVL0304 dev]# lscpu
+Architecture:          x86_64                #cpu架构
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                2
+On-line CPU(s) list:   0,1
+Thread(s) per core:    1
+Core(s) per socket:    2
+Socket(s):             1
+NUMA node(s):          1
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 62
+Stepping:              4
+CPU MHz:               2600.000
+BogoMIPS:              5200.00
+Hypervisor vendor:     VMware
+Virtualization type:   full
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              20480K
+NUMA node0 CPU(s):     0,1
+
+更详细的信息可以查看：/proc/cpuinfo
+
+2、内存：
+#free -m
+[root@SSSVL0304 dev]# free -m
+             total       used       free     shared    buffers     cached
+Mem:          7872        331       7540          0         82         72
+-/+ buffers/cache:        176       7696
+Swap:         3071          0       3071
+
+更详细的信息查看：/proc/meminfo
+
+3、磁盘
+lsblk
+[root@SSSVL0304 dev]# lsblk
+NAME                        MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                           8:0    0   30G  0 disk 
+忖sda1                        8:1    0  500M  0 part /boot
+忖sda2                        8:2    0 29.5G  0 part 
+  忖VolGroup-lv_root (dm-0) 253:0    0 26.5G  0 lvm  /
+  忖VolGroup-lv_swap (dm-1) 253:1    0    3G  0 lvm  [SWAP]
+sdb                           8:16   0   10G  0 disk 
+忖sdb1                        8:17   0   10G  0 part 
+  忖VolGroup01-lvol0 (dm-2) 253:2    0    8G  0 lvm  
+sr0                          11:0    1 1024M  0 rom  
+
+查看硬盘和分区的详细信息：fdisk -l
+
+4、网卡
+[root@SSSVL0304 dev]# lspci | grep -i 'eth'
+02:00.0 Ethernet controller: Intel Corporation 82545EM Gigabit Ethernet Controller (Copper) (rev 01)
+
+[root@SSSVL0304 dev]# ifconfig
+eth1      Link encap:Ethernet  HWaddr 00:50:56:A3:54:32  
+          inet addr:10.25.23.104  Bcast:10.25.23.255  Mask:255.255.255.0
+          inet6 addr: fe80::250:56ff:fea3:5432/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:64870543 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:61798833 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:4750216885 (4.4 GiB)  TX bytes:3354584733 (3.1 GiB)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:15 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:15 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:1568 (1.5 KiB)  TX bytes:1568 (1.5 KiB)
+
+[root@SSSVL0304 dev]# ip link show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 00:50:56:a3:54:32 brd ff:ff:ff:ff:ff:ff
+
+MTU（maximum transmission unit）：是设置在网卡上的配置值，它决定了经过网卡传输的数据包的最大尺寸。 
+PMTU（path maximum transmission unit）：是在源节点和目的节点之间的路径上的任一链路所能支持的链路MTU的最小值。
+
+5、pci插槽：
+lspci
+
+6、bios
+dmidecode -t bios
+
+dmidecode -q  #包含了很多硬件信息
+
+串/并行通信方式：
+串口com（cluster communication port）：串行通信端口
+并口lpt（line print terminal）：打印终端
+在数据通信中，如果从同时传输的数据位来划分则可分为串行传输方式和并行传输方式。串行传输方式是指将传送的每个字符的二进制代码按由低位到高位的顺序依次发送，每次只能传输其中的一位；
+而并行传输方式是将表示字符的多位二进制代码同时通过多条并行通信信道传送。
+

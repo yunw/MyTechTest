@@ -1,5 +1,42 @@
 JWT(json web token):
 
+闭包：js采用词法作用域，即，函数的执行依赖于变量作用域，这个作用域是在函数定义时决定的，而不是函数调用时决定的。为了实现这种词法作用域，
+js函数对象的内部状态不仅包含函数的代码逻辑，还必须引用当前的作用域链。函数对象可以通过作用域链关联起来，函数体内部的变量都可以保存在函数作用域内，
+这种特性在计算机文献中称为“闭包”。
+    从技术角度讲，所有的js函数都是闭包：它们都是对象，都关联到作用域链。
+闭包例子：
+var scope="global scope";  //全局变量
+function checkscope() {
+  var scope = "local scope";   //局部变量
+  return function() { 
+    return scope;  //嵌套函数体中的变量绑定的是局部变量，无论何时何地调用该函数，这个绑定关系都不会改变
+  } 
+}
+console.log(checkscope()()); //==>local scope：调用嵌套函数时，返回局部变量的值。
+理解闭包的核心：函数定义时的作用域链到函数执行时依然有效。
+
+函数在js中也是值，可以将函数赋值给变量，存储在对象的属性或数组的元素中，以及作为参数传入另一个函数中。
+function square(x) { return x * x;} //创建了一个新的对象，并将其赋值给变量square。函数的名字实际上是看不见的，square是变量的名字。
+var s = square;  //现在s和square指向同一个函数。
+square(4); //16
+s(4);      //16
+var a = [function(x) {return x*x;}, 20];//数组直接量
+a[0](a[1]);  //400
+函数作为值的例子：
+var operators = {
+    add: function(x,y) {return x + y;},
+    subtract: function(x,y) {return x - y;},
+    multiply:function(x,y) { return x * y;},
+    divide: function(x,y){return x/y;}
+};
+function operate(operation,operand1,operand2) {
+    if (typeof operators[operation] ==="function")
+    {
+        return operators[operation](operand1,operand2)
+    } else throw "unknow operator";
+}
+console.log(operate("add", "hello",operate("add", " ", "world"))); //hello world
+    
 js 对象:js对象是键/值对的集合，或者字符串到值映射的集合。对象由{}包围。
 var book = {
     topic : "javascript",
@@ -10,6 +47,33 @@ book.topic;
 book["fat"];
 book.author = 'Jack'; //通过赋值创建一个新属性。
 book.contents = {};   //{}是一个空对象，它没有属性。
+
+js数组：
+数组是对象的特殊形式。使用方括号访问数组元素就像用方括号访问对象的属性一样。js将指定的数字索引值转换成字符串（索引值1变成1“”）然后将其作为属性名来使用。
+数组的特殊之处在于，当使用小于2的32次方的非负整数作为属性名时数组会自动维护其length属性值。清晰地区分数组的索引和对象的属性名是非常有用的。所有的索引都是属性名，
+但只有在0~2的32次方减2之间的整数属性名才是索引。所有的数组都是对象，可以为其创建任意名字的属性。但如果使用的属性是数组的索引，数组的特殊行为就是将根据需要更新它们的length属性值。
+数组索引仅仅是对象属性名的一种特殊类型，这意味着js数组没有“越界”错误的概念。当试图查询任何对象中不存在的属性时，不会报错，只会得到undefined。
+例如：
+var data = [7]; //拥有三个元素的数组
+console.log("array's length: " + data.length);
+data["w"]=2;
+console.log("array's length: " + data.length);
+data[3] = 3;
+console.log("array's length: " + data.length);
+for (i in data)
+{
+    console.log(i + ":" + data[i]);
+}
+将会在控制台打印：
+array's length: 1
+array's length: 1
+array's length: 4
+0:7
+3:3
+w:2
+数组的特殊行为：
+A、如果为一个数组元素赋值，它的索引i大于或等于现有数组的长度时，length属性的值将设置为i+1。
+B、如果设置length属性为一个小于当前长度的非负整数n时，当前数组中那些索引值大于或等于n的元素将从中删除。
 
 js算术运算的上溢（overflow）、下溢（underflow）、被零整除的规则：
 js的数字运算结果超出js表示所能表示的上限（上溢）。结果为一个特殊的无穷大值（infinity）。相同的，负数超出了表示范围，结果为（-infinity）。
@@ -156,6 +220,38 @@ var o = {x : 1};
 var p = null;
 o||p;         //==>o：o是对象，为真，直接返回。
 p||o.x;       //==>1：p为假，返回右侧表达式o.x的值:1
+
+函数：是一段js代码，它只定义一次，但可以被执行或调用任意次。js函数是参数化的：函数的定义会包含一个称为形参的标识符列表，这些参数在函数体中
+像局部变量一样工作。函数调用会为形参提供实参的值。函数使用它们实参的值来计算返回值，成为该函数调用表达式的值。除了实参之外，每次调用还会拥有另一个值：
+本次调用的上下文也就是this关键字的值。
+如果函数挂载在一个对象上，作为对象的一个属性，就称它为对象的方法。当通过这个对象来调用函数时，该对象就是此次调用的上下文，也就是该函数的this的值。
+在js中，函数即对象，程序可随意操控它们。比如，js可以把函数赋值给变量，或者作为参数传递给其它函数。也可以给它们设置属性，甚至调用它们的方法。
+匿名函数立即执行：
+(function(){})();
+(function(){}());
+function左侧的“(”可以防止js解释器将关键字function解析为函数声明语句。
+函数定义表达式：
+//将表达式赋值给一个变量；该函数表达式是匿名的
+var square = function(x) {return x * x;};
+//函数表达式可以包含名称，该名字只存在于函数体中，指代该函数对象本身。这在递归时很有用：
+var fact = function f(x) { if (x < 1) return 1; else return x * f(x - 1);};
+函数声明语句：
+function square(x) {return x * x;}       //含有变量名的语句
+区别：函数声明语句中的函数名是一个变量名，变量指向函数对象。和通过var声明变量一样，函数定义语句中的函数被显式地提前到了脚本或函数的顶部。因此它们在整个脚本和函数内部都是可见的，
+函数名称和函数体均提前：脚本中的所有函数和函数中所有嵌套的函数都会在当前上下文中其它代码之前声明，即可以在声明一个js函数之前调用它。和var语句一样，函数声明语句创建的变量也是无法
+删除的，但是这些变量不是只读的，变量值可以重写。
+使用var的话，只有变量声明提前了，变量的初始化代码仍然在原来的位置。
+console.log(square(5));  //25
+//函数声明语句
+function square(x) {
+    return x * x;
+}
+console.log(plus);       //undefined
+//console.log(plus(1,1));  //Uncaught TypeError: plus is not a function
+//函数定义表达式
+var plus = function(x,y) {return x + y;} 
+console.log(plus);       //function plus(x, y)
+console.log(plus(1,1));  //2
 
 读json数据：
 var jsObj = eval('(' + jsonStr + ')');

@@ -1,3 +1,8 @@
+iptables -I INPUT -p tcp --dport 5672 -j ACCEPT #开放5672端口
+iptables -I INPUT -p tcp --dport 8888 -j ACCEPT
+#防火墙规则持久化（修改文件：/etc/sysconfig/iptables）
+service iptables save
+
 ha-master eth1: 10.25.23.103
  ha-slave eth1: 10.25.23.104
  rabbitmq eth1: 10.25.23.106~10.25.23.110
@@ -5,7 +10,6 @@ ha-master eth1: 10.25.23.103
 
 yum install -y kernel-devel openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel 
 yum install -y curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
-
 
 cd /data/Downloads
 wget http://fossies.org/linux/misc/haproxy-1.6.1.tar.gz
@@ -55,7 +59,7 @@ listen proxy_monitor
         bind 0.0.0.0:8888 #监听端口  
         option httplog #采用http日志格式  
         stats refresh 30s #统计页面自动刷新时间 
-        #设置haproxy监控地址为http://localhost:8888/stats  
+        #设置haproxy监控地址为http://localhost:8888/stats
         stats uri /stats
         #统计页面密码框上提示文本
         stats realm Haproxy Manager
@@ -78,7 +82,6 @@ listen rabbitmq_local_cluster
         
 启动haproxy（以守护模式运行）：
 haproxy -f /etc/haproxy/haproxy.cfg -D
-
 
 A、安装keepalived（master、slave）：
 tar -zxvf keepalived-1.2.19.tar.gz
@@ -180,17 +183,7 @@ chmod +x /etc/keepalived/check_haproxy.sh
 #本命令设置vip，断电之后就失效
 ifconfig eth1:0 10.25.23.237 netmask 255.255.255.0 up
 
-永久保存，断电后也会存在：
-cd /etc/sysconfig/network-scripts
-cp ifcfg-eth1 ifcfg-eth1:0
-vi ifcfg-eth1:0
-修改ifcfg-eth1:0文件的下列属性（master，slave做相应改变）：
-#原来的值
-DEVICE=eth1
-IPADDR=10.25.23.103
-#修改后的值
-DEVICE=eth1:0
-IPADDR=10.25.23.237
+将该命令保存到/etc/rc.local文件的最后一行，重启机器也会生效
 
 启动：
 service keepalived start

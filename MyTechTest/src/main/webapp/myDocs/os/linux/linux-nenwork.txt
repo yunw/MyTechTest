@@ -1,0 +1,30 @@
+ifconfig:
+1、启用网卡：ifconfig eth0 up
+2、禁用网卡：ifconfig eth0 down
+3、配置ip：ifconfig eth0 192.168.0.1 netmask 255.255.255.0 #在eth0上配置上192.168.0.1 的IP地址及24位掩码
+4、配多ip：ifconfig eth0:0 192.168.1.1 netmask 255.255.255.0 #要配置多个，直接添加eth0:1、eth0:2...
+5、配置网卡的硬件地址：ifconfig eth0 hw ether xx：xx：xx：xx：xx：xx #就将网卡的硬件地址更改了，此时你就可以骗过局域网内的IP地址邦定了。
+注意：用Linux ifconfig命令配置的网卡信息，在网卡重启后、机器重启后，配置就不存在。
+要想将上述的配置信息永远的存的电脑里，那就要修改网卡的配置文件了（/etc/sysconfig/network-scripts/ifcfg-eth0）。
+
+防火墙iptables:
+DNAT - Destination Network Address Translation 目的网络地址转换。 DNAT是一种改变数据包目的 ip地址的技术，经常和SNAT联用，以使多台服务器能共享一个ip地址连入Internet，
+并且继续服务。通过对 同一个ip地址分配不同的端口，来决定数据的流向。
+
+Stream - 流 是指发送和接收的数据包和通信的双方都有关系的一种连接（译者注：本文中，作者把连 接看作是单向的，流表示双向的连接）。一般的，这个词用于描述在两个方向上发送两个或三个数据包的连 接。
+对于TCP，流意味着连接，它发送了一个SYN，然后又回复SYN/ACK。但也可能是指这样的连接，发送一 个SYN，回复ICMP主机不可达信息。换句话说，我使用这个词很随意。
+
+SNAT - Source Network Address Translation源网络地址转换。这是一种改变数据包源ip地址的技术， 经常用来使多台计算机分享一个Internet地址。
+这只在IPv4中使用，因为IPv4的地址已快用完了，IPv6将解 决这个问题。
+
+State - 状态 指明数据包处于什么状态。状态在RFC 793 - Transmission Control Protocol中定义，或由用户在Netfilter/iptables中自定义。
+需要注 意的是Netfilter设定了一些关于连接和数据包的状态，但没有完全使用使用RFC 793的定义。
+
+User space - 用户空间，指在内核外部或发生在内核外部的任何东西。例如，调用 iptables -h 发生在内核外部，
+但iptables -A FORWARD -p tcp -j ACCEPT （部分地）发生在内核内部，因为一条新的规则加入了规则集。
+
+Kernel space - 内核空间 ，与用户空间相对，指那些发生在内核内部。
+
+Userland - 参见用户空间
+
+target - 这个词在后文中有大量的应用，它表示对匹配的数据包所做的操作。
