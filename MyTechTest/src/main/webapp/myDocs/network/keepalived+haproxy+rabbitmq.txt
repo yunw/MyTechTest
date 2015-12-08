@@ -44,6 +44,12 @@ listen rabbitmq_local_cluster
 slave:
 /etc/keepalived/keepalived.conf 
 ! Configuration File for keepalived
+vrrp_script check_haproxy {
+    script "/etc/keepalived/check_haproxy.sh"
+    interval 2
+    weight 2
+}
+
 global_defs {
     router_id slave_55
 }
@@ -59,6 +65,9 @@ vrrp_instance rabbitmq_lb {
     }
     virtual_ipaddress {
         10.25.23.242
+    }
+    track_script {
+        check_haproxy
     }
 }
 
@@ -92,6 +101,12 @@ virtual_server 10.25.23.242 5672 {
 Master:
 /etc/keepalived/keepalived.conf
 ! Configuration File for keepalived
+vrrp_script check_haproxy {
+    script "/etc/keepalived/check_haproxy.sh"
+    interval 2
+    weight 2
+}
+    
 global_defs {
     router_id master_55
 }
@@ -107,6 +122,9 @@ vrrp_instance rabbitmq_lb {
     }
     virtual_ipaddress {
         10.25.23.242
+    }
+    track_script {
+        check_haproxy
     }
 }
 
@@ -135,6 +153,15 @@ virtual_server 10.25.23.242 5672 {
         }
     }
 }
+
+vi /etc/keepalived/check_haproxy.sh
+#!/bin/bash
+/etc/init.d/haproxy status &> /dev/null || /etc/init.d/haproxy restart &> /dev/null
+if [ $? -ne 0 ];then
+/etc/init.d/keepalived stop &> /dev/null
+fi
+
+chmod +x /etc/keepalived/check_haproxy.sh
 
 配置完了后启动：
 service keepalived restart
