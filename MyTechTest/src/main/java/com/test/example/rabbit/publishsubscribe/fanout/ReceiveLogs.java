@@ -6,19 +6,24 @@ import java.io.IOException;
 
 public class ReceiveLogs {
 	
-	private static final String EXCHANGE_NAME = "logs";
+	private static final String EXCHANGE_NAME = "myExchange";
+	private final static String QUEUE_NAME = "myQueue";
 
 	public static void main(String[] argv) throws Exception {
 		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost("10.25.23.39");
+		factory.setHost("10.25.23.242");
 		factory.setUsername("admin");
 		factory.setPassword("admin");
+		factory.setVirtualHost("/");
+		
 		Connection connection = factory.newConnection();
 		Channel channel = connection.createChannel();
 
-		channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-		String queueName = channel.queueDeclare().getQueue();
-		channel.queueBind(queueName, EXCHANGE_NAME, "");
+		channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+	
+//		String queueName = channel.queueDeclare().getQueue();
+		String queueName = QUEUE_NAME;
+		channel.queueBind(queueName, EXCHANGE_NAME, "foo.*");
 
 		System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 

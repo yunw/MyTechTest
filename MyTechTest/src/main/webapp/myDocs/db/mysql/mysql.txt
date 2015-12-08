@@ -1,3 +1,11 @@
+交互式连接和非交互式连接：
+mysql_real_connect方法最后一个参数的值是：
+交互式：CLIENT_INTERACTIVE  1024    /* This is an interactive client */
+非交互式：0 （一般都是0）
+
+mysql8小时异常：
+Communications link failure
+
 linux mysql 表名不区分大小写：
 my.cnf中添加参数：
 lower_case_table_names=1

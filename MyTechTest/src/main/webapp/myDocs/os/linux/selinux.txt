@@ -1,0 +1,21 @@
+SELinux 全称 Security Enhanced Linux (安全强化 Linux)，是 MAC (Mandatory Access Control，强制访问控制系统)的一个实现，
+目的在于明确的指明某个进程可以访问哪些资源(文件、网络端口等)。强制访问控制系统的用途在于增强系统抵御 0-Day 攻击(利用尚未公开的漏洞实现的攻击行为)的能力。
+所以它不是网络防火墙或 ACL 的替代品，在用途上也不重复。
+
+了解和配置 SELinux
+
+1. 获取当前 SELinux 运行状态
+getenforce
+可能返回结果有三种：Enforcing、Permissive 和 Disabled。
+Disabled 代表 SELinux 被禁用，Permissive 代表仅记录安全警告但不阻止可疑行为，Enforcing 代表记录警告且阻止可疑行为。
+
+2. 改变 SELinux 运行状态
+setenforce [ Enforcing | Permissive | 1 | 0 ]
+该命令可以立刻改变 SELinux 运行状态，在 Enforcing 和 Permissive 之间切换，结果保持至关机。
+一个典型的用途是看看到底是不是 SELinux 导致某个服务或者程序无法运行。若是在 setenforce 0 之后服务或者程序依然无法运行，
+那么就可以肯定不是 SELinux 导致的。
+
+3. SELinux 运行策略
+配置文件 /etc/sysconfig/selinux 还包含了 SELinux 运行策略的信息，通过改变变量 SELINUXTYPE的值实现，
+该值有两种可能：targeted 代表仅针对预制的几种网络服务和访问请求使用 SELinux 保护，strict 代表所有网络服务和访问请求都要经过 SELinux。
+若是想自己编辑 SELinux 策略，也提供了命令行下的策略编辑器 seedit 以及 Eclipse 下的编辑插件 eclipse-slide 。

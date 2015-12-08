@@ -14,7 +14,7 @@ import com.test.example.rabbit.ConfigUtil;
 
 public class Recv {
 
-	private final static String QUEUE_NAME = "hello";
+	private final static String QUEUE_NAME = "myQueue";
 	
 	private static boolean AUTO_ACK = true;
 
@@ -24,6 +24,7 @@ public class Recv {
 //		factory.setHost("10.25.23.39");
 		factory.setPassword("admin");
 		factory.setUsername("admin");
+		factory.setVirtualHost("/");
 //		Connection connection = factory.newConnection();
 		Connection connection = factory.newConnection(ConfigUtil.getAddresses());
 		Channel channel = connection.createChannel();

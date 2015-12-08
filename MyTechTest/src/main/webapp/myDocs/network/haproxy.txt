@@ -1,0 +1,195 @@
+默认情况下，haproxy使用keep-alive模式操作长连接：对每个连接来说，它处理每个请求和响应，并且在响应结束和新请求开始的这段时间里让连接在客户端和服务端空闲的存活着。
+
+haproxy支持5种连接模式：
+keep alive：所有的请求和响应都被处理（默认模式）
+tunnel：只有第一个请求和响应被处理，其他的都被不加分析的转发。
+passive close：在两个方向都加入“Connection: close”的tunnel模式。
+server close：响应结束后面向服务端的连接被关闭。
+forced close：在响应的终点连接积极的关闭。
+
+http request：
+首先，让我们考虑下面这个请求：
+Line number      Contents
+     1        GET /serv/login.php?lang=en&profile=2 HTTP/1.1
+     2        Host: www.mydomain.com
+     3        User-agent: my small browser
+     4        Accept: image/jpeg, image/gif
+     5        Accept: image/png
+
+请求行：
+第一行是请求行：一般由三个字段组成：
+method：GET
+URI： /serv/login.php?lang=en&profile=2
+version tag: HTTP/1.1
+
+URI本身能有如下几个形式：
+- relative URI：/serv/login.php?lang=en&profile=2
+这是一个没有主机部分的完整的URL。通常这就是服务器、反向代理和透明代理接收的东西。
+- absolute URI，也被称为URL：
+ http://192.168.0.12:8080/serv/login.php?lang=en&profile=2
+ 这通常是代理接收的东西，但是一个支持HTTP/1.1的服务器也必须接受这种形式。
+ - star(*)：这种形式只在与OPTIONS方法结合时才被接受，并且不能被转播。它常用于查询下一跳的能力。
+ - address:port 组合：192.168.0.12:80
+ 这被用于CONNECT方法，它被用于通过http代理建立tcp隧道，通常用于https，但有时也用于其它协议。
+
+相对URI被分成两部分。问号之前的部分称为“path”。它代表了服务器上的静态对象的相对路径。问号后面的部分称为“query string”，经常用于GET请求中发送动态脚本，被特定的语言，
+框架或者应用使用。
+
+request headers：
+头部从第二行开始。他们有行开始的名称和紧跟着的冒号组成。习惯上，一个LWS（linear white spaces）被追加在冒号后面，但这不是必须的。然后是值。多个相同的头部可能会被合并
+到一行中，他们的值用逗号分割，顺序保持不变。这种情况在“Cookie”字段中经常遇到。一个头部可能跨越多行，如果紧随着的行以一个LWS开始。上面的例子中，第4行和第5行的“Accept”
+头部有三个值。
+头部的名称是大小写不敏感的，并且他们的值也是大小写不敏感的。
+
+头部的终点由第一个空行表明。经常有人说这是由两行决定的，事实不是这样的。
+
+重要提示：被RFC2616所推荐，haproxy会用LWS来替换头部中间的换行符，目的是连接多行头部。
+这对本身的分析是必要的并且可以帮助http能力弱的解析其正确的工作不被这样复杂的结构愚弄。
+
+http response：
+http响应看起来很像http请求。他们都被称为http消息。让我们来看看这个http响应：
+Line number    Contents
+     1       HTTP/1.1 200 OK
+     2       Content-length: 350
+     3       Content-Type: text/html
+     
+作为一个特例，http支持一种叫做“信息响应”，他们的状态码是1xx。这些消息很特殊，他们并不传输响应的任何部分，他们只是用于信号消息，用于高速客户端请它继续
+发送请求。这种情况下，一个状态100的响应所请求的信息将带来下一个非100的响应消息，跟在这个信息后面。这意味着多个响应可能发送到一个请求，这仅仅工作在keep-alive模式下
+（1xx消息只有http/1.1支持），haproxy持有这些消息并且可以正确的转发，跳过他们，和只处理下一个非100的响应。状态101消息表明在同一个连接上协议已经改变了，haproxy必须
+转到隧道模式。
+
+配置文件（haproxy.cfg）格式：
+-来自命令行的参数，优先处理
+-global章节，设置进程级别的参数
+-代理章节包括：defaults listen frontend backend
+
+环境变量：haproxy配置文件支持环境变量，这些变量只有在双引号中才会被解释。变量在配置解析的时候被展开。变量必须有前缀$和可选的{}包围。
+Example:
+      bind "fd@${FD_APP1}"
+      log "${LOCAL_SYSLOG}:514" local0 notice   # send to local server
+      user "$HAPROXY_USER"
+
+时间格式：
+  - us : microseconds. 1 microsecond = 1/1000000 second
+  - ms : milliseconds. 1 millisecond = 1/1000 second. This is the default.
+  - s  : seconds. 1s = 1000ms
+  - m  : minutes. 1m = 60s = 60000ms
+  - h  : hours.   1h = 60m = 3600s = 3600000ms
+  - d  : days.    1d = 24h = 1440m = 86400s = 86400000ms
+  
+global参数：
+global章节的参数都是进程级别的并且经常是操作系统特定的。他们通常对所有的配置只设置一次，一旦设置成功不需要再改变。他们中的一部分有相同的命令行参数对应。
+下面的关键字都被“global”章节支持：
+进程管理与安全：
+   - ca-base
+   - chroot
+   - crt-base
+   - cpu-map
+   - daemon
+   - description
+   - deviceatlas-json-file
+   - deviceatlas-log-level
+   - deviceatlas-separator
+   - deviceatlas-properties-cookie
+   - external-check
+   - gid
+   - group
+   - log
+   - log-tag
+   - log-send-hostname
+   - lua-load
+   - nbproc
+   - node
+   - pidfile
+   - uid
+   - ulimit-n
+   - user
+   - stats
+   - ssl-default-bind-ciphers
+   - ssl-default-bind-options
+   - ssl-default-server-ciphers
+   - ssl-default-server-options
+   - ssl-dh-param-file
+   - ssl-server-verify
+   - unix-bind
+   - 51degrees-data-file
+   - 51degrees-property-name-list
+   - 51degrees-property-separator
+   - 51degrees-cache-size
+性能调谐：
+   - max-spread-checks
+   - maxconn
+   - maxconnrate
+   - maxcomprate
+   - maxcompcpuusage
+   - maxpipes
+   - maxsessrate
+   - maxsslconn
+   - maxsslrate
+   - maxzlibmem
+   - noepoll
+   - nokqueue
+   - nopoll
+   - nosplice
+   - nogetaddrinfo
+   - spread-checks
+   - server-state-base
+   - server-state-file
+   - tune.buffers.limit
+   - tune.buffers.reserve
+   - tune.bufsize
+   - tune.chksize
+   - tune.comp.maxlevel
+   - tune.http.cookielen
+   - tune.http.maxhdr
+   - tune.idletimer
+   - tune.lua.forced-yield
+   - tune.lua.maxmem
+   - tune.lua.session-timeout
+   - tune.lua.task-timeout
+   - tune.lua.service-timeout
+   - tune.maxaccept
+   - tune.maxpollevents
+   - tune.maxrewrite
+   - tune.pattern.cache-size
+   - tune.pipesize
+   - tune.rcvbuf.client
+   - tune.rcvbuf.server
+   - tune.sndbuf.client
+   - tune.sndbuf.server
+   - tune.ssl.cachesize
+   - tune.ssl.lifetime
+   - tune.ssl.force-private-cache
+   - tune.ssl.maxrecord
+   - tune.ssl.default-dh-param
+   - tune.ssl.ssl-ctx-cache-size
+   - tune.vars.global-max-size
+   - tune.vars.reqres-max-size
+   - tune.vars.sess-max-size
+   - tune.vars.txn-max-size
+   - tune.zlib.memlevel
+   - tune.zlib.windowsize
+调试：
+   - debug
+   - quiet
+   
+进程管理与安全：
+ca-base <dir>：
+分配一个默认的文件夹来查找SSL CA证书和CRL（Certificate Revocation List证书吊销列表）。
+
+代理：
+代理配置可以放在下列章节中：
+ - defaults [<name>]
+ - frontend <name>
+ - backend  <name>
+ - listen   <name>
+“defaults”章节为在它后面声明的章节设置默认参数。这些默认参数可以被接下来的“defaults”章节重置。
+“frontend”章节描述了监听套接字接收客户端连接的集合。
+“backend”章节描述了一套服务器，他们代理了进来的连接将要转发的连接。
+“listen”章节定义了一个完整的代理，包括了frontend和backend的内容。这对只是tcp的通信是有用的。
+现在，两种主要的代理模式都被支持：“tcp”，以四层协议知名；“http”以七层协议知名。在四层模式中，haproxy简单的在两端双向转发。
+在7层模式下，haproxy分析协议，并且能在请求和相应中互操作：允许、阻塞、转换、添加、修改或删除任意的内容，基于任意条件。
+
+在http模式下，对请求和响应的加工处理是否超出一个连接依赖于frontend的http选项和backend的选项组合。haproxy支持5种连接模式：
+
+

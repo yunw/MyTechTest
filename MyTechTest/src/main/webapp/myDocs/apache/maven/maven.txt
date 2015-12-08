@@ -22,3 +22,9 @@ version：项目的版本。
 此时，pom.xml文件会报错：在problems视图上用鼠标选中该错误，右键点击，选中quick Fix可以修复该错误。一个父项目就创建完毕了。
 2、创建子项目：选中刚才创建的父项目，右键，创建项目，选中创建maven module项目，此时，该module的父项目默认就是刚才创建的父项目名。
 3、在父项目下创建父项目：与第2步相同，创建完毕后，将packaging的值改为：pom并加入parent的配置。
+
+maven添加本地库
+source：
+mvn install:install-file -DgroupId=org.csource -DartifactId=fastdfs_client_java -Dversion=1.10.RELEASE -Dpackaging=jar -Dclassifier=sources -Dfile=D:\test\fastdfs_client_java_source.jar
+class：
+mvn install:install-file -DgroupId=org.csource -DartifactId=fastdfs_client_java -Dversion=1.10.RELEASE -Dpackaging=jar -Dfile=D:\test\fastdfs_client_java.jar

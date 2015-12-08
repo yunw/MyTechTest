@@ -1,0 +1,25 @@
+VRRP:(Virtual Router Redundancy Protocol):虚拟路由器冗余协议
+
+virtual_server的persistence_timeout 50 #会话保持时间
+意思就是在这个一定时间内会讲来自同一用户（根据ip来判断的）route到同一个real server。对于长连接类的应用，你肯定需要这么做。
+
+keepalived日志查看：
+tail -200f /var/log/messages | grep Keepalived_vrrp 
+
+keepalived-master eth1: 10.25.23.32
+keepalived-slave  eth1: 10.25.23.33
+ rabbitmq eth1: 10.25.23.37~10.25.23.39
+           VIP: 10.25.23.238
+cd /data/Downloads
+wget http://www.keepalived.org/software/keepalived-1.2.19.tar.gz
+tar -zxvf keepalived-1.2.19.tar.gz
+cd keepalived-1.2.19
+./configure --prefix=/usr/local/keepalived
+make && make install
+cp /usr/local/keepalived/etc/rc.d/init.d/keepalived /etc/rc.d/init.d/
+chkconfig --add keepalived
+chkconfig keepalived on
+cp /usr/local/keepalived/etc/sysconfig/keepalived /etc/sysconfig/
+mkdir /etc/keepalived
+cp /usr/local/keepalived/etc/keepalived/keepalived.conf /etc/keepalived/
+cp /usr/local/keepalived/sbin/keepalived /usr/sbin/

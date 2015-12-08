@@ -1,0 +1,60 @@
+LAN（Local Area Network）：局域网
+VLAN（Virtual Local Area Network）：虚拟局域网。
+NAT（Network Address Translation）：网络地址转换。
+DNS（Domain Name System）：域名系统。
+ARP（Address Resolution Protocol）：地址解析协议。
+RARP（Reverse Address Resolution Protocol），反向地址转换协议。
+NSCD(name service cache daemon)
+
+dns缓存：
+windows：
+查看：ipconfig /displaydns
+刷新：ipconfig /flushdns
+linux：
+
+arp缓存：
+windows：
+查看：arp -a
+linux：
+查看：arp -a
+
+网络地址（Network address）是互联网上的节点在网络中具有的逻辑地址。
+
+子网掩码：屏蔽一个IP地址的网络部分的“全1”比特模式。对于A类地址来说，默认的子网掩码是255.0.0.0；
+                    对于B类地址来说默认的子网掩码是255.255.0.0；对于C类地址来说默认的子网掩码是255.255.255.0。
+子网掩码的作用：就是将某个IP地址划分成网络地址和主机地址两部分。
+子网掩码的表示方法（两种）：
+a）点分十进制表示：
+如：255.0.0.0 或255.255.255.128
+b）在IP地址后加上"/"符号以及1-32的数字，其中1-32的数字表示子网掩码中网络标识位的长度
+如：192.168.1.1/24 的子网掩码也可以表示为255.255.255.0
+
+route命令：
+[root@SSSVL0305 ~]# route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.25.23.0      *               255.255.255.0   U     0      0        0 eth1
+link-local      *               255.255.0.0     U     1002   0        0 eth1
+default         10.25.23.1      0.0.0.0         UG    0      0        0 eth1
+[root@SSSVL0305 init.d]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.25.23.0      0.0.0.0         255.255.255.0   U     0      0        0 eth1
+169.254.0.0     0.0.0.0         255.255.0.0     U     1002   0        0 eth1
+0.0.0.0         10.25.23.1      0.0.0.0         UG    0      0        0 eth1
+Destination：网络目标
+Gateway：0.0.0.0表示是同一个局域网内，可以由eth1直接转发数据包。如果显示的是ip，则表明要发送到这个ip上（其实就是路由器），由它帮忙转发
+Genmask：网络掩码，与Destination一起指定一个子网
+Iface：传输数据包的网络接口
+其中Flags为路由标志，标记当前网络节点的状态。
+Flags标志说明：
+U Up表示此路由当前为启动状态
+H Host，表示此网关为一主机
+G Gateway，表示此网关为一路由器
+R Reinstate Route，使用动态路由重新初始化的路由
+D Dynamically,此路由是动态性地写入
+M Modified，此路由是由路由守护程序或导向器动态修改
+! 表示此路由当前为关闭状态
+观察一下上面的三个路由的排列顺序，网络范围由小到大，最后是默认路由。数据包传送的时候会按顺序来判断要由哪个路由传递。例如，要将数据包传递到10.25.23.10。首先
+找10.25.23.0/24。匹配上了，那么就由eth1发送到10.25.23.10上。如果要将数据包传送到www.sohu.com（114.80.130.88）上，首先匹配路由
+10.25.23.0/24，没有匹配上，继续匹配169.254.0.0/16，也配有匹配上，继续匹配0/0（默认网关），匹配上了，就由eth1发送到10.25.23.1的网关主机上。
