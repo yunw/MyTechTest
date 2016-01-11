@@ -14,6 +14,7 @@ wechatMonitor readwrite
 在这句话上面加上下面这些配置文件，下面的配置文件及解释信息是直接拿过来的^-^
  (参数意义依次是:
     -Dcom.sun.management.jmxremote 启用JMX远程监控
+    -Djava.rmi.server.hostname=10.25.23.209 10.25.23.209为服务器地址
     -Dcom.sun.management.jmxremote.port=9004 使用端口9004(可随意指定只要不冲突)
     -Dcom.sun.management.jmxremote.authenticate=true 远程连接需要密码认证
     -Dcom.sun.management.jmxremote.ssl=false 不使用SSL(SSL我试了多次都没有配置成功:P 暂时不开启)
@@ -22,20 +23,22 @@ wechatMonitor readwrite
 
 所以说就是要把下面信息加入到配置文件中去
  # ----- JMX Config Start -----
- JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=10207 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.access.file=/usr/local/tomcat/conf/jmxremote.access -Dcom.sun.management.jmxremote.password.file=/usr/local/tomcat/conf/jmxremote.password"
-export JAVA_OPTS
+ if [ "$1" = "start" ];then
+ JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Djava.rmi.server.hostname=10.25.23.209 -Dcom.sun.management.jmxremote.port=10207 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.access.file=/usr/local/tomcat/conf/jmxremote.access -Dcom.sun.management.jmxremote.password.file=/usr/local/tomcat/conf/jmxremote.password"
+ fi;
 # ----- JMX Config End -----
 
 保存一下，然后启动tomcat就行可以用jconsole访问了。
 
 远程访问
 
-最后如果访问还是连接不上的话，就可能是主机ip没有配置好，这时运行一下hostname -i,如果显示的是127.0.0.1，这就需要配置一个hosts文件了
-#vi /etc/hosts
-把里面的主机地址修改为：
-主机地址  localhost
+启动tomcat，报错：
+Error: Exception thrown by the agent : java.net.MalformedURLException: Local host name unknown: java.net.UnknownHostException: SSSVL209: SSSVL209: Temporary failure in name resolution
+可以做如下修改：
+[root@SSSVL209 bin]#vi /etc/hosts
+127.0.0.1  localhost SSSVL209 --SSSVL209为新添加的内容
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-主机地址 AY130509181338723805Z
+
 
 这样配置完全以后，就可以用jconsole连接，输入用户名和密码就可以访问进行监控了。
 

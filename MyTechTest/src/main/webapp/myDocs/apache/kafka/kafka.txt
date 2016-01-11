@@ -1,0 +1,90 @@
+Topics and Logs:
+主题（topic）是对发布的消息的一种分类。对每个主题，kafka集群维护一个分区日志（ partitioned log）。
+每个分区都是有序的，顺序不变的消息系列，这些消息会在尾部持续的追加到提交日志（commit log）。分区中的消息每一个都分配了一个顺序存取的id号，
+成为偏移量（offset），它唯一的标记了该分区中的每个消息。
+    kafka集群保持所有发布的消息一段时间，无论他们是否被消费，这段时间由配置文件指定。例如，如果指定这段时间为两天，那么一个消息发布之后，两天内
+这个消息作为消费品是可见的，之后就被抛弃了以释放空间。kafka的性能在不同的数据量下保持恒定，所以打数据量不是问题。
+    事实上，只有以消费者为基础的原数据被保存：日志中的消费位置，称为偏移量（offset）。这个偏移量由消费者控制：通常 一个消费者会设置它的偏移量在
+他读的消息附近。但是，事实上这个位置可以是消费者想要的任何位置，例如，一个消费者可以重新设置一个老的偏移量来重新处理以前处理过的消息。
+
+distribution（分布）
+日志的分区分布在kafka集群的服务器上，每个服务器持有数据并请求分享分区。每个分区都被复制到配置文件设定数量的服务器上以容忍错误。
+每个分区都有一个服务器被称为“leader”，并且有零个或多个服务器被称为“followers”。领导者持有所有的读写请求，跟随者被动的从领导者同步。
+如果领导者失败了，跟随者中的某个会自动的变为领导者。每个服务器都是某些分区的领导者以及另一部分分区的跟随者，这样集群中的负载就很好的被均衡了。
+
+Producers
+生产者发布数据到他们选择的主题上。生产者负责选择消息被放在主题所属的那个分区上。这可以通过简单的循环做到，以均衡负载或者根据某些算法（根据消息中的某个key）
+
+Consumers
+消息传统上有两种模式：queuing和publish-subscribe。queue模式下，一个池中的所有消费者可以从一个服务器中读，每个消息被它们中的一个获得。
+在publish-subscribe模式下，消息被广播给所有的消费者。
+kafka提供了一个单一的消费者抽象来概括这两者：消费者组（consumer group）。
+消费者用一个消费者组名来标记他们自己，每个主题的消息被发送到每个订阅消费者组的一个消费者实例。消费者实例可以是几个不同的进程或几台不同的机器。如果
+所有的消费者实例都有相同的消费者组，那么这种工作方式就像传统的queue模式。如果所有的消费者实例都有不同的消费者组，这种工作方式就像发布-订阅模式。
+
+kafka比传统的消息系统有更强的顺序保证。传统的queue在服务器上顺序的持有消息，如果有多个消费者从服务器上顺序的获取消息。那么，尽管服务器按顺序的
+传递消息，但是，消息是被异步的传递到消费者，这意味着在并发情况下，消息的顺序丢失了。消息系统有一种“单独消费者”的概念，它只允许一个消费者进程处理一个
+queue。这当然就无法并发处理了。
+kafka做得更好。通过一个在一个主题下的并发的概念：分区，kafka能对一个池的消费者进程提供顺序保证和负载均衡。它是通过分配主题下的分区给消费者组
+中的消费者，因此每个分区都只是被分配给组中的一个消费者，这样就能保证一个分区中只有一个消费者读，并且消息是按顺序消费的。需要注意的是，一个消费
+者组中的消费者实例不能比分区更多。
+kafka只能提供一个分区里的消息顺序，一个主题下的两个不同分区的顺序是无法保证的。如果你需要整个主题下的顺序保证，你就只能建一个分区了。
+
+guarantees
+kafka给出如下保证：
+1、由一个生产者发送到一个特定主题分区的消息按他们发送的顺序追加到分区中。也就是说，同一个生产者先发送消息M1，后发送M2，那么M1
+有一个比M2更小的偏移量，并且在日志中更早的出现。
+2、一个消费者实例看见消息的顺序就是他们存储在日志中的顺序
+3、对一个有N个备份的主题来说，即使N-1个服务器宕机也不会丢失已提交到日志的消息。
+
+kafka集群：
+10.25.23.101~10.25.23.103
+10.25.23.104~10.25.23.106
+zk:10.25.23.106
+
+下载kafka：
+wget http://mirrors.hust.edu.cn/apache/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz
+
+tar zxvf kafka_2.11-0.9.0.0.tgz
+
+修改配置：
+broker.id=0（101：0；102：1；103：2）
+zookeeper.connect=10.25.23.113:2181
+
+启动：
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-server-start.sh /usr/local/kafka_2.11-0.9.0.0/config/server.properties &
+
+停止：
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-server-stop.sh /usr/local/kafka_2.11-0.9.0.0/config/server.properties
+
+显示主题列表
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --list --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --topic topic_test
+
+显示主题信息
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --describe --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --topic topic_test
+
+删除主题（server.properties的delete.topic.enable设置为true才有效）
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --zookeeper 10.25.23.113:2181 --delete --topic topic_test
+
+创建主题
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --create --partitions 3 --replication-factor 3 --topic test
+
+消费消息者
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-console-consumer.sh --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --from-beginning --topic topic_test
+
+创建生产者
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-console-producer.sh --broker-list 10.25.23.101:9092,10.25.23.102:9092,10.25.23.103:9092 --topic test
+
+
+
+
+
+错误：
+kafka.common.InconsistentBrokerIdException: Configured brokerId 4 doesn't match stored brokerId 1 in meta.properties
+        at kafka.server.KafkaServer.getBrokerId(KafkaServer.scala:630)
+        at kafka.server.KafkaServer.startup(KafkaServer.scala:175)
+        at kafka.server.KafkaServerStartable.startup(KafkaServerStartable.scala:37)
+        at kafka.Kafka$.main(Kafka.scala:67)
+        at kafka.Kafka.main(Kafka.scala)
+这个错误是因为/tmp/kafka-logs/meta.properties中的broker.id属性的值和server.properties的值不一致导致的。
+

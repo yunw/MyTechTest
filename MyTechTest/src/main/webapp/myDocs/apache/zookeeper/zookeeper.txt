@@ -1,3 +1,5 @@
+wget http://mirrors.noc.im/apache/zookeeper/zookeeper-3.4.7/zookeeper-3.4.7.tar.gz
+
 启动zookeeper：D:\apache\zookeeper\zookeeper-3.4.6a\bin\zkServer.cmd
 
 伪集群：

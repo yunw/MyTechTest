@@ -1,0 +1,100 @@
+京东开源hydra：https://github.com/odenny/hydra
+编译报错，修改：
+D:\git\hydra\pom.xml中hadoop-common、hbase、dubbo、hessian的版本：
+为2.4.0(old:bdp-2.0.0-cdh4.1.1)、0.94.18(old:bdp-0.92.1-cdh4.1.1)、2.4.8(old:2.4.8-SNAPSHOT)、4.0.38(old:3.2.2)
+
+用maven编译为eclipse项目后，有报错：com.jd.bdp.hydra.hbase.service.QueryServiceTest
+将该类的方法全部注释掉即可。
+
+更改包依赖：
+先将D:\git\hydra\pom.xml中dubbo对javassist的依赖排除掉，然后引入高版本的javassist包，目前引入的是：3.20.0-GA版本
+然后在
+D:\git\hydra\modules\hydra-manager\pom.xml
+D:\git\hydra\modules\hydra-collector\pom.xml
+D:\git\hydra\modules\hydra-example\hydra-example-exp1\pom.xml
+D:\git\hydra\modules\hydra-example\hydra-example-exp2\pom.xml
+中添加对javassist包的依赖。
+更改的原因主要是javassist的低版本在jdk8下无法运行。会报错：
+Exception in thread "main" java.lang.RuntimeException: java.io.IOException: invalid constant type: 18
+        at javassist.CtClassType.getClassFile2(CtClassType.java:204)
+        
+修改zk配置：
+dubbo-global-exp1.properties
+     dubbo.registry.address=10.25.23.113:2181
+dubbo-global-exp2.properties
+     dubbo.registry.address=10.25.23.113:2181
+dubbo.properties
+     dubbo.registry.address=10.25.23.113:2181
+metaq.prop
+     metaq.zk=10.25.23.113:2181
+conf.properties
+     metaq.zk.address=10.25.23.113:2181
+     
+创建数据库：
+在10.25.23.113上的mysql上执行：D:\git\hydra\docs\table-mysql\initTable.sql
+注1：该文件被修改过，原文件改为initTable.sql.bak
+注2：数据库原名：hydra-config-test-pressure 被改为hydra。因此需要修改文件：
+hydra-collector、hydra-manager、hydra-manager-db、hydra-mysql、hydra-web的mysql.properties的配置：
+jdbc.url=jdbc:mysql://10.25.23.113:3306/hydra
+
+hydra使用的是metaq，具体请参考：com.jd.bdp.hydra.dubbomonitor.provider.impl.HydraServiceImpl
+
+部署前提：
+zk：
+10.25.23.113:2181
+
+mysql：
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://10.25.23.113:3306/hydra
+jdbc.username=root
+jdbc.password=root
+
+修改脚本：
+startTrigger-exp1.sh
+该脚本的第二行：MAINCLASSNAME="com.jd.bdp.hydra.benchmark.startTrigger.StartTrigger"有错误
+修改为：MAINCLASSNAME="com.jd.bdp.hydra.benchmark.exp1.StartTrigger"
+部署应用：
+10.25.23.101、10.25.23.102、10.25.23.103
+将D:\git\hydra\modules\hydra-test\hydra-test-integration\target\hydra-test-integration-1.0-SNAPSHOT-jd.tar.gz部署在上述三台服务器的/usr/local/hydra目录下。
+解压后运行：
+[root@SSSVL0301 exp1]# pwd
+/usr/local/hydra/hydra-test-integration-1.0-SNAPSHOT/bin/exp1
+[root@SSSVL0301 exp1]# sh startA.sh
+[root@SSSVL0301 exp1]# sh startB.sh
+[root@SSSVL0301 exp1]# sh startC.sh
+[root@SSSVL0301 exp1]# cd ..
+[root@SSSVL0301 bin]# sh startTrigger-exp1.sh start
+
+
+部署管理：
+10.25.23.104
+D:\git\hydra\modules\hydra-manager\target\hydra-manager-jd.tar.gz部署在上述机器的/usr/local/hydra下。
+解压后运行：
+[root@SSSVL0304 bin]# ls
+env.sh  manager.sh
+[root@SSSVL0304 bin]# sh manager.sh start
+报错：
+java.net.UnknownHostException: SSSVL0304: SSSVL0304: unknown error
+解决方案：将/etc/hosts文件的第一行，在末尾添加： SSSVL0304
+再次运行，成功。
+
+部署采集：
+10.25.23.105
+将D:\git\hydra\modules\hydra-collector\target\hydra-collector-jd.tar.gz部署在上述机器的/usr/local/hydra下面。
+解压后运行：
+[root@SSSVL0305 bin]# sh collector-mysql.sh start
+
+部署web：
+10.25.23.106
+将D:\git\hydra\modules\hydra-web\target\hydra-web.war部署在/usr/local/apache-tomcat-8.0.30/webapps下
+启动tomcat，然后在浏览器中输入：http://10.25.23.106:8080/hydra-web/index/index.html访问。
+
+
+
+
+
+原理：
+com.jd.bdp.hydra.agent.Tracer 日志跟踪
+com.jd.bdp.hydra.dubbomonitor.HydraService 提供数据采集服务
+com.jd.bdp.hydra.dubbomonitor.LeaderService 提供服务注册  --由hydra-manager模块提供实现
+

@@ -1,0 +1,8 @@
+下载：
+[root@SSSVL0306 data]# cd /data
+[root@SSSVL0306 data]# wget http://mirrors.hust.edu.cn/apache/tomcat/tomcat-8/v8.0.30/bin/apache-tomcat-8.0.30.tar.gz
+[root@SSSVL0306 data]# tar zxvf apache-tomcat-8.0.30.tar.gz
+[root@SSSVL0306 data]# mv apache-tomcat-8.0.30 /usr/local
+
+
+
