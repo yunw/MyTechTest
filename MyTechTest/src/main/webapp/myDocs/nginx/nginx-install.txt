@@ -1,0 +1,34 @@
+1、下载pcre：
+wget http://jaist.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
+tar zxvf pcre-8.38.tar.gz
+cd pcre-8.38
+./configure
+make
+make install
+
+2、下载zlib：
+wget http://zlib.net/zlib-1.2.8.tar.gz
+tar zxvf zlib-1.2.8.tar.gz
+cd zlib-1.2.8
+./configure
+make
+make install
+
+3、下载nginx：
+wget http://nginx.org/download/nginx-1.9.11.tar.gz
+tar -zxvf nginx-1.9.11.tar.gz
+cd nginx-1.9.11
+./configure --with-pcre=../pcre-8.38 --with-zlib=../zlib-1.2.8
+make
+make install
+
+启动：
+/usr/local/nginx/sbin/nginx
+
+停止和重载配置文件：
+/usr/local/nginx/sbin/nginx -s signal
+signal是一下几个值：
+stop — 快速停止
+quit — 优雅地停止
+reload — 重新加载配置文件
+reopen — 重新打开日志文件

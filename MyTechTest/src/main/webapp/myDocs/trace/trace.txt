@@ -1,0 +1,40 @@
+引入trace功能需要：
+
+pom中添加依赖：
+<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-app</artifactId>
+			<version>3</version> <!-- version暂定为3 -->
+		</dependency>
+1、web应用：
+A、在web.xml文件中添加过滤器：
+<filter>
+		<filter-name>TraceFilter</filter-name>
+		<filter-class>com.zxq.iov.cloud.trace.filter.servlet.TraceFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>TraceFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+B、spring的配置：
+<aop:aspectj-autoproxy proxy-target-class="true"/>
+<context:annotation-config />
+<context:component-scan base-package="com.zxq.iov.cloud.trace">
+
+2、dubbo服务：
+在resources/META-INF/dubbo下添加文件：com.alibaba.dubbo.rpc.Filter
+1)  dubbo客户端：
+文件内容中添加一行：
+traceDubboConsumerFilter=com.zxq.iov.cloud.trace.filter.dubbo.TraceDubboConsumerFilter
+
+2)  dubbo服务端：
+文件内容中添加一行：
+traceDubboProviderFilter=com.zxq.iov.cloud.trace.filter.dubbo.TraceDubboProviderFilter
+
+trace-demo-app发布地址：
+10.25.23.102
+kafka发布地址：bin/kafka-server-start.sh config/server.properties &
+10.25.23.101--105
+mongodb发布地址：本地
+mongod --dbpath D:\db\MongoDB\Server\3.2\data\db

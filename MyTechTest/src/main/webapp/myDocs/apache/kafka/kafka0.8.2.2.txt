@@ -1,0 +1,11 @@
+JMX_PORT=9997 bin/kafka-server-start.sh config/server.properties >/dev/null 2>&1 &
+部署新节点，然后通过命令启动kafka，JMX_PORT是为了打开kafka的可管理端口（默认不启用）
+
+install 10.25.23.101--10.25.23.105 zk 10.25.23.113
+修改server.properties
+broker.id
+port
+host.name
+zookeeper.connect
+
+JMX_PORT=9997 bin/kafka-server-start.sh config/server.properties &

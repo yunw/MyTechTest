@@ -86,6 +86,11 @@
 			<version>${kafka-clients.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.11</artifactId>
+			<version>0.8.2.2</version>
+		</dependency>
+		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongo-java-driver</artifactId>
 			<version>${mongo.version}</version>
@@ -130,11 +135,8 @@
 			<artifactId>jstl</artifactId>
 			<version>${jstl.version}</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.wltea.ik-analyzer</groupId>
-			<artifactId>ik-analyzer</artifactId>
-			<version>${ik.analyzer.version}</version>
-		</dependency> -->
+		<!-- <dependency> <groupId>org.wltea.ik-analyzer</groupId> <artifactId>ik-analyzer</artifactId> 
+			<version>${ik.analyzer.version}</version> </dependency> -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>

@@ -1,20 +1,20 @@
-一、下载mysql非安装版压缩文件：mysql-5.6.24-winx64.zip
+一、下载mysql非安装版压缩文件：mysql-5.6.28-winx64.zip
 
-二、解压到d盘：d:/database/mysql/mysql-5.6.24-winx64，然后在相同路径下拷贝两份d:/database/mysql/mysql-5.6.24-winx64
-        重命名为：d:/database/mysql/mysql-5.6.24-winx64-slave0
-                    和：d:/database/mysql/mysql-5.6.24-winx64-slave1
+二、解压到d盘：d:/db/mysql/mysql-5.6.28-winx64，然后在相同路径下拷贝两份d:/db/mysql/mysql-5.6.28-winx64
+        重命名为：d:/db/mysql/mysql-5.6.28-winx64-slave0
+                    和：d:/db/mysql/mysql-5.6.28-winx64-slave1
   
-       设置MYSQL_HOME=d:/database/mysql/mysql-5.6.24-winx64
+       设置MYSQL_HOME=d:/db/mysql/mysql-5.6.28-winx64
        将%MYSQL_HOME%\bin加入path环境变量。
 
 三、配置mysql
 1、主服务器配置：
-将d:/database/mysql/mysql-5.6.24-winx64/my-default.ini重命名为：my.ini
+将d:/db/mysql/mysql-5.6.28-winx64/my-default.ini重命名为：my.ini
 my.ini:
 [mysqld]
  log_bin = mysql-bin
- basedir = D:/database/mysql/mysql-5.6.24-winx64
- datadir = D:/database/mysql/mysql-5.6.24-winx64/data
+ basedir = d:/db/mysql/mysql-5.6.28-winx64
+ datadir = d:/db/mysql/mysql-5.6.28-winx64/data
  port = 3306
  server_id = 1
  character_set_server = utf8
@@ -26,11 +26,11 @@ my.ini:
 
 2、从服务器配置：
 a)从服务器1：
-将d:/database/mysql/mysql-5.6.24-winx64-slave0/my-default.ini重命名为：my.ini
+将d:/db/mysql/mysql-5.6.28-winx64-slave0/my-default.ini重命名为：my.ini
 my.ini:
 [mysqld]
- basedir = D:/database/mysql/mysql-5.6.24-winx64-slave0
- datadir = D:/database/mysql/mysql-5.6.24-winx64-slave0/data
+ basedir = d:/db/mysql/mysql-5.6.28-winx64-slave0
+ datadir = d:/db/mysql/mysql-5.6.28-winx64-slave0/data
  port = 3307
  server_id = 2
  character_set_server = utf8
@@ -38,17 +38,17 @@ my.ini:
  slave-skip-errors=all #跳过所有错误
  
  b)从服务器2：
-将d:/database/mysql/mysql-5.6.24-winx64-slave1/my-default.ini重命名为：my.ini
+将d:/db/mysql/mysql-5.6.28-winx64-slave1/my-default.ini重命名为：my.ini
 my.ini:
 [mysqld]
- basedir = D:/database/mysql/mysql-5.6.24-winx64-slave1
- datadir = D:/database/mysql/mysql-5.6.24-winx64-slave1/data
+ basedir = d:/db/mysql/mysql-5.6.28-winx64-slave1
+ datadir = d:/db/mysql/mysql-5.6.28-winx64-slave1/data
  port = 3308
  server_id = 3
  character_set_server = utf8
  slave-skip-errors=all #跳过所有错误
  
-3、在主服务器d:/database/mysql/mysql-5.6.24-winx64下创建文件：auto.cnf
+3、在主服务器d:/db/mysql/mysql-5.6.28-winx64下创建文件：auto.cnf
 打开auto.cnf，加入内容(uuid的值可以用java语言的java.util.UUID.randomUUID()来生成)：
 [auto]
 server_uuid=639b3ca1-d3dd-4c37-b34b-415f1f2a713d
@@ -68,16 +68,16 @@ server_uuid=3be2d1c0-0bc5-4780-8926-dde871af5844
 1、创建主服务：
 点击win7左下角的开始按钮，在运行框中输入：cmd。在菜单中选中cmd.exe，右键点击，在浮动菜单中选“以管理员身份运行”。
 在dos窗口中输入：
-mysqld --install mysql --defaults-file=D:/database/mysql/mysql-5.6.24-winx64/my.ini
+mysqld --install mysql --defaults-file=d:/db/mysql/mysql-5.6.28-winx64/my.ini
 如果出现下面的结果，说明服务创建成功：
 Service successfully installed.
 
 2、创建从服务：
   同样，重新打开一个dos窗口（运行从服务0）。
- 在dos窗口中输入：mysqld --install mysql-slave0 --defaults-file=D:/database/mysql/mysql-5.6.24-winx64-slave0/my.ini
+ 在dos窗口中输入：mysqld --install mysql-slave0 --defaults-file=d:/db/mysql/mysql-5.6.28-winx64-slave0/my.ini
 
 重新打开一个dos窗口（运行从服务1）。
- 在dos窗口中输入：mysqld --install mysql-slave1 --defaults-file=D:/database/mysql/mysql-5.6.24-winx64-slave1/my.ini
+ 在dos窗口中输入：mysqld --install mysql-slave1 --defaults-file=d:/db/mysql/mysql-5.6.28-winx64-slave1/my.ini
 
 3、在主服务器dos窗口中输入：net start mysql
 如果出现：

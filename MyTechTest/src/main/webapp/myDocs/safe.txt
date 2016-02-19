@@ -2,11 +2,14 @@
 忘记密码：http://portal.smpv.saicmotor.com/
 上汽邮箱密码：abcd_1234
 
+mesos openstack depks
+2/25 下午两点
+
 Gerrit、jira: abfme/Pass1234
 http://10.25.20.105:8090/xwiki/bin/view/%E4%BA%91%E5%B9%B3%E5%8F%B0/VIP%E5%88%86%E9%85%8D%E5%88%97%E8%A1%A8 : abfme/Pass1234
 vdi:10.91.240.191 abfme/Pass1212
 
-10.91.240.191
+vdi:10.91.240.191
 
 https://210.13.68.150:5443/ abfme/Password123
 

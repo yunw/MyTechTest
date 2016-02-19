@@ -1,0 +1,10 @@
+gw-tbox
+EncryptionFilter
+ASN1DecodeFilter
+DispatchHandler
+
+app-tbox
+GatewayEntryPoint  ServiceEntryPoint
+ResultProcessor
+
+下行mq：GWTBOXQueue.MessageSend

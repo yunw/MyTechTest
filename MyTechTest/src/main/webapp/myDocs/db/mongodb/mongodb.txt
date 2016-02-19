@@ -1,14 +1,14 @@
 win7 install:
-1、下载zip文档
+1、下载安装文档：mongodb-win32-x86_64-2008plus-ssl-3.2.1-signed.msi
 
-2、解压到：D:/database/mongodb/mongodb-2.6.9
+2、安装：D:\db\MongoDB\Server\3.2
 
 3、创建数据库文件的存放位置：系统默认的位置是C:/data/db，可以在启动的时候，通过参数--dbpath 来修改文件夹路径。
-如D:/database/mongodb/mongodb-2.6.9/data/db。需要注意的是，这个文件夹需要手动创建，若文件夹不存在，则mongodb不能正常启动。
-将D:/database/mongodb/mongodb-2.6.9/bin加入path系统变量。
+如D:\db\MongoDB\Server\3.2\data\db。需要注意的是，这个文件夹需要手动创建，若文件夹不存在，则mongodb不能正常启动。
+将D:\db\MongoDB\Server\3.2\bin加入path系统变量。
 
 4、打开cmd命令行，启动mongodb服务
-mongod --dbpath D:/database/mongodb/mongodb-2.6.9/data/db
+mongod --dbpath D:\db\MongoDB\Server\3.2\data\db
 显示：
 。。。。。。
 2015-10-29T10:25:25.919+0800 [initandlisten] waiting for connections on port 27017
@@ -16,7 +16,7 @@ mongod --dbpath D:/database/mongodb/mongodb-2.6.9/data/db
 则表示正常启动，监听27017端口，可以通过http://localhost:27017/访问，可以看到一些相关信息
 
 启动的时候可以通过 --port 的方式，修改数据库端口，例如：
-mongod --port 88888 --dbpath D:/database/mongodb/mongodb-2.6.9/data/db
+mongod --port 8888 --dbpath D:\db\MongoDB\Server\3.2\data\db
 
 5、再打开一个cmd窗口，输入
 mongo 来创建一个mongodb客户端
@@ -29,9 +29,9 @@ WriteResult({ "nInserted" : 1 })
 >db.test_table.find() #查看刚刚插入的数据
 { "_id" : ObjectId("56318641cf91aba99168e893"), "a" : 1 }
 
-7、像步骤4这样启动mongodb服务很麻烦，可以将mongodb注册为mysql服务，这样就方便多了。
+7、像步骤4这样启动mongodb服务很麻烦，可以将mongodb注册为服务，这样就方便多了。
 在CMD下面输入: 
-mongod --logpath D:/database/mongodb/mongodb-2.6.9/logs/mongodb.log --logappend --auth --dbpath D:/database/mongodb/mongodb-2.6.9/data/db --directoryperdb --serviceName MongoDB --httpinterface --install
+mongod --dbpath D:\db\MongoDB\Server\3.2\data\db --auth --logpath D:/database/mongodb/mongodb-2.6.9/logs/mongodb.log --logappend --directoryperdb --serviceName MongoDB --httpinterface --install
 来创建系统服务
 --logpath：指定了日志的目录
 --auth：启用安全模式
@@ -44,8 +44,8 @@ MongoDB：windows 服务名
 
 删除服务：mongod  --remove
 
-也可以将上述参数加入文件：D:\database\mongodb\mongodb-2.6.9\mongodb.conf。然后用如下命令启动：
-mongod --config D:\database\mongodb\mongodb-2.6.9\mongodb.conf --install
+也可以将上述参数加入文件：D:\db\MongoDB\Server\3.2\mongodb.conf。然后用如下命令启动：
+mongod --config D:\db\MongoDB\Server\3.2\mongodb.conf --install
 
 8、可以通过 net start MongoDB、net stop MongoDB 来管理服务，也可以通过服务界面进行管理。
 
@@ -62,4 +62,13 @@ auth=true
 启动mongodb服务
 
 3、客户端访问：
-mongo localhost/test -u root -p 123 #mongo ip/db -u username -p password
+#mongo ip/db -u username -p password
+mongo localhost/test -u test -p test123 
+
+
+集合操作：
+查看集合：show collections
+删除集合：db.collection_name.drop()
+查看集合记录：db.collection_name.find()
+
+启动：mongod --dbpath D:\db\MongoDB\Server\3.2\data\db
