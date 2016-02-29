@@ -1,3 +1,35 @@
+6、指令：http
+Syntax :	http { ... }
+Default:	—
+Context:	main
+说明：提供http服务器指令规定的配置文件上下文环境。
+
+5、指令：upstream 
+Syntax :	upstream name { ... }
+Default:	—
+Context:	http
+说明：定义一组服务器，这些服务器可以监听不同的端口；tcp和unix-domain socket可以混合监听。
+举例：
+upstream backend {
+    round-robin;
+    server backend1.example.com weight=5;
+    server 127.0.0.1:8080       max_fails=3 fail_timeout=30s;
+    server unix:/tmp/backend3;
+
+    server backup1.example.com  backup;
+}
+上述配置，每7各请求将按如下方式分布：5个请求去backend1.example.com，一个去127.0.0.1:8080，最后一个去unix:/tmp/backend3。如果与服务器的通信出现错误，
+请求将被发送到下一个服务器，以此类推，直到所有的服务器都试过。如果从任何服务器都不能获得成功的响应，客户端将从最后一个服务器获得信息。
+
+max_fails参数：与fail_timeout参数相关，在fail_timeout时间内与服务器连接失败的最大次数，如果到达，则认为该服务器宕机。默认为1，如果设为0，则不做该检查。
+fail_timeout参数：默认值是10秒。两个含义，第一：与max_fails相关，如上所述；第二：如果一个服务器宕机，则在该时间段内都认为该机器不可达。然后nignx会用
+客户端的请求优雅的试探该服务器，如果试探成功，则认为该服务器恢复正常。
+
+负载均衡算法：
+round-robin：循环，默认算法。
+least-connected：最小连接算法。
+ip-hash：用一个hash函数来确定请求发送到那个服务器（基于客户端的ip）
+
 4、指令：worker_connections
 Syntax :	worker_connections number;
 Default:	worker_connections 512;

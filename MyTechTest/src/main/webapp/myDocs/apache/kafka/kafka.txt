@@ -58,7 +58,7 @@ zookeeper.connect=10.25.23.113:2181
 /usr/local/kafka_2.11-0.9.0.0/bin/kafka-server-stop.sh /usr/local/kafka_2.11-0.9.0.0/config/server.properties
 
 显示主题列表
-/usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --list --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --topic topic_test
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --list --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181
 
 显示主题信息
 /usr/local/kafka_2.11-0.9.0.0/bin/kafka-topics.sh --describe --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --topic topic_test
@@ -73,7 +73,7 @@ zookeeper.connect=10.25.23.113:2181
 /usr/local/kafka_2.11-0.9.0.0/bin/kafka-console-consumer.sh --zookeeper 10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181,10.25.23.116:2181,10.25.23.117:2181 --from-beginning --topic topic_test
 
 创建生产者
-/usr/local/kafka_2.11-0.9.0.0/bin/kafka-console-producer.sh --broker-list 10.25.23.101:9092,10.25.23.102:9092,10.25.23.103:9092 --topic test
+/usr/local/kafka_2.11-0.9.0.0/bin/kafka-console-producer.sh --broker-list 10.25.23.101:9092,10.25.23.102:9092,10.25.23.103:9092,10.25.23.104:9092,10.25.23.105:9092 --topic test
 
 
 

@@ -1,1 +1,220 @@
 安装：http://my.oschina.net/u/570654/blog/112757?fromerr=uxnKbSJd
+
+集群：
+集群中的一台机器被设计为名称节点（NameNode），另一台机器作为资源管理器（ResourceManager），它们被称为主节点。
+集群中剩余的节点作为数据节点（DataNode）和节点管理器（NodeManager），它们被称为从节点。
+
+非安全模式下配置hadoop：
+hadoop的java配置有两种重要类型的配置：
+只读的默认配置（Read-only default configuration）：core-default.xml, hdfs-default.xml, yarn-default.xml and mapred-default.xml
+特定场地的配置（Site-specific configuration）：etc/hadoop/core-site.xml, etc/hadoop/hdfs-site.xml, etc/hadoop/yarn-site.xml and etc/hadoop/mapred-site.xml
+另外，可以通过etc/hadoop/hadoop-env.sh and etc/hadoop/yarn-env.sh来设定特定场地的配置，这些配置可以控制bin目录下的脚本的运行。
+
+hadoop守护进程的环境配置：
+管理这可以用etc/hadoop/hadoop-env.sh和可选的 etc/hadoop/mapred-env.sh and etc/hadoop/yarn-env.sh脚本来控制hadoop守护进程的环境。
+作为最小配置，你必须配置JAVA_HOME。
+管理这可以使用下列配置选项配置个别的守护进程：
+Daemon                      	Environment Variable
+NameNode                    	HADOOP_NAMENODE_OPTS
+DataNode                    	HADOOP_DATANODE_OPTS
+Secondary NameNode          	HADOOP_SECONDARYNAMENODE_OPTS
+ResourceManager             	YARN_RESOURCEMANAGER_OPTS
+NodeManager                 	YARN_NODEMANAGER_OPTS
+WebAppProxy                 	YARN_PROXYSERVER_OPTS
+Map Reduce Job History Server	HADOOP_JOB_HISTORYSERVER_OPTS
+例如：配置名称节点使用parallelGC，可以把下面的语句加入hadoop-env.sh：
+ export HADOOP_NAMENODE_OPTS="-XX:+UseParallelGC"
+ 
+ 编译安装hadoop：
+ 1、下载：apache-maven-3.3.9-bin.tar.gz
+ wget http://apache.fayea.com/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+ tar zxvf apache-maven-3.3.9-bin.tar.gz
+ mv apache-maven-3.3.9 /usr/local
+ vi /etc/profile
+ MAVEN_HOME=/usr/local/apache-maven-3.3.9
+ PATH=$MAVEN_HOME/bin:$PATH
+ export MAVEN_HOME PATH
+ 
+ 2、下载：protobuf
+ wget https://github.com/google/protobuf/archive/v2.6.1.zip
+ unzip v2.6.1
+ cd protobuf-2.6.1
+ 下载自github的代码需要首先执行 $ ./autogen.sh 生成configure文件
+ ./autogen.sh
+ 报错：Google Test not present. Fetching gtest-1.5.0 from the web...
+ 下载：gtest-1.7.0.zip
+ unzip gtest-1.7.0.zip
+ mv gtest-1.7.0 protobuf-2.6.1/gtest
+ 再次执行：
+ ./autogen.sh
+ ./configure --prefix=/usr/local/protobuf
+ make && make install
+ 
+ 上述版本太高，最终选在protobuf-2.5.0.tar.gz
+ tar zxvf protobuf-2.5.0.tar.gz
+ cd protobuf-2.5.0
+ ./configure --prefix=/usr/local/protobuf
+ make && make install
+ 
+ vi /etc/profile
+###### add protobuf lib path ########
+PROTOBUF_HOME=/usr/local/protobuf
+export PATH=$PATH:$PROTOBUF_HOME/bin/
+export PROTOBUF_HOME JAVA_HOME CLASSPATH MAVEN_HOME ANT_HOME FINDBUGS_HOME PATH
+
+3、下载findbugs
+wget http://nchc.dl.sourceforge.net/project/findbugs/findbugs/3.0.1/findbugs-3.0.1.tar.gz
+tar zxvf findbugs-3.0.1.tar.gz
+mv findbugs-3.0.1 /usr/local/findbugs
+
+vi /etc/profile
+FINDBUGS_HOME=/usr/local/findbugs
+export PATH=$PATH:$PROTOBUF_HOME/bin/:$FINDBUGS_HOME/bin/
+export PROTOBUF_HOME JAVA_HOME CLASSPATH MAVEN_HOME ANT_HOME FINDBUGS_HOME PATH
+
+4、下载ant
+wget http://mirror.bit.edu.cn/apache//ant/binaries/apache-ant-1.9.6-bin.tar.gz
+tar zxvf apache-ant-1.9.6-bin.tar.gz
+mv apache-ant-1.9.6 /usr/local/ant
+
+vi /etc/profile
+ANT_HOME=/usr/local/ant
+export PATH=$PATH:$PROTOBUF_HOME/bin/:$ANT_HOME/bin/
+export PROTOBUF_HOME JAVA_HOME CLASSPATH MAVEN_HOME ANT_HOME FINDBUGS_HOME PATH
+
+5、下载hadoop
+wget http://apache.opencas.org/hadoop/common/hadoop-2.7.2/hadoop-2.7.2-src.tar.gz
+tar zxvf hadoop-2.7.2-src.tar.gz
+cd hadoop-2.7.2-src
+mvn clean package -DskipTests -Pdist,native,docs -Dtar
+
+6、配置hadoop
+a) 拷贝hadoop
+cp -r /data/Downloads/hadoop-2.7.2-src/hadoop-dist/target/hadoop-2.7.2 /usr/local
+b) config
+cd /usr/local/hadoop-2.7.2/etc/hadoop
+1)core-site.xml
+添加：
+<property>
+<name>fs.defaultFS</name>
+<value>hdfs://10.25.23.32:9000</value>
+</property>
+ <property>
+        <name>hadoop.tmp.dir</name>
+        <value>file:/usr/local/hadoop-2.7.2/tmp</value>
+    </property>
+    <property>
+        <name>io.file.buffer.size</name>
+        <value>131702</value>
+    </property>
+2)hadoop-env.sh
+修改JAVA_HOME：
+# The java implementation to use.
+export JAVA_HOME=/usr/local/jdk1.8.0_73
+3) hdfs-site.xml
+添加：
+<property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:/usr/local/hadoop-2.7.2/tmp/name</value>
+    </property>
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:/usr/local/hadoop-2.7.2/tmp/data</value>
+    </property>
+<property>
+<name>dfs.webhdfs.enabled</name>
+<value>true</value>
+    </property>
+4) mapred-site.xml
+添加：
+<property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
+    <property>
+        <name>mapreduce.jobhistory.address</name>
+        <value>10.25.23.32:10020</value>
+    </property>
+    <property>
+        <name>mapreduce.jobhistory.webapp.address</name>
+        <value>10.25.23.32:19888</value>
+    </property>
+5) slaves
+添加：
+#localhost
+10.25.23.33
+10.25.23.34
+6) yarn-env.sh
+修改JAVA_HOME：
+# some Java parameters
+ export JAVA_HOME=/usr/local/jdk1.8.0_73
+7) yarn-site.xml
+添加：
+<property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
+        <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>10.25.23.32:8032</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.scheduler.address</name>
+        <value>10.25.23.32:8030</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.resource-tracker.address</name>
+        <value>10.25.23.32:8031</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.admin.address</name>
+        <value>10.25.23.32:8033</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.webapp.address</name>
+        <value>10.25.23.32:8088</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>768</value>
+    </property>
+
+7 配置数据节点
+将主节点的hadoop-2.7.2文件夹拷贝到从节点的相同位置：
+在从节点上执行：
+cd /usr/local
+scp -r root@10.25.23.32:/usr/local/hadoop-2.7.2 .
+
+8 配置ssh免密远程登录：
+在所有节点上执行：
+cd ~   #用户家目录，因为是root用户，所以是：/root目录
+ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
+cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+chmod 0600 ~/.ssh/authorized_keys
+然后，将从节点上的文件密码文件拷贝到主节点上：
+scp id_dsa.pub root@10.25.23.32:/root/.ssh/id_dsa.pub.s1
+scp id_dsa.pub root@10.25.23.32:/root/.ssh/id_dsa.pub.s2
+在主节点上：
+cd /root/.ssh
+cat id_dsa.pub.s1 >> authorized_keys 
+cat id_dsa.pub.s2 >> authorized_keys 
+最后，将authorized_keys文件复制到所有节点上：
+scp authorized_keys root@10.25.23.33:/root/.ssh/
+scp authorized_keys root@10.25.23.34:/root/.ssh/
+
+9启动hadoop
+主服务器上执行bin/hdfs namenode -format
+进行初始化
+sbin目录下执行 ./start-all.sh 
+
+10打开浏览器查看集群信息：
+http://10.25.23.32:8088
+注：如果网页无法访问可能是防火墙的原因
+vi /etc/sysconfig/iptables
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 8088 -j ACCEPT
+保存后退出，执行：
+service iptables restart
