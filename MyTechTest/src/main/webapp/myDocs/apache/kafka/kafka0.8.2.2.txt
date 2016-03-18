@@ -63,23 +63,23 @@ sbt -version
 Getting org.scala-sbt sbt 0.13.11 ...
 说明安装成功。
 
-安装kafka-manager：
+安装kafka-manager(kafka-web-console已经不再维护了)：
+cd /data
 wget https://github.com/yahoo/kafka-manager/archive/1.3.0.4.zip
 unzip 1.3.0.4.zip
-mv kafka-manager-1.3.0.4/ /usr/local/
 修改配置文件：
 vi /usr/local/kafka-manager-1.3.0.4/conf/application.conf 
 修改：
 kafka-manager.zkhosts="10.25.23.113:2181"
 保存。
-在/usr/local/kafka-manager-1.3.0.4/下执行：
-cd /usr/local/kafka-manager-1.3.0.4/
+在/data/kafka-manager-1.3.0.4/下执行：
+cd /data/kafka-manager-1.3.0.4/
 sbt clean dist   #这个命令可以创建一个zip文件用来部署应用。
 命令执行成功后会生成一个文件：
-/usr/local/kafka-manager-1.3.0.4/target/universal/kafka-manager-1.3.0.4.zip
-unzip /usr/local/kafka-manager-1.3.0.4/target/universal/kafka-manager-1.3.0.4.zip
-mv kafka-manager-1.3.0.4 /usr/local/kafka-manager-1.3.0.4-run
-cd /usr/local/kafka-manager-1.3.0.4-run
+/data/kafka-manager-1.3.0.4/target/universal/kafka-manager-1.3.0.4.zip
+unzip /data/kafka-manager-1.3.0.4/target/universal/kafka-manager-1.3.0.4.zip
+mv kafka-manager-1.3.0.4 /usr/local
+cd /usr/local/kafka-manager-1.3.0.4
 bin/kafka-manager  #使用默认端口：9000
 bin/kafka-manager -Dconfig.file=/path/to/application.conf -Dhttp.port=8080 #可以修改端口
 bin/kafka-manager -java-home /usr/local/oracle-java-8 #可以修改java
