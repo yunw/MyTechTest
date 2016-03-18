@@ -1,292 +1,63 @@
-安装：http://my.oschina.net/u/570654/blog/112757?fromerr=uxnKbSJd
+yarn(Yet Another Resource Negotiator)
 
-集群：
-集群中的一台机器被设计为名称节点（NameNode），另一台机器作为资源管理器（ResourceManager），它们被称为主节点。
-集群中剩余的节点作为数据节点（DataNode）和节点管理器（NodeManager），它们被称为从节点。
+MRv1的局限：
+1、扩展性差：MRv1中的jobtracker同时兼备了资源管理和作业控制两个功能，这称为系统的一大瓶颈，严重制约了hadoop的扩展性。
+2、可靠性差：MRv1采用master/slave结构，其中，master存在单点问题。
+3、资源利用率低：MRv1采用了基于槽位的资源分配模型，这是一种粗粒度的资源划分单位，通常一个任务不会用完槽位对应的资源，且其他任务也无法使用这些空闲资源。
+此外，Hadoop 将槽位分为Map Slot 和Reduce Slot 两种，且不允许它们之间共享，常常会导致一种槽位资源紧张而另外一种闲置
+（比如一个作业刚刚提交时，只会运行Map Task，此时Reduce Slot 闲置）。
+4、无法支持多种计算框架：随着互联网高速发展，MapReduce 这种基于磁盘的离线计算框架已经不能满足应用要求，从而出现了一些新的计算框架，
+包括内存计算框架、流式计算框架和迭代式计算框架等，而MRv1 不能支持多种计算框架并存。
 
-非安全模式下配置hadoop：
-hadoop的java配置有两种重要类型的配置：
-只读的默认配置（Read-only default configuration）：core-default.xml, hdfs-default.xml, yarn-default.xml and mapred-default.xml
-特定场地的配置（Site-specific configuration）：etc/hadoop/core-site.xml, etc/hadoop/hdfs-site.xml, etc/hadoop/yarn-site.xml and etc/hadoop/mapred-site.xml
-另外，可以通过etc/hadoop/hadoop-env.sh and etc/hadoop/yarn-env.sh来设定特定场地的配置，这些配置可以控制bin目录下的脚本的运行。
+yarn基本架构：
+yarn总体上仍然是master/slave架构，在整个资源管理框架中，ResourceManager为master，NodeManager为slave，ResourceManager负责对各个NodeManager上的资源进行统一管理
+和调度。当用户提交一个应用程序时，需要提供一个用以跟踪和管理这个程序的ApplicationMaster，它负责向ResourceManager申请资源，并要求NodeManager启动可以占用一定资源
+的任务。由于不同的ApplicationMaster被分布到不同的节点上，因此它们之间不会相互影响。
+yarn主要由ResourceManger、NodeManager、ApplicationMaster和container等几个组件构成。
+1、ResourceManager（RM）
+RM是一个全局的资源管理器，负责整个系统的资源管理和分配。它主要由两个组件构成：调度器（scheduler）和应用程序管理器（Applications Manager，ASM）。
+（1）调度器
+调度器根据容量、队列等限制条件将系统中的资源分配给各个正在运行的应用程序。该调度器是一个纯粹的调度器，它不再从事任何与具体应用程序相关的工作，比如不负责监控或跟踪
+应用的执行状态等，也不负责重新启动应用执行失败或硬件故障而产生的失败任务，这些均交由应用程序相关的ApplicationMaster完成。调度器仅根据各个应用程序的资源需求进行
+资源分配，而资源分配单位用一个抽象概念“资源容器”（Resource Container，简称Container）表示，Container是一个动态资源分配单位，它将内存、CPU、磁盘、网络等资源封装
+在一起，从而限定每个任务使用的资源量。
+（2）应用程序管理器
+应用程序管理器负责管理整个系统中所有应用程序，包括应用程序提交、与调度器协商资源以启动ApplicationMaster、监控ApplicationMaster运行状态并在失败时重新启动它等。
+2、ApplicationMaster（AM）
+用户提交的每个应用程序均包含一个AM，主要功能包括：
+a、与RM调度器协商以获取资源（用Container表示）
+b、将得到的任务进一步分配给内部的任务
+c、与NM通信以启动/停止任务
+d、监控所有任务的运行状态，并在任务运行失败时重新为任务申请资源以重启任务。
+3、NodeManager（NM）
+NM是每个节点上的资源和任务管理器，一方面，它会定时地向RM汇报本节点上的资源使用情况和各个Container的运行状态；另一方面，它接收并处理来自各AM的Container启动/停止
+等各种请求。
+4、Container
+Container 是YARN 中的资源抽象， 它封装了某个节点上的多维度资源， 如内存、CPU、磁盘、网络等，当AM 向RM 申请资源时，RM 为AM 返回的资源便是用Container表示的。
+YARN 会为每个任务分配一个Container，且该任务只能使用该Container 中描述的资源。需要注意的是，Container 不同于MRv1 中的slot，它是一个动态资源划分单位，
+是根据应用程序的需求动态生成的
 
-hadoop守护进程的环境配置：
-管理这可以用etc/hadoop/hadoop-env.sh和可选的 etc/hadoop/mapred-env.sh and etc/hadoop/yarn-env.sh脚本来控制hadoop守护进程的环境。
-作为最小配置，你必须配置JAVA_HOME。
-管理这可以使用下列配置选项配置个别的守护进程：
-Daemon                      	Environment Variable
-NameNode                    	HADOOP_NAMENODE_OPTS
-DataNode                    	HADOOP_DATANODE_OPTS
-Secondary NameNode          	HADOOP_SECONDARYNAMENODE_OPTS
-ResourceManager             	YARN_RESOURCEMANAGER_OPTS
-NodeManager                 	YARN_NODEMANAGER_OPTS
-WebAppProxy                 	YARN_PROXYSERVER_OPTS
-Map Reduce Job History Server	HADOOP_JOB_HISTORYSERVER_OPTS
-例如：配置名称节点使用parallelGC，可以把下面的语句加入hadoop-env.sh：
- export HADOOP_NAMENODE_OPTS="-XX:+UseParallelGC"
- 
- 编译安装hadoop：
- 1、下载：apache-maven-3.3.9-bin.tar.gz
- wget http://apache.fayea.com/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
- tar zxvf apache-maven-3.3.9-bin.tar.gz
- mv apache-maven-3.3.9 /usr/local
- vi /etc/profile
- MAVEN_HOME=/usr/local/apache-maven-3.3.9
- PATH=$MAVEN_HOME/bin:$PATH
- export MAVEN_HOME PATH
- 
- 2、下载：protobuf
- wget https://github.com/google/protobuf/archive/v2.6.1.zip
- unzip v2.6.1
- cd protobuf-2.6.1
- 下载自github的代码需要首先执行 $ ./autogen.sh 生成configure文件
- ./autogen.sh
- 报错：Google Test not present. Fetching gtest-1.5.0 from the web...
- 下载：gtest-1.7.0.zip
- unzip gtest-1.7.0.zip
- mv gtest-1.7.0 protobuf-2.6.1/gtest
- 再次执行：
- ./autogen.sh
- ./configure --prefix=/usr/local/protobuf
- make && make install
- 
- 上述版本太高，最终选在protobuf-2.5.0.tar.gz
- tar zxvf protobuf-2.5.0.tar.gz
- cd protobuf-2.5.0
- ./configure --prefix=/usr/local/protobuf
- make && make install
- 
- vi /etc/profile
-###### add protobuf lib path ########
-PROTOBUF_HOME=/usr/local/protobuf
-export PATH=$PATH:$PROTOBUF_HOME/bin/
-export PROTOBUF_HOME JAVA_HOME CLASSPATH MAVEN_HOME ANT_HOME FINDBUGS_HOME PATH
+yarn通信协议：
+RPC 协议是连接各个组件的“大动脉”，了解不同组件之间的RPC 协议有助于我们更深入地学习YARN 框架。在YARN 中，任何两个需相互通信的组件之间仅有一个RPC 协议，
+而对于任何一个RPC 协议，通信双方有一端是Client，另一端为Server，且Client 总是主动连接Server 的，因此，YARN 实际上采用的是拉式（pull-based）通信模型。
+YARN主要由以下几个RPC协议组成：
+A、JobClient（作业提交客户端）与 RM之间的协议ApplicationClientProtocol：JobClient通过该RPC协议提交应用程序、查询应用程序状态等。
+B、Admin（管理员）与 RM 之间的通信协议ResourceManagerAdministrationProtocol：Admin通过该RPC协议更新系统配置文件，比如节点黑白名单、用户队列权限等。
+C、AM与 RM之间的协议ApplicationMasterProtocol ：AM通过该RPC协议向RM注册和撤销自己，并为各个任务申请资源。
+D、AM与 NM之间的协议ContainerManagementProtocol ：AM通过该RPC要求NM启动或者停止Container，获取各个Container的使用状态等信息。
+E、NM与 RM之间的协议ResourceTracker ：NM通过该 RPC协议向 RM注册，并定时发送心跳信息汇报当前节点的资源使用情况和Container 运行情况。
 
-3、下载findbugs
-wget http://nchc.dl.sourceforge.net/project/findbugs/findbugs/3.0.1/findbugs-3.0.1.tar.gz
-tar zxvf findbugs-3.0.1.tar.gz
-mv findbugs-3.0.1 /usr/local/findbugs
-
-vi /etc/profile
-FINDBUGS_HOME=/usr/local/findbugs
-export PATH=$PATH:$PROTOBUF_HOME/bin/:$FINDBUGS_HOME/bin/
-export PROTOBUF_HOME JAVA_HOME CLASSPATH MAVEN_HOME ANT_HOME FINDBUGS_HOME PATH
-
-4、下载ant
-wget http://mirror.bit.edu.cn/apache//ant/binaries/apache-ant-1.9.6-bin.tar.gz
-tar zxvf apache-ant-1.9.6-bin.tar.gz
-mv apache-ant-1.9.6 /usr/local/ant
-
-vi /etc/profile
-ANT_HOME=/usr/local/ant
-export PATH=$PATH:$PROTOBUF_HOME/bin/:$ANT_HOME/bin/
-export PROTOBUF_HOME JAVA_HOME CLASSPATH MAVEN_HOME ANT_HOME FINDBUGS_HOME PATH
-
-5、下载hadoop
-wget http://apache.opencas.org/hadoop/common/hadoop-2.7.2/hadoop-2.7.2-src.tar.gz
-tar zxvf hadoop-2.7.2-src.tar.gz
-cd hadoop-2.7.2-src
-mvn clean package -DskipTests -Pdist,native,docs -Dtar
-
-6、配置hadoop
-a) 拷贝hadoop
-cp -r /data/Downloads/hadoop-2.7.2-src/hadoop-dist/target/hadoop-2.7.2 /usr/local
-b) config
-cd /usr/local/hadoop-2.7.2/etc/hadoop
-1) core-site.xml
-添加：
-<property>
-<name>fs.defaultFS</name>
-<value>hdfs://10.25.23.32:9000</value>
-</property>
- <property>
-        <name>hadoop.tmp.dir</name>
-        <value>file:/usr/local/hadoop-2.7.2/tmp</value>
-    </property>
-    <property>
-        <name>io.file.buffer.size</name>
-        <value>131702</value>
-    </property>
-2)hadoop-env.sh
-修改JAVA_HOME：
-# The java implementation to use.
-export JAVA_HOME=/usr/local/jdk1.8.0_73
-3) hdfs-site.xml
-添加：
-<property>
-        <name>dfs.namenode.name.dir</name>
-        <value>file:/usr/local/hadoop-2.7.2/tmp/name</value>
-    </property>
-    <property>
-        <name>dfs.datanode.data.dir</name>
-        <value>file:/usr/local/hadoop-2.7.2/tmp/data</value>
-    </property>
-<property>
-<name>dfs.webhdfs.enabled</name>
-<value>true</value>
-    </property>
-4) mapred-site.xml
-添加：
-<property>
-        <name>mapreduce.framework.name</name>
-        <value>yarn</value>
-    </property>
-    <property>
-        <name>mapreduce.jobhistory.address</name>
-        <value>10.25.23.32:10020</value>
-    </property>
-    <property>
-        <name>mapreduce.jobhistory.webapp.address</name>
-        <value>10.25.23.32:19888</value>
-    </property>
-5) slaves
-添加：
-#localhost
-10.25.23.33
-10.25.23.34
-6) yarn-env.sh
-修改JAVA_HOME：
-# some Java parameters
- export JAVA_HOME=/usr/local/jdk1.8.0_73
-7) yarn-site.xml
-添加：
-<property>
-        <name>yarn.nodemanager.aux-services</name>
-        <value>mapreduce_shuffle</value>
-    </property>
-    <property>
-        <name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
-        <value>org.apache.hadoop.mapred.ShuffleHandler</value>
-    </property>
-    <property>
-        <name>yarn.resourcemanager.address</name>
-        <value>10.25.23.32:8032</value>
-    </property>
-    <property>
-        <name>yarn.resourcemanager.scheduler.address</name>
-        <value>10.25.23.32:8030</value>
-    </property>
-    <property>
-        <name>yarn.resourcemanager.resource-tracker.address</name>
-        <value>10.25.23.32:8031</value>
-    </property>
-    <property>
-        <name>yarn.resourcemanager.admin.address</name>
-        <value>10.25.23.32:8033</value>
-    </property>
-    <property>
-        <name>yarn.resourcemanager.webapp.address</name>
-        <value>10.25.23.32:8088</value>
-    </property>
-    <property>
-        <name>yarn.nodemanager.resource.memory-mb</name>
-        <value>768</value>
-    </property>
-
-7 配置数据节点
-将主节点的hadoop-2.7.2文件夹拷贝到从节点的相同位置：
-在从节点上执行：
-cd /usr/local
-scp -r root@10.25.23.32:/usr/local/hadoop-2.7.2 .
-
-8 配置ssh免密远程登录：
-在所有节点上执行：
-cd ~   #用户家目录，因为是root用户，所以是：/root目录
-ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
-cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
-chmod 0600 ~/.ssh/authorized_keys
-然后，将从节点上的文件密码文件拷贝到主节点上：
-scp id_dsa.pub root@10.25.23.32:/root/.ssh/id_dsa.pub.s1
-scp id_dsa.pub root@10.25.23.32:/root/.ssh/id_dsa.pub.s2
-在主节点上：
-cd /root/.ssh
-cat id_dsa.pub.s1 >> authorized_keys 
-cat id_dsa.pub.s2 >> authorized_keys 
-最后，将authorized_keys文件复制到所有节点上：
-scp authorized_keys root@10.25.23.33:/root/.ssh/
-scp authorized_keys root@10.25.23.34:/root/.ssh/
-
-9 启动hadoop
-主服务器上执行bin/hdfs namenode -format
-进行初始化
-sbin目录下执行 ./start-all.sh 
-
-10 打开浏览器查看集群信息：
-http://10.25.23.32:8088
-注：如果网页无法访问可能是防火墙的原因
-vi /etc/sysconfig/iptables
--A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 8088 -j ACCEPT
-保存后退出，执行：
-service iptables restart
-
-11 关闭hadoop
-cd /usr/local/hadoop-2.7.2
-sbin/stop-all.sh
-
-12hadoop文件操作：
-cd /usr/local/hadoop-2.7.2
-bin/hadoop fs -mkdir /dedup_in
-bin/hadoop fs -put /data/Downloads/file1 /dedup_in
-
-如果报错：
-java.net.NoRouteToHostException: No route to host
-        at sun.nio.ch.SocketChannelImpl.checkConnect(Native Method)
-        at sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:717)
-        at org.apache.hadoop.net.SocketIOWithTimeout.connect(SocketIOWithTimeout.java:206)
-        at org.apache.hadoop.net.NetUtils.connect(NetUtils.java:531)
-        at org.apache.hadoop.hdfs.DFSOutputStream.createSocketForPipeline(DFSOutputStream.java:1537)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.createBlockOutputStream(DFSOutputStream.java:1313)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.nextBlockOutputStream(DFSOutputStream.java:1266)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.run(DFSOutputStream.java:449)
-16/02/29 17:58:10 INFO hdfs.DFSClient: Abandoning BP-479099673-10.25.23.32-1456739709437:blk_1073741825_1001
-16/02/29 17:58:10 INFO hdfs.DFSClient: Excluding datanode DatanodeInfoWithStorage[10.25.23.34:50010,DS-f702ced0-0bd2-4de8-ad0d-bd3c8bd0eaee,DISK]
-16/02/29 17:58:10 INFO hdfs.DFSClient: Exception in createBlockOutputStream
-java.net.NoRouteToHostException: No route to host
-        at sun.nio.ch.SocketChannelImpl.checkConnect(Native Method)
-        at sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:717)
-        at org.apache.hadoop.net.SocketIOWithTimeout.connect(SocketIOWithTimeout.java:206)
-        at org.apache.hadoop.net.NetUtils.connect(NetUtils.java:531)
-        at org.apache.hadoop.hdfs.DFSOutputStream.createSocketForPipeline(DFSOutputStream.java:1537)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.createBlockOutputStream(DFSOutputStream.java:1313)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.nextBlockOutputStream(DFSOutputStream.java:1266)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.run(DFSOutputStream.java:449)
-16/02/29 17:58:10 INFO hdfs.DFSClient: Abandoning BP-479099673-10.25.23.32-1456739709437:blk_1073741826_1002
-16/02/29 17:58:10 INFO hdfs.DFSClient: Excluding datanode DatanodeInfoWithStorage[10.25.23.33:50010,DS-f4599f61-1249-4043-b903-68963073ef2b,DISK]
-16/02/29 17:58:10 WARN hdfs.DFSClient: DataStreamer Exception
-org.apache.hadoop.ipc.RemoteException(java.io.IOException): File /dedup_in/file1._COPYING_ could only be replicated to 0 nodes instead of minReplication (=1).  There are 2 datanode(s) running and 2 node(s) are excluded in this operation.
-        at org.apache.hadoop.hdfs.server.blockmanagement.BlockManager.chooseTarget4NewBlock(BlockManager.java:1552)
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.getNewBlockTargets(FSNamesystem.java:3107)
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.getAdditionalBlock(FSNamesystem.java:3031)
-        at org.apache.hadoop.hdfs.server.namenode.NameNodeRpcServer.addBlock(NameNodeRpcServer.java:724)
-        at org.apache.hadoop.hdfs.protocolPB.ClientNamenodeProtocolServerSideTranslatorPB.addBlock(ClientNamenodeProtocolServerSideTranslatorPB.java:492)
-        at org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos$ClientNamenodeProtocol$2.callBlockingMethod(ClientNamenodeProtocolProtos.java)
-        at org.apache.hadoop.ipc.ProtobufRpcEngine$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine.java:616)
-        at org.apache.hadoop.ipc.RPC$Server.call(RPC.java:969)
-        at org.apache.hadoop.ipc.Server$Handler$1.run(Server.java:2049)
-        at org.apache.hadoop.ipc.Server$Handler$1.run(Server.java:2045)
-        at java.security.AccessController.doPrivileged(Native Method)
-        at javax.security.auth.Subject.doAs(Subject.java:422)
-        at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1657)
-        at org.apache.hadoop.ipc.Server$Handler.run(Server.java:2045)
-
-        at org.apache.hadoop.ipc.Client.call(Client.java:1475)
-        at org.apache.hadoop.ipc.Client.call(Client.java:1412)
-        at org.apache.hadoop.ipc.ProtobufRpcEngine$Invoker.invoke(ProtobufRpcEngine.java:229)
-        at com.sun.proxy.$Proxy9.addBlock(Unknown Source)
-        at org.apache.hadoop.hdfs.protocolPB.ClientNamenodeProtocolTranslatorPB.addBlock(ClientNamenodeProtocolTranslatorPB.java:418)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.lang.reflect.Method.invoke(Method.java:497)
-        at org.apache.hadoop.io.retry.RetryInvocationHandler.invokeMethod(RetryInvocationHandler.java:191)
-        at org.apache.hadoop.io.retry.RetryInvocationHandler.invoke(RetryInvocationHandler.java:102)
-        at com.sun.proxy.$Proxy10.addBlock(Unknown Source)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.locateFollowingBlock(DFSOutputStream.java:1459)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.nextBlockOutputStream(DFSOutputStream.java:1255)
-        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.run(DFSOutputStream.java:449)
-put: File /dedup_in/file1._COPYING_ could only be replicated to 0 nodes instead of minReplication (=1).  There are 2 datanode(s) running and 2 node(s) are excluded in this operation.
-
-一般还是防火墙的问题：
-将两个从节点（33，、34）的50010端口开放：
--A INPUT -m tcp -p tcp --dport 50010 -j ACCEPT
-就可以了。
+yarn工作流程：
+当用户向yarn提交一个应用程序后，yarn将分两个阶段运行该应用程序：第一个阶段是启动ApplicationMaster；第二个阶段是由ApplicationMaster创建应用程序，
+为它申请资源，并监控它的整个运行过程，直到运行完成。
+yarn的工作流程分为以下几个步骤：
+步骤1　用户向YARN中提交应用程序， 其中包括ApplicationMaster程序、启动ApplicationMaster的命令、用户程序等。
+步骤2　ResourceManager为该应用程序分配第一个Container， 并与对应的NodeManager通信，要求它在这个Container中启动应用程序的ApplicationMaster。
+步骤3　ApplicationMaster首先向ResourceManager注册， 这样用户可以直接通过ResourceManage查看应用程序的运行状态，然后它将为各个任务申请资源，并监控它的运
+行状态，直到运行结束，即重复步骤4~7。
+步骤4　ApplicationMaster采用轮询的方式通过RPC协议向ResourceManager申请和领取资源。
+步骤5　一旦ApplicationMaster申请到资源后，便与对应的NodeManager通信，要求它启动任务。
+步骤6　NodeManager为任务设置好运行环境（包括环境变量、JAR 包、二进制程序等）后，将任务启动命令写到一个脚本中，并通过运行该脚本启动任务。
+步骤7　各个任务通过某个RPC协议向ApplicationMaster汇报自己的状态和进度，以让ApplicationMaster随时掌握各个任务的运行状态，从而可以在任务失败时重新启动任务。
+在应用程序运行过程中，用户可随时通过RPC向ApplicationMaster查询应用程序的当前运行状态。
+步骤8　应用程序运行完成后，ApplicationMaster向ResourceManager注销并关闭自己。

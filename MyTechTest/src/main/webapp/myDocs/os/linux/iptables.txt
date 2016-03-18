@@ -1,0 +1,64 @@
+http://blog.chinaunix.net/uid-26495963-id-3279216.html
+
+iptables：用于设置、维护和检查linux内核中的IPV4包的过滤规则的表。可以定义几种不同类型的表。每个表都包含一些内建的
+链，也可以包含用户定义的链。每个链都是一个规则的列表，它们可以匹配一些包。每个规则定义了对这些匹配上的包可以做些什么。
+这被称为目标，在相同的表中它可以跳到用户定义的链中。
+
+tables：
+-t table
+有下面几种表：
+filter：默认表（如果-t参数没有配置，就取它）它包含内建的链：INPUT（针对去往本地socket的包），FORWARD（针对那些要被路由的包）OUTPUT（针对本地生成的包）
+nat:
+mangle:
+raw:
+表之间的优先顺序：Raw——mangle——nat——filter
+
+文件位置：
+/etc/sysconfig/iptables
+
+服务：
+service iptables start|stop|restart|condrestart|status|panic|save
+
+iptables命令解释：
+1、-A INPUT -p tcp --dport 8088 -j ACCEPT
+
+-A INPUT
+-A chain  #在规则链上追加一条规则
+iptables有5个规则链：
+1.PREROUTING (路由前)
+2.INPUT (数据包流入口)
+3.FORWARD (转发管卡)
+4.OUTPUT(数据包出口)
+5.POSTROUTING（路由后）
+链（chains）是数据包传播的路径，每一条链其实就是众多规则中的一个检查清单，每一条链中可以有一条或数条规则。
+当一个数据包到达一个链时，iptables就会从链中第一条规则开始检查，看该数据包是否满足规则所定义的条件。
+如果满足，系统就会根据该条规则所定义的方法处理该数据包；否则iptables将继续检查下一条规则，
+如果该数据包不符合链中任一条规则，iptables就会根据该链预先定义的默认策略来处理数据包。
+
+规则链之间的优先顺序（分三种情况）：
+第一种情况：入站数据流向
+    从外界到达防火墙的数据包，先被PREROUTING规则链处理（是否修改数据包地址等），之后会进行路由选择（判断该数据包应该发往何处），
+    如果数据包的目标主机是防火墙本机（比如说Internet用户访问防火墙主机中的web服务器的数据包），那么内核将其传给INPUT链进行处理（决定是否允许通过等），
+    通过以后再交给系统上层的应用程序（比如Apache服务器）进行响应。
+第二冲情况：转发数据流向
+    来自外界的数据包到达防火墙后，首先被PREROUTING规则链处理，之后会进行路由选择，如果数据包的目标地址是其它外部地址（比如局域网用户通过网关访问QQ站点的数据包），
+    则内核将其传递给FORWARD链进行处理（是否转发或拦截），然后再交给POSTROUTING规则链（是否修改数据包的地址等）进行处理。
+第三种情况：出站数据流向
+     防火墙本机向外部地址发送的数据包（比如在防火墙主机中测试公网DNS服务器时），首先被OUTPUT规则链处理，之后进行路由选择，
+     然后传递给POSTROUTING规则链（是否修改数据包的地址等）进行处理。
+     
+-p tcp 
+-p protocol #匹配协议（主要有三种tcp/udp/icmp）
+
+--dport port[:prot] #目标端口。这个扩展配置只有在-p protocol指令指定tcp的情况下才有效。20:80表示从20到80都匹配到。
+
+-j ACCEPT
+-j target #目标
+用户定义的chain可以有以下四个值：
+ACCEPT：让包通过
+DROP：拒绝包
+QUEUE：让包进入用户空间
+RETURN：停止当前的chain，从调用该chain的那个chain（父chain）的下一条规则重新开始。 
+1. 从一个CHAIN里可以jump到另一个CHAIN, jump到的那个CHAIN是子CHAIN.
+2. 从子CHAIN return后，回到触发jump的那条规则，从那条规则的下一条继续匹配.
+3. 如果return不是在子CHAIN里，而是在main CHAIN，那么就以默认规则进行.

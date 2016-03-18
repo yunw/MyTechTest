@@ -1,0 +1,33 @@
+hudson更名为jenkins
+hudson为oracle所拥有
+jenkins继续走开源路线 http://jenkins-ci.org/
+jenkins是一个优秀的跨平台的持续集成（Continuous integration简称CI）与持续交付应用来提升生产力的工具。
+
+sentos安装jenkins：
+java -version
+如果版本过低，先删除java
+yum remove java
+yum install java-1.7.0-openjdk
+
+sudo wget -O  /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
+sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+sudo yum install jenkins
+
+
+chkconfig jenkins on
+service jenkins start|stop|status|try-restart|restart|force-reload|reload|probe
+
+service jenkins start
+
+iptables -I INPUT 2 -p tcp --dport 8080 -j ACCEPT
+service iptables save
+service iptables restart
+访问：
+http://localhost:8080
+
+查看：
+/etc/rc.d/init.d/jenkins文件可知：
+JENKINS_WAR="/usr/lib/jenkins/jenkins.war"
+JENKINS_CONFIG=/etc/sysconfig/jenkins
+继续查看配置文件：/etc/sysconfig/jenkins可知：
+JENKINS_HOME="/var/lib/jenkins"

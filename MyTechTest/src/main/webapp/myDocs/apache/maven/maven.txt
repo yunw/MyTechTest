@@ -1,3 +1,75 @@
+MAVEN_OPTS: http://juvenshun.iteye.com/blog/240257
+
+settings.xml（http://maven.apache.org/settings.html）
+安装地点：
+1、$M2_HOME/conf/settings.xml   （全局设置）
+2、${user.home}/.m2/settings.xml（用户设置）
+如果两者都设置了，它们的内容将合并，并且用户设置优先。
+settings details：
+simple value：
+一半的顶层settings元素都是简单的值。例如：
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <localRepository>${user.home}/.m2/repository</localRepository>
+  <interactiveMode>true</interactiveMode>
+  <usePluginRegistry>false</usePluginRegistry>
+  <offline>false</offline>
+  ...
+</settings>
+localRepository：该值表明了本构建系统的本地仓库的路径。默认值为：${user.home}/.m2/repository。
+interactiveMode：如果maven试图与用户的输入交互设为true。默认值为false。
+usePluginRegistry：如果maven试图使用${user.home}/.m2/plugin-registry.xml来管理插件的版本，设为true。默认值为false。在maven2之后就不再依赖plugin-registry.xml了。
+offline：如果构建系统用offline模式，设为true。默认值为false。
+
+插件组（plugin groups）：
+这个元素包含了pluginGroup元素的列表。每一个都包含一个groupId。当插件在命令行被使用而且没有提供groupId的时候就会检索这个列表。这个列表自动包含
+org.apache.maven.plugins 和 org.codehaus.mojo。
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  ...
+  <pluginGroups>
+    <pluginGroup>org.mortbay.jetty</pluginGroup>
+  </pluginGroups>
+  ...
+</settings>
+例如，上面给出的配置可以让maven在命令行执行org.mortbay.jetty:jetty-maven-plugin:run的简写形式：
+mvn jetty:run
+
+Servers：
+用于下载和部署的仓库由pom文件中的repositories和distributionManagement元素定义。然而，默写设置，例如username和password不能分散到pom.xml中。
+这种类型的信息就保存在setting.xml的server中。
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  ...
+  <servers>
+    <server>
+      <id>server001</id>
+      <username>my_login</username>
+      <password>my_password</password>
+      <privateKey>${user.home}/.ssh/id_dsa</privateKey>
+      <passphrase>some_passphrase</passphrase>
+      <filePermissions>664</filePermissions>
+      <directoryPermissions>775</directoryPermissions>
+      <configuration></configuration>
+    </server>
+  </servers>
+  ...
+</settings>
+id：服务器的id（不是用户登录的），通过id元素匹配repository/mirror，maven将试图连接它。
+username，password：这些元素作为一对标志，指明登录需要密码来授权该服务器。
+privateKey，passphrase：像前面的两个元素一样，这一对指定了一个私有key的路径（默认：${user.home}/.ssh/id_dsa）和一个passphrase。
+当前passphrase和password必须以简单文本的形式在settings.xml文件中设置。
+filePermissions，directoryPermissions：当部署的时候一个仓库文件或目录被创建，这些权限就被使用。它们的合法的值是一个三位的数字。
+与*nix 文件权限一致。例如：664或755。
+注：如果你使用privateKey来登录服务器，确保省略了password元素，否则，它被忽略。
+
+
 groupId:用于申明你的项目在maven仓库中的分层地址，这里说的仓库指的是你的文件系统中的本地maven仓库。
 artifactId：项目的一个标志符。
 version：项目的版本。
@@ -26,5 +98,6 @@ version：项目的版本。
 maven添加本地库
 source：
 mvn install:install-file -DgroupId=org.csource -DartifactId=fastdfs_client_java -Dversion=1.10.RELEASE -Dpackaging=jar -Dclassifier=sources -Dfile=D:\test\fastdfs_client_java_source.jar
+备注：-Dfile=D:\test\fastdfs_client_java_source.jar是指jar文件的实际位置，maven将从这里拷贝该jar文件到mvn仓库中。
 class：
 mvn install:install-file -DgroupId=org.csource -DartifactId=fastdfs_client_java -Dversion=1.10.RELEASE -Dpackaging=jar -Dfile=D:\test\fastdfs_client_java.jar

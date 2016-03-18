@@ -1,0 +1,31 @@
+wget http://mirrors.cnnic.cn/apache/spark/spark-1.6.0/spark-1.6.0-bin-hadoop2.6.tgz
+
+tar zxvf spark-1.6.0-bin-hadoop2.6.tgz
+mv spark-1.6.0-bin-hadoop2.6 /usr/local
+
+vi /etc/profile
+export SPARK_HOME=/usr/local/spark-1.6.0-bin-hadoop2.6
+export PATH=$SPARK_HOME/bin:$PATH
+
+source /etc/profile
+
+cd /usr/local/spark-1.6.0-bin-hadoop2.6/conf
+cp spark-env.sh.template spark-evn.sh
+vi spark-evn.sh
+在文件末尾添加：
+export JAVA_HOME=/usr/local/jdk1.8.0_73
+export SCALA_HOME=/usr/local/scala-2.11.7
+export SPARK_MASTER_IP=10.25.23.32export SPARK_WORK_CORES=2
+export SPARK_WORK_MEMORY=1gexport HADOOP_CONF_DIR=/usr/local/hadoop-2.7.2/etc/hadoop
+
+cp slaves.template slaves
+vi slaves
+#localhost
+10.25.23.33
+10.25.23.34
+
+scp -r /usr/local/spark-1.6.0-bin-hadoop2.6 root@10.25.23.33:/usr/local
+scp -r /usr/local/spark-1.6.0-bin-hadoop2.6 root@10.25.23.34:/usr/local
+
+启动hadoop集群
+启动spark集群：/usr/local/spark-1.6.0-bin-hadoop2.6/sbin/start-all.sh

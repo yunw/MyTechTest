@@ -1,0 +1,19 @@
+wget http://downloads.lightbend.com/scala/2.11.7/scala-2.11.7.tgz
+
+tar zxvf scala-2.11.7.tgz
+
+vi /etc/profile
+SCALA_HOME=/usr/local/scala-2.11.7
+PATH=$SCALA_HOME/bin:$PATH
+export SCALA_HOME PATH
+
+source /etc/profile
+
+进入scala命令行：
+[root@SSSVL0023 local]# scala
+Welcome to Scala version 2.11.7 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_73).
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala>:help   #键入:help可以查看帮助信息
+scala>:quit   #退出scala命令行
