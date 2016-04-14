@@ -448,5 +448,7 @@ Mac OS X (Homebrew) - ${install_prefix}/etc/rabbitmq/, the Homebrew prefix is us
 改变之后重启服务就可以。
 
 rpm的默认日志文件在：/var/log/rabbitmq目录下。可创建rabbitmq-env.conf文件，添加变量：
+vi /etc/rabbitmq/rabbitmq-env.conf
 RABBITMQ_LOG_BASE=/app/rabbitmq/logs改变日志路径。
 RABBITMQ_MNESIA_BASE=/app/rabbitmq/data改变数据文件的路径。
+更多变量参考：http://www.rabbitmq.com/configure.html

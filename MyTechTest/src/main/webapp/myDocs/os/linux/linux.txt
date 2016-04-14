@@ -3,6 +3,9 @@ NFS(Network File System)：网络文件系统
 CDN(Content Delivery Network):内容分发网络
 MMU(memory management unit)：内存管理单元，它负责虚拟地址到物理地址的映射，并提供硬件机制的内存条件检查。
 
+hosts文件的位置：
+/etc/hosts
+
 192.168.1.1/32表示ip地址为192.168.1.1子网掩码为255.255.255.255，整个局域网可以有1个ip地址可以用，这个局域网就一个ip地址，也就等于不存在任何局域网了。
 
 32位linux：http://www.cnblogs.com/xkfz007/articles/2715192.html

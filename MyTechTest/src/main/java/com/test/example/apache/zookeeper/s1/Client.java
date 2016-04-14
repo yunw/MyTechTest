@@ -17,7 +17,7 @@ public class Client {
 	public static void main(String[] args) throws IOException, InterruptedException, KeeperException {
 		BaseZookeeper baseZookeeper = new BaseZookeeper();
 
-		String host = "10.25.23.113:2181";
+		String host = "10.25.23.117:2181";
 
 		// 连接zookeeper
 		baseZookeeper.connectZookeeper(host);
@@ -25,9 +25,11 @@ public class Client {
 
 		// 创建节点
 		byte[] data = { 1, 2, 3, 4, 5 };
-		String result = baseZookeeper.createNode("/test1", data);
-		System.out.println(result);
-		System.out.println("--------create node ok-----------");
+		if (null == baseZookeeper.exists("/test1", false)) {
+			String result = baseZookeeper.createNode("/test1", data);
+			System.out.println(result);
+			System.out.println("--------create node ok-----------");
+		}
 
 		// 获取某路径下所有节点
 		List<String> children = baseZookeeper.getChildren("/");
@@ -37,13 +39,13 @@ public class Client {
 		System.out.println("--------get children ok-----------");
 
 		// 获取节点数据
-		byte[] nodeData = baseZookeeper.getData("/test");
+		byte[] nodeData = baseZookeeper.getData("/test1");
 		System.out.println(Arrays.toString(nodeData));
 		System.out.println("--------get node data ok-----------");
 
 		// 更新节点数据
 		data = "test data".getBytes();
-		baseZookeeper.setData("/test", data, 0);
+		baseZookeeper.setData("/test1", data, 0);
 		System.out.println("--------set node data ok-----------");
 
 		nodeData = baseZookeeper.getData("/test");

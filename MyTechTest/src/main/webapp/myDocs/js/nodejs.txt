@@ -22,13 +22,13 @@ npm start
 就可以看到详细的调试信息
 
 下载：
-https://nodejs.org/download/release/v4.2.1/node-v4.2.1-x64.msi
+https://nodejs.org/download/release/v4.4.1/node-v4.4.1-x64.msi
 
 安装：
 双击：node-v4.2.1-x64.msi
 选择安装路径：e:/nodejs/v4.2.1，然后一路默认安装。
 安装默认会在环境变量path中写入：E:\nodejs\v4.2.1\
-因此，可以在cmd中直接运行js文件。
+因此，可以在cmd中直接运行js文件: node xxx.js
 
 nodejs使用Google的V8虚拟机（Google的Chrome浏览器使用的JavaScript执行环境），来解释和执行JavaScript代码。
 Node.js事实上既是一个运行时环境，同时又是一个库；它有许多有用的模块，它们可以简化很多重复的劳作，比如向终端输出字符串。

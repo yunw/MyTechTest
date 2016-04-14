@@ -1,0 +1,126 @@
+Data Model:
+在hbase中，数据存储在表中，它有行和列。这是一个和关系型数据库相似的术语，但是这个类比是没有帮助的。相反，将hbase的表看做一个多维度的映射可能是有用的。
+table：
+一个hbase的表有许多的行组成。
+row：
+hbase的行包含一个row key和一个或多个带有分配给它值的列。行在存储的时候，是按row key的字母顺序存储的。因为这个原因，设计rowkey是十分重要的。存储数据的目标是
+相关的行存储在一起。一个通用的rowkey模型是一个网站的域。如果你的rowkey是域，你应该反向存储它们（org.apache.www, org.apache.mail, org.apache.jira）。
+按这种模式，所有apache域在表中都是相邻的，而不是基于子域的首字母展开。
+cloumn：
+hbase中的列包含一个列族（cloumn family）和列标识符（column qualifier），它们由":"分割。
+cloumn family：
+列族物理地排列一组列和它们的值。经常因为性能的原因。每个列族有一组存储属性，象是否他的值要不要缓存在内存中，它的数据要怎样压缩或者它的rowkey如何编码等等。
+表中的每一行都有相同的列族，即使一个给定的行在一个给定的列族中可能没有存储任何东西。
+cloumn qualifier：
+列标识符被添加到列族中用于提供索引。给定一个列族“content”，一个列标识符可能是“content:html”，另一个可能是“content:pdf”。尽管列族在表创建的时候就固定了，
+列标识符却是可变的并且不同的行之间可以有很大不同。
+cell：
+一个cell是一个行，列族，列标识符，包含一个值和时间戳的组合，它代表了一个值的版本。
+timestamp：
+时间戳在每个值的旁边被写入，它是一个值的给定版本的标识符。默认情况下，时间戳是数据在regionserver上写入的时间，但是你可以指定一个不同的时间戳的值，当你
+添加数据到cell中的时候。
+
+Regions：
+区域是表的可用性和分布的基本元素，并且是由一个列族组成的。对象的继承关系如下：
+Table                    (HBase表)
+    Region               (表分区：Regions for the table)
+        Store            (存储了表的每个分区的每个列族：Store per ColumnFamily for each Region for the table)
+            MemStore     (  MemStore for each Store for each Region for the table)
+            StoreFile    (StoreFiles for each Store for each Region for the table)
+                Block    (Blocks within a StoreFile within a Store for each Region for the table)
+
+架构（Architecture）：
+一、目录表（catalog table）：
+目录表hbase:meta作为一个hbase表存在，但是在hbase shell的list指令中被过滤掉了，但事实上它和其它的hbase表没什么不同。
+目录表在系统中保留了一个包含所有区域（region）的列表，它存储在zk中。
+其表结构如下：
+key：
+region key的格式：[table],[region start key],[region id]
+values：
+info:regioninfo       该region的序列化的HRegionInfo对象的实例
+info:server           包含该region的region server的server:port
+info:serverstartcode  包含该region的region server进程的开始时间
+当进程中的一个表被分割，两个列将被创建，称为：info:splitA和info:splitB。这些列代表了子region。这些列的值也是系列化了的HRegionInfo对象的实例。
+region分割完毕之后，这一行将被删除。
+HRegionInfo需要注意的地方：空键用来表示表的开始和结束。
+一个包含空键的分区是表的第一个分区。如果一个分区既有空的开始键，又有空的结束键，那么它就是这个表的唯一分区。
+
+启动顺序：
+首先，首先，本地hbase:meta放入zk。接下来，HBase：Meta更新服务器和startcode值。
+
+二、客户端（client）：
+hbase客户端查找包含感兴趣的特定行范围的regionServer。它通过查询hbase:meta表来做到这一点。获取了符合要求的regions之后，客户端联系提供这些region的regionServer，
+而不是通过master发送读写请求。这些信息被缓存在客户端以便后续的请求不再需要经过查找操作。如果一个region被master负载均衡重新分配了或者因为某个regionServer宕机，
+客户端将重新查询目录表来决定用户region的新地址。
+
+三、客户端请求过滤器：
+Get和Scan实例可以配置可选的过滤器提供给regionServer。
+1、结构化：
+结构化的过滤器包含了其它的过滤器。
+1.1过滤器列表（FilterList）：
+FilterList表示了一个过滤器的列表，这些过滤器之间的关系是如下两种：FilterList.Operator.MUST_PASS_ALL（必须所有的都通过）、
+FilterList.Operator.MUST_PASS_ONE（必须通过一个）。
+2、列值（Column value）：
+2.1SingleColumnValueFilter：用于测试列值相等（CompareOp.EQUAL），不等（CompareOp.NOT_EQUAL）或范围比较（例如：CompareOp.GREATER）。下面的例子测试一个
+列与字符串的值是否相等：
+SingleColumnValueFilter filter = new SingleColumnValueFilter(cf,column,CompareOp.EQUAL,Bytes.toBytes("my value"));
+scan.setFilter(filter);
+3、列值比较器：
+3.1RegexStringComparator：正则表达式
+RegexStringComparator comp = new RegexStringComparator("my.");   // any value that starts with 'my'
+SingleColumnValueFilter filter = new SingleColumnValueFilter(
+  cf,
+  column,
+  CompareOp.EQUAL,
+  comp
+  );
+scan.setFilter(filter);
+3.2SubstringComparator：测试值是否包含子串。
+SubstringComparator comp = new SubstringComparator("y val");   // looking for 'my value'
+SingleColumnValueFilter filter = new SingleColumnValueFilter(
+  cf,
+  column,
+  CompareOp.EQUAL,
+  comp
+  );
+scan.setFilter(filter);
+3.3BinaryPrefixComparator
+3.4BinaryComparator
+4keyvalue元数据（KeyValue Metadata）：
+由于hbase内部是以keyvalue对的形式存储数据。keyvalue元数据过滤器可以评估一行的键是否存在（例如：ColumnFamily:Column qualifiers）。
+四、Master：
+HMaster是master server的一个实现。主服务器（master server）负责监控集群中所有的regionserver实例，它还是所有元数据改变的接口。在一个分布式的集群中，Master
+通常运行在namenode上。
+4.1启动行为：
+如果运行在多Master环境下，所有的master都完全运行在集群中。如果活动的master失去了zk上的凭证（或者master宕机了），那么剩下的master就会争相取代master的角色。
+4.2运行时冲突（runtime impact）：
+一个常见的分布列表（dist-list）问题涉及到当一个hbase集群的master宕机后会发生什么。因为hbase客户端直接和regionServer交谈，集群仍然工作在“正常状态”。另外，
+每个目录表hbase:meta最为一个hbase表存在，并不常驻master。然而，master控制关键功能如regionServer故障转移和完成region分割。因此集群可以在没有master的情况下
+继续运行一段时间，master应该尽可能快地重启。
+4.3接口：
+由HMasterInterface标志的方法是主要的面向元数据的方法：
+4.4进程：
+Master运行着几个后台线程：
+4.4.1负载均衡：
+周期性的，当没有任何region需要过渡，负载均衡器将运行区域集群的负载均衡。Balancer对象负责配置这个属性。
+4.4.2目录警卫（CatalogJanitor）：
+周期性的检查与清空hbase:meta表。
+五、regionServer：
+它负责服务和管理regions。在一个分布式集群中，regionServer运行在DataNode上。
+5.1接口：
+5.2进程：
+RegionServer上运行着各种各样的后台线程：
+5.2.1CompactSplitThread
+检查和处理分割和小的压缩。
+5.2.2MajorCompactionChecker
+检查主压缩
+5.2.3MemStoreFlusher
+定期地将写入MemStore的内容刷新到StoreFiles。
+5.2.4LogRoller
+定期地检查regionServer的WAL（Write-Ahead Logging 预写日志）。
+5.3Coprocessors（协处理器）
+5.4 Block Cache
+hbase提供了两种不同的块缓存实现：默认的堆LruBlockCache和BucketCache（一般是堆外存储）。本节讨论了每一个实施的好处和缺点，
+如何选择合适的选项，以及每一个配置选项。
+5.4.1缓存选择
+LruBlockCache是原版实现，并且是完全地在java堆中实现。

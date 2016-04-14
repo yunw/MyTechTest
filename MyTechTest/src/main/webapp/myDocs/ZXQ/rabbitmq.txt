@@ -10,6 +10,7 @@ service iptables save
 一、安装配置erlang：
 cd /data/Downloads
 wget http://www.rabbitmq.com/releases/erlang/erlang-17.4-1.el6.x86_64.rpm
+或者：curl -O http://www.rabbitmq.com/releases/erlang/erlang-17.4-1.el6.x86_64.rpm
 yum install -y erlang-17.4-1.el6.x86_64.rpm
 #rpm -ivh erlang-17.4-1.el6.x86_64.rpm
 
@@ -25,8 +26,10 @@ ps -ef | grep erlang
 
 二、安装rabbitmq
 cd /data/Downloads
-wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.6/rabbitmq-server-3.5.6-1.noarch.rpm
-yum install -y rabbitmq-server-3.5.6-1.noarch.rpm
+wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.1/rabbitmq-server-3.6.1-1.noarch.rpm
+或者：curl -O http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.1/rabbitmq-server-3.6.1-1.noarch.rpm
+yum install -y rabbitmq-server-3.6.1-1.noarch.rpm
+
 
 修改配置：
 vi /etc/rabbitmq/rabbitmq-env.conf
@@ -35,6 +38,12 @@ RABBITMQ_LOG_BASE=/app/rabbitmq/logs
 RABBITMQ_MNESIA_BASE=/app/rabbitmq/data
 
 保存，继续操作：
+cat /proc/sys/kernel/hostname #查看机器名
+cd /app
+mkdir rabbitmq
+cd rabbitmq
+mkdir logs
+mkdir data
 
 /usr/lib64/erlang/erts-6.3/bin/epmd -kill
 /usr/lib64/erlang/erts-6.3/bin/epmd -daemon
@@ -149,11 +158,11 @@ rabbitmqctl set_policy ha-two "^two\." '{"ha-mode":"exactly","ha-params":2,"ha-s
 
 详细策略配置规则参考：http://www.rabbitmq.com/parameters.html
 
-集群bug修复版升级：
+集群bug修复版升级(先升级磁盘节点，后升级内存节点)：
 service rabbitmq-server stop
 cd /data/Downloads
-wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.5.6/rabbitmq-server-3.5.6-1.noarch.rpm
-yum install -y rabbitmq-server-3.5.6-1.noarch.rpm
+wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.1/rabbitmq-server-3.6.1-1.noarch.rpm
+yum install -y rabbitmq-server-3.6.1-1.noarch.rpm
 service rabbitmq-server start
 升级完成：在浏览器中输入：
 http://ip:15672/

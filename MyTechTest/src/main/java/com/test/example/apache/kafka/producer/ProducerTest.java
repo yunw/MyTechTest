@@ -15,7 +15,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 
 public class ProducerTest {
 
-	private static final String topic = "my-topic";
+	private static final String topic = "my-topic-1";
 
 //	private static final Logger log = LoggerFactory.getLogger(ProducerTest.class);
 

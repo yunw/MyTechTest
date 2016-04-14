@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -34,11 +35,14 @@ import com.google.gson.Gson;
 public class Test {
 
 	public static void main(String args[]) {
-		System.out.println(System.getProperty("user.dir"));
-		String url = "https://www.qq.com/aaa/bbb.html";
-		int idx = url.indexOf("/", 8);
-		String a = url.substring(8, idx);
-		System.out.println(a);
+		for (int i = 0; i < 20; i++) {
+			System.out.println(UUID.randomUUID().toString());
+		}
+//		System.out.println(System.getProperty("user.dir"));
+//		String url = "https://www.qq.com/aaa/bbb.html";
+//		int idx = url.indexOf("/", 8);
+//		String a = url.substring(8, idx);
+//		System.out.println(a);
 //		httpProxyTest();
 //		JsTest();
 //		System.out.println(UUID.randomUUID());

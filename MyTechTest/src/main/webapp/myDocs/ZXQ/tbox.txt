@@ -8,3 +8,176 @@ GatewayEntryPoint  ServiceEntryPoint
 ResultProcessor
 
 下行mq：GWTBOXQueue.MessageSend
+
+gw-tbox-api配置：
+com.zxq.iov.cloud.gw.tbox.api.msg.OTAMessage实现java.io.Serializable接口
+
+gw-tbox-web项目配置手册：
+1、pom.xml添加：
+<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-mq</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-tbox-gw</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+
+
+2、添加resources\config\template.properties文件，配置WEB_ENV_NAME参数
+
+3、添加resources\kafka-producer-config.properties及内容：
+topic=TRACE-TOPIC
+serializer_class=kafka.serializer.StringEncoder
+key_serializer_class=kafka.serializer.StringEncoder
+#0:no wait; 1: leader received data; -1: all nodes received data 
+request_required_acks=-1
+metadata_broker_list=10.25.23.101:9092,10.25.23.102:9092,10.25.23.103:9092,10.25.23.104:9092,10.25.23.105:9092
+
+4、添加resources\META-INF\dubbo\com.alibaba.dubbo.rpc.Filter文件及内容:
+traceDubboConsumerFilter=com.zxq.iov.cloud.trace.filter.dubbo.TraceDubboConsumerFilter
+traceDubboProviderFilter=com.zxq.iov.cloud.trace.filter.dubbo.TraceDubboProviderFilter
+
+5、在applicationContext.xml文件中添加：
+头部添加aop的命名空间：xmlns:aop="http://www.springframework.org/schema/aop"
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	<bean id="traceTboxGwAop" class="com.zxq.iov.cloud.trace.tbox.gw.aop.TraceTboxGwAop" />
+	<bean id="traceMqSendAop" class="com.zxq.iov.cloud.trace.mq.aop.TraceMqSendAop" />
+	<bean id="traceMqReceiveAop" class="com.zxq.iov.cloud.trace.mq.aop.TraceMqReceiveAop" />
+	<!-- 这里的切点表达式可能列举的不完全，请根据业务修改切点表达式 -->
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="pc-gw-tbox"
+			expression="execution(public* com.zxq.iov.cloud.gw.tbox.udpserver.filter.EncryptionFilter.messageReceived(..))" />
+		<aop:pointcut id="pc-mq"
+			expression="execution(public* org..AmqpTemplate.convertAndSend(Object)) or execution(public* org..AmqpTemplate.convertAndSend(String, Object))" />
+		<aop:pointcut id="pc-mq-receive"
+			expression="execution(public* com.zxq.iov.cloud.gw.tbox.udpclient.MinaUDPClientBootstrap.onMessage(..))" />
+		<aop:aspect id="traceGwTboxSendAop" ref="traceTboxGwAop">
+			<aop:around method="around" pointcut-ref="pc-gw-tbox" />
+		</aop:aspect>
+		<aop:aspect id="traceMqSendAop" ref="traceMqSendAop" order="2147483647">
+			<aop:around method="around" pointcut-ref="pc-mq" />
+		</aop:aspect>
+		<aop:aspect id="traceMqReceiveAspect" ref="traceMqReceiveAop"
+			order="-2147483648">
+			<aop:around method="around" pointcut-ref="pc-mq-receive" />
+		</aop:aspect>
+	</aop:config>
+
+<context:component-scan base-package="">中添加com.zxq.iov.cloud.trace
+
+6、applicationContext-springmq.xml文件添加：
+<bean id="dtoMessageConvertor"
+		class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter">
+		<property name="classMapper">
+			<bean class="org.springframework.amqp.support.converter.DefaultClassMapper">
+				<property name="defaultType" value="com.zxq.iov.cloud.trace.dto.MsgWrapperDto" />
+			</bean>
+		</property>
+	</bean>
+	原来的Convertor不能用了，全部改为使用这个Convertor。
+
+gw-tbox-service项目配置：
+1、pom文件添加依赖：
+<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-api</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+2、com.zxq.iov.cloud.gw.tbox.udpclient.MinaUDPClientBootstrap添加如下内容：
+	private static ObjectMapper mapper = new ObjectMapper();
+
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+    
+    public void onMessage(MsgWrapperDto message) throws UnsupportedEncodingException, JsonProcessingException {
+    	onMessage(ObjectTransferUtil.getObjFromJson(mapper.writeValueAsString(message), "message", OTAMessage.class));
+	}
+
+app-tbox-web项目配置：
+1、pom.xml添加：
+<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-mq</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-tbox-gw</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		
+2、添加resources\config\template.properties文件，配置WEB_ENV_NAME参数
+
+3、添加resources\kafka-producer-config.properties及内容：
+topic=TRACE-TOPIC
+serializer_class=kafka.serializer.StringEncoder
+key_serializer_class=kafka.serializer.StringEncoder
+#0:no wait; 1: leader received data; -1: all nodes received data 
+request_required_acks=-1
+metadata_broker_list=10.25.23.101:9092,10.25.23.102:9092,10.25.23.103:9092,10.25.23.104:9092,10.25.23.105:9092
+
+4、在applicationContext.xml文件中添加：
+头部添加aop的命名空间：xmlns:aop="http://www.springframework.org/schema/aop"
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+    <bean id="traceMqSendAop" class="com.zxq.iov.cloud.trace.mq.aop.TraceMqSendAop" />
+    <bean id="traceMqReceiveAop" class="com.zxq.iov.cloud.trace.mq.aop.TraceMqReceiveAop" />
+ 	<!-- 这里的切点表达式可能列举的不完全，请根据业务修改切点表达式 -->
+	<aop:config proxy-target-class="true">
+	<aop:pointcut id="pc-mq-receive" expression="execution(public* com.zxq.iov.cloud.app.tbox.GatewayEntryPoint.onMessage(..)) or execution(public* com.zxq.iov.cloud.app.tbox.ServiceEntryPoint.onMessage(..))"/>
+		<aop:pointcut id="pc-mq-send"
+			expression="execution(public* org..AmqpTemplate.convertAndSend(Object)) or execution(public* org..AmqpTemplate.convertAndSend(String, Object))" />
+		<aop:aspect id="traceMqSendAspect" ref="traceMqSendAop" order="2147483647">
+			<aop:around method="around" pointcut-ref="pc-mq-send" />
+		</aop:aspect>
+		<aop:aspect id="traceMqReceiveAspect" ref="traceMqReceiveAop" order="-2147483648">
+			<aop:around method="around" pointcut-ref="pc-mq-receive" />
+		</aop:aspect>
+	</aop:config>
+	
+5、添加resources\META-INF\dubbo\com.alibaba.dubbo.rpc.Filter文件及内容:
+traceDubboConsumerFilter=com.zxq.iov.cloud.trace.filter.dubbo.TraceDubboConsumerFilter
+traceDubboProviderFilter=com.zxq.iov.cloud.trace.filter.dubbo.TraceDubboProviderFilter
+
+6、applicationContext-springmq.xml文件添加：
+<bean id="dtoMessageConvertor"
+		class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter">
+		<property name="classMapper">
+			<bean class="org.springframework.amqp.support.converter.DefaultClassMapper">
+				<property name="defaultType" value="com.zxq.iov.cloud.trace.dto.MsgWrapperDto" />
+			</bean>
+		</property>
+	</bean>
+	原来的Convertor不能用了，全部改为使用这个Convertor。
+	
+app-tbox-service项目配置：
+1、pom.xml添加：
+<dependency>
+			<groupId>com.zxq.iov.cloud</groupId>
+			<artifactId>trace-api</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+
+2、com.zxq.iov.cloud.app.tbox.ServiceEntryPoint类添加：
+ private static ObjectMapper mapper = new ObjectMapper();
+
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+    
+    public void onMessage(MsgWrapperDto message) throws UnsupportedEncodingException, JsonProcessingException {
+    	onMessage(ObjectTransferUtil.getObjFromJson(mapper.writeValueAsString(message), "message", ServiceMessage.class));
+	}
+3、com.zxq.iov.cloud.app.tbox.GatewayEntryPoint类添加：
+private static ObjectMapper mapper = new ObjectMapper();
+
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+	
+    public void onMessage(MsgWrapperDto message) throws UnsupportedEncodingException, JsonProcessingException {
+		onMessage(ObjectTransferUtil.getObjFromJson(mapper.writeValueAsString(message), "message", OTAMessage.class));
+	}

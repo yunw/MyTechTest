@@ -58,6 +58,10 @@ public class BaseZookeeper implements Watcher {
 	public String createNode(String path, byte[] data) throws KeeperException, InterruptedException {
 		return this.zooKeeper.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 	}
+	
+	public Stat exists(String path, boolean watch) throws KeeperException, InterruptedException {
+		return this.zooKeeper.exists(path, watch);
+	}
 
 	/**
 	 * 根据路径获取所有孩子节点

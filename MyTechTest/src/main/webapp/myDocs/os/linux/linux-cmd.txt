@@ -1,0 +1,38 @@
+zip:
+zip -r filename.xxx ./* #将当前目录下的所有文件和文件夹全部压缩成filename.xxx文件,-r表示递归压缩子目录下所有文件
+
+#将war包解压，替换配置文件后重新打包的步骤：
+unzip projectname.war -d projectname               #解压war包
+cd projectname/WEB-INF
+alias cp='cp'
+scp root@ip:/dir/../projectname/*.xml .             #拷贝可能存在的wex.xml 
+cd classes
+scp -r root@ip:/dir/../projectname/resources/* .    #拷贝所有的配置文件
+cd ..
+cd ..
+zip -r projectname.war ./*      #重新打包
+
+ssh:
+ssh [-l login_name] [-p port] [user@]hostname
+
+curl:
+curl -O url #下载文件，保留远程文件名不变
+curl -o filename url #下载文件，使用自己定义的filenane
+
+查看用户列表：
+cat /etc/passwd
+查看用户组：
+cat /etc/group
+查看内核版本
+uname -a
+uname -r
+cat /proc/version
+
+切换用户（switch user）：
+可以使用su命令来切换用户，su是switch user切换用户的缩写。可以是从普通用户切换到root用户，也可以是从root用户切换到普通用户。
+从普通用户切换到root用户需要输入密码，从root用户切换到普通用户不需要输入密码。
+命令格式：su [参数] [-] [用户名]
+用户名的默认值为root。
+用法示例：
+su zhidao #切换到zhidao用户
+su #切换到root用户

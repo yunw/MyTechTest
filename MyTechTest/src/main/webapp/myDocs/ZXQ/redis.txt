@@ -4,26 +4,26 @@ vi /etc/resolv.conf
 nameserver 114.114.114.114
 
 2、安装前的准备：
+cd /app
+wget http://download.redis.io/releases/redis-3.0.7.tar.gz
 iptables -I INPUT -p tcp --dport 6379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 16379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 26379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 36379 -j ACCEPT
-yum install -y openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
-gem sources -a http://ruby.taobao.org/
+service iptables save
+yum install -y wget openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
 gem install redis
 mkdir /etc/redis
-mkdir /data/logs
-mkdir /data/logs/redis
-mkdir /data/redis
-mkdir /data/Downloads
-cd /data/Downloads
-wget http://download.redis.io/releases/redis-3.0.5.tar.gz
-tar -zxvf redis-3.0.5.tar.gz
-cd redis-3.0.5
+mkdir /app/logs
+mkdir /app/logs/redis
+mkdir /app/redisdb
+cd /app
+tar -zxvf redis-3.0.7.tar.gz
+cd redis-3.0.7
 make && make PREFIX=/usr/local/redis install
 
 3、配置redis
-cp /data/Downloads/redis-3.0.5/utils/redis_init_script /etc/rc.d/init.d/redis
+cp /app/redis-3.0.7/utils/redis_init_script /etc/rc.d/init.d/redis
 vi /etc/rc.d/init.d/redis
 然后将redis文件的内容修改如下：
 #!/bin/sh
@@ -72,54 +72,73 @@ esac
 chkconfig --add redis
 chkconfig redis on
 
-cp /data/Downloads/redis-3.0.5/redis.conf /etc/redis/6379.conf
+cp /app/redis-3.0.7/redis.conf /etc/redis/6379.conf
 vi /etc/redis/6379.conf
 将如下属性的值按下列值进行配置：
 daemonize yes
 pidfile /var/run/redis_6379.pid
-logfile "/data/logs/redis/redis_6379.log"
+logfile "/app/logs/redis/redis_6379.log"
+dir /app/redisdb
 cluster-enabled yes
 cluster-config-file /etc/redis/nodes-6379.conf
 cluster-node-timeout 15000
-dir /data/redis
 
 4、配置sentinel
-vi /etc/reids/26379.conf
+vi /etc/redis/26379.conf
 port 26379
 sentinel monitor mymaster1 10.25.23.101 6379 2
 sentinel down-after-milliseconds mymaster1 60000
 sentinel failover-timeout mymaster1 180000
 sentinel parallel-syncs mymaster1 1
 
+sentinel monitor mymaster2 10.25.23.102 6379 2
+sentinel down-after-milliseconds mymaster2 60000
+sentinel failover-timeout mymaster2 180000
+sentinel parallel-syncs mymaster2 1
+
+sentinel monitor mymaster3 10.25.23.103 6379 2
+sentinel down-after-milliseconds mymaster3 60000
+sentinel failover-timeout mymaster3 180000
+sentinel parallel-syncs mymaster3 1
+
+启动redis：
+/usr/local/redis/bin/redis-server /etc/redis/6379.conf
+
 启动sentinel：
-/usr/local/redis/bin/redis-server /etc/redis/26379.conf --sentinel 2>&1>>/data/logs/redis/redis_26379.log &
+/usr/local/redis/bin/redis-server /etc/redis/26379.conf --sentinel 2>&1>>/app/logs/redis/redis_26379.log &
 
 二、集群：
 1、创建：
-/data/Downloads/redis-3.0.5/src/redis-trib.rb create --replicas 1 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379 10.25.23.104:6379 10.25.23.105:6379 10.25.23.106:6379
-上述命令创建集群，每个master都有一个slave，具体就是：101-103为master，104-106为对应的slave。
+/app/redis-3.0.7/src/redis-trib.rb create --replicas 1 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379 10.25.23.104:6379 10.25.23.105:6379 10.25.23.106:6379
+上述命令创建集群，每个master都有一个slave。
+如果出现下面的信息：
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+说明安装成功。
 
 2、添加master节点到集群：
-/data/Downloads/redis-3.0.5/src/redis-trib.rb add-node 10.25.23.107:6379 10.25.23.101:6379
+/app/redis-3.0.7/src/redis-trib.rb add-node 10.25.23.107:6379 10.25.23.101:6379
 10.25.23.107:6379为要添加的master节点
 10.25.23.101:6379为集群中存在的一个随机master节点
 
 3、添加slave节点到集群：
 A）添加到slave节点最少的一个master节点上：
-/data/Downloads/redis-3.0.5/src/redis-trib.rb add-node --slave 10.25.23.108:6379 10.25.23.101:6379
+/app/redis-3.0.7/src/redis-trib.rb add-node --slave 10.25.23.108:6379 10.25.23.101:6379
 10.25.23.108:6379为要添加的slave节点
 10.25.23.101:6379为集群中存在的一个随机master节点
 该命令并不意味着10.25.23.108:6379会成为10.25.23.101:6379的slave节点，而是会在集群中slave节点最少的master节点中随机选择一个master节点。
 
 B）添加slave节点到指定master节点：
-/data/Downloads/redis-3.0.5/src/redis-trib.rb add-node --slave --master-id 02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.108:6379 10.25.23.101:6379
+/app/redis-3.0.7/src/redis-trib.rb add-node --slave --master-id 02af16ac8a70c0857cfa420cc18405025fb36396 10.25.23.108:6379 10.25.23.101:6379
 3c3a0c74aae0b56170ccb03a76b60cfe7dc1912e为指定的master节点的master-id。该id可以用cluster nodes命令查看。
 10.25.23.108:6379为要添加的slave节点
 10.25.23.101:6379为集群中存在的一个随机master节点
 
 4、重新分配哈希槽：
 A）从所有节点中抽取哈希槽到目标节点：
-/data/Downloads/redis-3.0.5/src/redis-trib.rb reshard 10.25.23.101:6379
+/app/redis-3.0.7/src/redis-trib.rb reshard 10.25.23.101:6379
 ......
 How many slots do you want to move (from 1 to 16384)? 100
 What is the receiving node ID? 02af16ac8a70c0857cfa420cc18405025fb36396
@@ -153,7 +172,7 @@ cluster nodes命令的输出说明：
 第九列：Slots served...
 
 B）从指定节点抽取哈希槽到目标节点：
-/data/Downloads/redis-3.0.5/src/redis-trib.rb reshard 10.25.23.101:6379
+/app/redis-3.0.7/src/redis-trib.rb reshard 10.25.23.101:6379
 ......
 How many slots do you want to move (from 1 to 16384)? 10
 What is the receiving node ID? 02af16ac8a70c0857cfa420cc18405025fb36396
@@ -196,15 +215,15 @@ B）删除主节点：
 删除主节点的方法和从节点相同，但是，主节点必须是空的，不能有哈希槽，如果有，必须先移到其它节点。
 
 
-版本平滑升级（3.0.3 --> 3.0.5）：
+版本平滑升级（3.0.5 --> 3.0.7）：
 一、slave节点升级：
 a）停止slave节点的服务
 service redis stop
 b）升级版本
-cd /data/Downloads
-wget http://download.redis.io/releases/redis-3.0.5.tar.gz
-tar -zxvf redis-3.0.5.tar.gz
-cd redis-3.0.5
+cd /app
+wget http://download.redis.io/releases/redis-3.0.7.tar.gz
+tar -zxvf redis-3.0.7.tar.gz
+cd redis-3.0.7
 make && make PREFIX=/usr/local/redis install #PREFIX的值必须和以前的安装路径相同
 c）启动slave节点的服务
 service redis start

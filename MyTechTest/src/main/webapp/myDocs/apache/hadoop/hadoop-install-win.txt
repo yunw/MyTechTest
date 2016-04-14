@@ -1,0 +1,14 @@
+1、下载安装cgwin：
+http://www.cygwin.com/setup-x86_64.exe
+2、运行setup-x86_64.exe
+3、选择安装路径
+4、选择安装包：
+openssh、openssl、sed、vim等
+5、点击下一步，选择internet安装方式。
+6、选择合适的安装源。
+7、等待安装完成。
+8、添加环境变量：
+在path中添加：D:\software\cygwin64\bin
+9、安装sshd服务：
+双击桌面上的Cygwin图标，启动Cygwin，执行ssh-host-config -y命令
+输入密码：Pass1234

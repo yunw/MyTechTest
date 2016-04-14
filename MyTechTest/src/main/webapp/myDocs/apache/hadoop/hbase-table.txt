@@ -1,0 +1,10 @@
+create 'scores','grade', 'course'
+
+put 'scores','Tom','grade:','5' 
+put 'scores','Tom','course:math','97' 
+put 'scores','Tom','course:art','87' 
+put 'scores','Jim','grade','4' 
+put 'scores','Jim','course:','89' 
+put 'scores','Jim','course:','80' 
+
+scan 'scores'

@@ -19,7 +19,7 @@ public class KafkaConsumer {
 	private KafkaConsumer() {
 		Properties props = new Properties();
 		// zookeeper 配置
-		props.put("zookeeper.connect", "10.25.23.113:2181/kafka-yin");
+		props.put("zookeeper.connect", "10.25.23.113:2181/kafka-trace");
 
 		// group 代表一个消费组
 		props.put("group.id", "jd-group");

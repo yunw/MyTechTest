@@ -12,7 +12,7 @@ import kafka.producer.ProducerConfig;
  */
 public class KafkaProducer {
 	private final Producer<String, String> producer;
-	public final static String TOPIC = "TEST-TOPIC";
+	public final static String TOPIC = "TRACE-TOPIC";
 
 	private KafkaProducer() {
 		Properties props = new Properties();
@@ -25,6 +25,9 @@ public class KafkaProducer {
 		// 配置key的序列化类
 		props.put("key.serializer.class", "kafka.serializer.StringEncoder");
 
+		//发送类型：async：异步 sync：同步
+//		props.put("producer.type", "async");
+		
 		// request.required.acks
 		// 0, which means that the producer never waits for an acknowledgement
 		// from the broker (the same behavior as 0.7). This option provides the
@@ -55,6 +58,7 @@ public class KafkaProducer {
 			System.out.println("send: " + data);
 			messageNo++;
 		}
+		producer.close();
 	}
 
 	public static void main(String[] args) {

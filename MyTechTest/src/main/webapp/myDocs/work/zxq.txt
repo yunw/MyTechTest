@@ -7,3 +7,4 @@
 10.25.23.37 redis(master、slave:37)
 10.25.23.38 redis(master)
 10.25.23.39 redis(master)
+

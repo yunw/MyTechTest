@@ -1,0 +1,56 @@
+1、连接到hbase：
+./bin/hbase shell
+hbase(main):001:0>
+
+2、显示帮助信息：
+hbase(main):001:0>help
+
+3、创建一张表：
+hbase(main):001:0> create 'testyin', 'cf'
+
+4、查看表信息：
+hbase(main):001:0>list 'testyin'
+
+5、向表中插入数据：
+hbase(main):003:0> put 'testyin', 'row1', 'cf:a', 'value1'
+hbase(main):003:0> put 'testyin', 'row2', 'cf:b', 'value2'
+hbase(main):003:0> put 'testyin', 'row3', 'cf:c', 'value3'
+
+6、全表扫描获取所有数据：
+hbase(main):006:0> scan 'testyin'
+
+7、查询单行数据：
+hbase(main):007:0> get 'testyin', 'row1'
+
+7.1、根据列名称查询：
+scan 'testyin', {COLUMN => ['cf:a', 'cf:b']}
+
+7.2、根据列族查询：
+hbase(main):018:0> scan 'testyin', {COLUMN=>['cf1']}
+ROW                                              COLUMN+CELL                                                                                                                                   
+ row1                                            column=cf1:a, timestamp=1460008848954, value=v1                                                                                               
+ row2                                            column=cf1:b, timestamp=1460008967558, value=v2 
+
+8、disable/enable表（如果想删除一个表或修改一个表的属性，必须先disable这张表，disable后可以用enable命令恢复）：
+hbase(main):008:0> disable 'testyin'
+hbase(main):009:0> enable 'testyin'
+
+9、删除表：
+hbase(main):011:0> drop 'testyin'
+
+10、查看表结构：
+hbase(main):011:0> describe 'testyin'
+
+11、退出hbase shell：
+hbase(main):011:0> quit
+
+12、表变量：
+hbase(main):011:0> t=create 'testyin', 'cf'
+hbase(main):011:0> t.put 'row1', 'cf:a', 'value1'
+hbase(main):011:0> t.scan
+hbase(main):011:0> t.describe
+hbase(main):011:0> t.disable
+hbase(main):011:0> t.drop
+
+13、查看集群状态：
+hbase(main):011:0>status

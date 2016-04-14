@@ -50,3 +50,11 @@ select * from qrtz_simprop_triggers;
 使用RequestMappingHandlerMapping，就要使用<mvc:annotation-driven/>不然会报错:
 No adapter for handler [xx.xx.xx.XxController@dbb9b9]: 
 The DispatcherServlet configuration needs to include a HandlerAdapter that supports this handler
+
+spring启动：
+servlet容器（tomcat）启动的时候会加载web.xml中的监听器（调用监听器的contextInitialized(ServletContextEvent event)方法）。
+第一步：根据web.xml中配置的监听器org.springframework.web.context.ContextLoaderListener（或其子类），ContextLoaderListener是ContextLoader的子类。
+ContextLoader类加载的时候，以静态块的方式加载：spring-web-xxx.jar的org.springframework.web.context包下有个ContextLoader.properties文件。
+获取contextClassName为：org.springframework.web.context.support.XmlWebApplicationContext，该类不应该由开发者定制。
+spring实例化该类作为spring的Root WebApplicationContext。
+第二步：刷新WebApplicationContext：首先创建DefaultListableBeanFactory。然后加载bean的定义文件（由web.xml文件中的contextConfigLocation定义）
