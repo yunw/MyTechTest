@@ -1,0 +1,32 @@
+windows部分：
+安装python
+1、下载：https://www.python.org/ftp/python/2.7.11/python-2.7.11.amd64.msi
+https://www.python.org/ftp/python/3.5.1/python-3.5.1-amd64.exe
+2、双击python-2.7.11.amd64.msi安装到：D:\software\Python27
+3、将python加入环境变量path：D:\software\Python27
+安装pycrypto模块：
+1、下载：http://www.voidspace.org.uk/downloads/pycrypto26/pycrypto-2.6.win-amd64-py2.7.exe
+2、双击pycrypto-2.6.win-amd64-py2.7.exe
+安装paramiko模块：
+1、下载：https://github.com/paramiko/paramiko/archive/master.zip会得到压缩包：paramiko-master.zip
+2、解压：paramiko-master.zip
+3、cmd，进入解压目录，执行：setup.py install
+4、执行python命令，进入python环境
+5、在python环境输入：import paramiko 如果没有报错，说明安装成功。
+
+
+linux部分：
+安装python：
+1、下载：wget https://www.python.org/ftp/python/2.7.11/Python-2.7.11.tgz
+wget https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz
+2、解压、编译：
+tar zxvf Python-2.7.11.tgz
+cd Python-2.7.11
+./configure
+make && make install
+3、运行：
+[root@SSSVL0302 Downloads]# python2.7
+Python 2.7.11 (default, Apr 22 2016, 17:05:24) 
+[GCC 4.4.7 20120313 (Red Hat 4.4.7-11)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 

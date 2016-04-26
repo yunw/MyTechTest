@@ -1,0 +1,47 @@
+wget http://mirrors.cnnic.cn/apache/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
+tar zxvf kafka_2.11-0.9.0.1.tgz
+mv kafka_2.11-0.9.0.1 /usr/local/
+ln -s kafka_2.11-0.9.0.1 kafka
+vi /usr/local/kafka/config/server.properties
+broker.id=90
+port=9092
+host.name=10.25.23.37
+log.dirs=/data/kafka-logs
+zookeeper.connect=10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test
+
+启动kafka：
+bin/kafka-server-start.sh config/server.properties &
+
+停止kafka：
+bin/kafka-server-stop.sh
+
+创建主题：
+bin/kafka-topics.sh --zookeeper 10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test --create --partitions 3 --replication-factor 3 --topic test
+
+显示主题列表：
+bin/kafka-topics.sh --list --zookeeper 10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test
+
+发送消息：
+bin/kafka-console-producer.sh --broker-list 10.25.23.37:9092 --topic test
+This is a message
+This is another message
+
+查看消息：
+bin/kafka-console-consumer.sh --zookeeper 10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test --topic test --from-beginning
+
+创建集群（10.25.23.38、10.25.23.39）：
+10.25.23.38:
+vi /usr/local/kafka/config/server.properties
+broker.id=91
+port=9092
+host.name=10.25.23.38
+log.dirs=/data/kafka-logs
+zookeeper.connect=10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test
+
+10.25.23.39:
+vi /usr/local/kafka/config/server.properties
+broker.id=92
+port=9092
+host.name=10.25.23.39
+log.dirs=/data/kafka-logs
+zookeeper.connect=10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test

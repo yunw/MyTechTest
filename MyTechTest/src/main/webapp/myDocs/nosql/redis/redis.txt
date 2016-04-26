@@ -418,3 +418,22 @@ OK
 (error) MOVED 9189 10.25.23.105:6379
 10.25.23.103:6379> 
 可以看到：cli只能操作哈希槽在自己正连接的节点上的数据，其他节点上的数据无法操作，但会提示该key在哪个节点上。
+
+redis集群优化参数含义：
+//最大连接数, 默认8个
+jedisPoolConfig.setMaxTotal(150);
+//最大空闲数
+jedisPoolConfig.setMaxIdle(100);
+//最小空闲数
+jedisPoolConfig.setMinIdle(100);
+jedisPoolConfig.setMaxWaitMillis(-1);
+//在获取连接的时候检查有效性, 默认false
+jedisPoolConfig.setTestOnBorrow(false);
+//在对象返回的时候检查有效性，默认false
+jedisPoolConfig.setTestOnReturn(false);
+//在空闲时检查有效性, 默认false
+jedisPoolConfig.setTestWhileIdle(false);
+//每次逐出检查时 逐出的最大数目 如果为负数就是 : 1/abs(n), 默认3
+jedisPoolConfig.setNumTestsPerEvictionRun(10);
+//逐出扫描的时间间隔(毫秒) 如果为负数,则不运行逐出线程, 默认-1
+jedisPoolConfig.setTimeBetweenEvictionRunsMillis(60000);

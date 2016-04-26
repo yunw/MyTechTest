@@ -36,3 +36,37 @@ cat /proc/version
 用法示例：
 su zhidao #切换到zhidao用户
 su #切换到root用户
+
+查看磁盘空间：
+[root@SSSVL0023 ~]# df -hl
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/mapper/VolGroup00-LogVol00
+                      4.0G  574M  3.2G  15% /
+tmpfs                 3.9G  112K  3.9G   1% /dev/shm
+/dev/sda1              97M   32M   61M  35% /boot
+/dev/mapper/VolGroup00-LogVol01
+                      2.0G   68M  1.9G   4% /home
+/dev/mapper/VolGroup00-LogVol05
+                      2.0G   68M  1.9G   4% /opt
+/dev/mapper/VolGroup00-LogVol02
+                      4.0G  139M  3.7G   4% /tmp
+/dev/mapper/VolGroup00-LogVol03
+                       11G  5.3G  5.1G  52% /usr
+/dev/mapper/VolGroup00-LogVol04
+                      2.0G  258M  1.7G  14% /var
+/dev/sdb1              12G  8.5G  2.8G  76% /data
+
+查看目录的空间：
+[root@SSSVL0023 /]# du --max-depth=1 -h
+28M     ./etc
+27M     ./boot
+27M     ./lib64
+5.0G    ./usr
+191M    ./var
+4.0K    ./media
+129M    ./lib
+0       ./sys
+12K     ./.dbus
+217M    ./root
+16K     ./lost+found
+

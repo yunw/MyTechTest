@@ -101,3 +101,32 @@ mvn install:install-file -DgroupId=org.csource -DartifactId=fastdfs_client_java 
 备注：-Dfile=D:\test\fastdfs_client_java_source.jar是指jar文件的实际位置，maven将从这里拷贝该jar文件到mvn仓库中。
 class：
 mvn install:install-file -DgroupId=org.csource -DartifactId=fastdfs_client_java -Dversion=1.10.RELEASE -Dpackaging=jar -Dfile=D:\test\fastdfs_client_java.jar
+
+maven远程热部署（tomcat8）：
+1、修改tomcat的conf/tomcat-users.xml
+添加配置：
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<user username="hotdeploy" password="Pass1234" roles="manager-gui, manager-script" />
+
+2、pom.xml文件中添加插件：
+<plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>tomcat-maven-plugin</artifactId>
+	<version>1.1</version>
+	<configuration>  
+		<url>http://10.25.23.102:8080/manager/text</url>  
+		<server>hotdeployid</server>  
+		<path>/trace-demo-app</path>  
+	</configuration>
+</plugin>
+
+3、在~/.m2/settings.xml文件中如下添加配置：
+<server>  
+	<id>hotdeployid</id>  
+	<username>hotdeploy</username>  
+	<password>Pass1234</password>  
+</server>
+
+4、执行maven命令：
+mvn tomcat:redeploy
