@@ -4,48 +4,52 @@ import sqlite3
 import os
 import ConfigParser
 import traceback
+import sys
 
-#global var
-DB_FILE_PATH = ''
+class dbOps:
 
-def init():
-    cf = ConfigParser.ConfigParser() 
-    cf.read("./script/db.properties")
-    global DB_FILE_PATH
-    DB_FILE_PATH=cf.get("dbParas", "dbFilePath")
+    def dbOps(self):
+        pass
 
-def get_conn(path):
-    if(os.path.exists(path) and os.path.isfile(path)):
-        return sqlite3.connect(path)
-    else:
-        return sqlite3.connect(':memory:')
+    def getDbFilePath(self):
+        cf = ConfigParser.ConfigParser() 
+        realpath = os.path.split(os.path.realpath(sys.argv[0]))[0]
+        cf.read(realpath + '/script/db.properties')
+        cf.sections()
+        return cf.get('dbParas', 'dbFilePath')
 
-def get_cursor(conn):
-    if conn is not None:
-        return conn.cursor()
-    else:
-        return get_conn('').cursor()
+    def get_conn(self,path):
+        if(os.path.exists(path) and os.path.isfile(path)):
+            return sqlite3.connect(path)
+        else:
+            return sqlite3.connect(':memory:')
 
-def close_all(conn, cu):
-    try:
-        if cu is not None:
-            cu.close()
-    finally:
-        if cu is not None:
-            cu.close()
-    try:
+    def get_cursor(self,conn):
         if conn is not None:
-            conn.close()
-    finally:
-        if conn is not None:
-            conn.close()
+            return conn.cursor()
+        else:
+            return self.get_conn('').cursor()
 
-def save(sql, data):
-    if sql is not None and sql != '':
-        if data is not None:
-            for d in data:
-                    conn=get_conn(DB_FILE_PATH)
-                    cu=get_cursor(conn)
+    def close_all(self,conn, cu):
+        try:
+            if cu is not None:
+                cu.close()
+        finally:
+            if cu is not None:
+                cu.close()
+        try:
+            if conn is not None:
+                conn.close()
+        finally:
+            if conn is not None:
+                conn.close()
+
+    def save(self,sql, data):
+        if sql is not None and sql != '':
+            if data is not None:
+                for d in data:
+                    conn=self.get_conn(self.getDbFilePath())
+                    cu=self.get_cursor(conn)
                     try:
                         cu.execute(sql,d)
                         conn.commit()
@@ -54,24 +58,18 @@ def save(sql, data):
                         traceback.print_exc()
                         return -1
                     finally:
-                        close_all(conn,cu)
-    return 0
+                        self.close_all(conn,cu)
+        return 0
 
-def fetchFreePort(appName,type):
-    sql = 'select port from ports where appName = ? and type = ?'
-    data=(appName,type)
-    conn = get_conn(DB_FILE_PATH)
-    cu=get_cursor(conn)
-    cu.execute(sql,data)
-    rows=cu.fetchall()
+    def fetchFreePort(self,appName,type):
+        sql = 'select port from ports where appName = ? and type = ?'
+        data=(appName,type)
+        conn = self.get_conn(self.getDbFilePath())
+        cu= self.get_cursor(conn)
+        cu.execute(sql,data)
+        rows=cu.fetchall()
 
-    if (len(rows)>0):
-       for row in rows:
-           return row[0]
-
-def main():
-    init()
-
-if __name__ == '__main__':
-    main() 
-
+        if (len(rows)>0):
+           for row in rows:
+               return row[0]
+        self.close_all(conn,cu)

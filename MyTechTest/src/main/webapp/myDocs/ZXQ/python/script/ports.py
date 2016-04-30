@@ -1,9 +1,10 @@
 import ConfigParser
 import traceback
 import socket
-import dbOps
+from dbOps import dbOps
 import sys
 import threading
+import os
 
 class ports:
 
@@ -15,13 +16,15 @@ class ports:
         host=['0.0.0.0','127.0.0.1', '10.25.23.165']
         
         cf = ConfigParser.ConfigParser() 
-        cf.read("./script/ports.properties")
+        realpath = os.path.split( os.path.realpath( sys.argv[0] ) )[0] 
+        cf.read(realpath + '/script/ports.properties')
         cf.sections()
         minPort = cf.get("portRange", "minPort")
         maxPort = cf.get("portRange", "maxPort")
         lock = threading.Lock()
-        dbOps.init()
-        p = dbOps.fetchFreePort(appName,porttype)
+        db = dbOps()
+        dbPath =  db.getDbFilePath()
+        p = db.fetchFreePort(appName,porttype)
         if p is not None:
             return p
         if lock.acquire():
@@ -44,7 +47,7 @@ class ports:
                         else:
                             sql='INSERT INTO ports values(?,?,?)'
                             data=[(port,appName,porttype),]
-                            res = dbOps.save(sql, data)
+                            res = db.save(sql, data)
                             if (res == 0):
                                 return port
             lock.release()

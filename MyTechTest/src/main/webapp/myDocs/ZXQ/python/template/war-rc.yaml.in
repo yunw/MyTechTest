@@ -34,8 +34,19 @@ spec:
               - mountPath: /opt/tomcat/webapps
                 name: app-volume
               ports:
-              - name: http-web
-                containerPort: 8080                                           
+              - name: http
+                containerPort: 8080     
+              - name: dubbo
+                containerPort: 20910     
+              - name: dubug
+                containerPort: 8000     
+                hostPort: ${DEBUG_PORT}
+              - name: tcp
+                containerPort: 40001  
+                hostPort: ${TCP_PORT}
+              - name: udp
+                containerPort: 40002 
+                hostPort: ${UDP_PORT}                
             volumes:
             - name: app-volume
               emptyDir: {}
