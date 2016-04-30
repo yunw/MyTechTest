@@ -1,0 +1,6 @@
+upstream ${APP_NAME}_backend {
+  zone upstream-backend 64k;
+  server ${APP_NAME}-svc.default.zxq.com:8080 resolve;
+}
+
+

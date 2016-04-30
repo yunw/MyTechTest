@@ -1,0 +1,7 @@
+金桥pp：
+服务名                             主机名                  内部IP          外部IP
+HAProxy 01          UAT-PP-07-3    172.31.0.146    10.130.11.170
+HAProxy 02          UAT-PP-07-4    172.31.0.147    10.130.11.171
+RabbitMQ Server 01  UAT-PP-05-1    172.31.0.116    10.130.11.148
+RabbitMQ Server 02  UAT-PP-05-2    172.31.0.117    10.130.11.149
+RabbitMQ Server 03  UAT-PP-05-3    172.31.0.118    10.130.11.15

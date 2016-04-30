@@ -1,0 +1,6 @@
+location /${APP_NAME}/ {
+  proxy_pass http://${APP_NAME}_backend/${APP_NAME}/;
+  # health_check;
+}
+
+

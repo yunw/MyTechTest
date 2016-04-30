@@ -1,0 +1,31 @@
+1、创建数据库
+[root@k8s-master python]# sqlite3 devops.db
+SQLite version 3.7.17 2013-05-20 00:56:22
+Enter ".help" for instructions
+Enter SQL statements terminated with a ";"
+sqlite> .databases
+seq  name             file                                                      
+---  ---------------  ----------------------------------------------------------
+0    main             /paas/k8s/python/devops.db 
+sqlite> ATTACH DATABASE 'devops.db' as 'devops';
+sqlite> .databases
+seq  name             file                                                      
+---  ---------------  ----------------------------------------------------------
+0    main             /paas/k8s/python/devops.db                                
+2    devops           /paas/k8s/python/devops.db 
+
+2、创建表：
+sqlite> CREATE TABLE devops.ports(
+   ...>    port    INT     PRIMARY KEY     NOT NULL,
+   ...>    appName TEXT    NOT NULL,
+   ...>    type    INT     NOT NULL -- 1:debug 2:tcp 3:udp
+   ...> );
+sqlite> CREATE UNIQUE  INDEX idx_ports_appname_type on ports (appName, type);
+sqlite> .schema ports
+CREATE TABLE ports(
+     port    INT     PRIMARY KEY     NOT NULL,
+      appName TEXT    NOT NULL,
+       type    INT     NOT NULL -- 1:debug 2:tcp 3:udp
+);
+CREATE UNIQUE INDEX idx_ports_appname_type on ports (appName, type);
+      
