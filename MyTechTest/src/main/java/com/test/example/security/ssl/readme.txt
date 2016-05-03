@@ -28,3 +28,5 @@ keytool -export -alias sslClient -keystore d:/ssl/client_ks -file d:/ssl/client_
 
 #将客户端数字证书导入服务端仓库：
 keytool -import -trustcacerts -alias sslClient -file d:/ssl/client_key.cer -keystore d:/ssl/server_ks
+
+参考：http://www.iteye.com/topic/1125183
