@@ -30,3 +30,5 @@ keytool -export -alias sslClient -keystore d:/ssl/client_ks -file d:/ssl/client_
 keytool -import -trustcacerts -alias sslClient -file d:/ssl/client_key.cer -keystore d:/ssl/server_ks
 
 参考：http://www.iteye.com/topic/1125183
+Secure Sockets Layer:
+http://www.pierobon.org/ssl/outline.htm
