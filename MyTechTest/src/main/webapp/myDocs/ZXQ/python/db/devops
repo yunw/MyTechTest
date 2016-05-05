@@ -1,0 +1,12 @@
+kubectl -s http://k8s-master:8080 cluster-info
+#在node中进入容器的方法
+#找到要进入的容器
+docker ps 
+#进入容器
+docker exec -it  k8s_tomcat.368537fb_javaweb-rc-nuv8e_default_6816ea53-fbe5-11e5-aa6c-005056a3e199_302ec5b9 /bin/sh
+#在master中进入容器的方法
+kubectl exec javaweb-rc-nuv8e -c tomcat -it /bin/sh
+#copy主机文件到容器目录
+docker cp test.txt 3796659667fa:/root
+#copy容器文件到主机目录
+docker cp 3796659667fa:/root/test.txt /paas
