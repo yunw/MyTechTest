@@ -1,0 +1,8 @@
+1.From the Terminal or Git Bash, run ssh-keygen
+2.Confirm the default path .ssh/id_rsa
+3.Enter a passphrase (recommended) or leave it blank.
+Remember this passphrase, as you will need it to unlock the key whenever you use it.
+4.Open ~/.ssh/id_rsa.pub and copy & paste the contents into
+the box below, then click on "Add".
+Note that id_rsa.pub is your public key and can be shared,
+while id_rsa is your private key and should be kept secret.

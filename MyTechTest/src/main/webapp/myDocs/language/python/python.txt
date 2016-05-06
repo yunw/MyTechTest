@@ -1,0 +1,6 @@
+Exception in thread "main"   File "D:\software\Python\Python35\Lib\site.py", line 176
+    file=sys.stderr)
+       ^
+SyntaxError: no viable alternative at input '='
+
+解决：python -m pip install --upgrade pip
