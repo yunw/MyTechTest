@@ -1,0 +1,22 @@
+docker account：dockuserabcd/qqmail/abcd_1234
+1、centos7下安装 etcd 和kubuernetes（会自动安装docker）：
+yum install -y etcd kubernetes
+2、修改docker的配置文件：
+vi /etc/sysconfig/docker
+将OPTIOINS的内容设置为：
+OPTIONS='--selinux-enabled=false --insecure-registry gcr.io'
+3、修改kubernetes apiserver的配置文件：
+vi /etc/kubernetes/apiserver
+把--admissin_control参数中的ServiceAccount删除
+4、按顺序启动所有服务：
+systemctl start etcd
+systemctl start docker
+systemctl start kube-apiserver
+systemctl start kube-controller-manager
+systemctl start kube-scheduler
+systemctl start kubelet
+systemctl start kube-proxy
+至此，一个单机版的kubernetes集群环境就安装启动完成了。
+
+下载docker镜像（存储在本地/var/lib/docker目录下）：
+docker pull kubeguide/guestbook-php-frontend

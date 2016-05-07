@@ -1,0 +1,20 @@
+openstack是一个云操作系统，通过一个数据中心控制着大量计算机、存储、网路资源的池子。所有的管理通过一个仪表盘，管理员可以授权他们的用户通过一个web界面提供资源。
+openstack系统由独自安装的几个关键服务组成。这些服务的工作依赖于你的云需求。这些服务包含计算服务、身份服务、网络服务、镜像服务、块存储服务、对象存储服务、自动记录服务、
+协调服务以及数据库服务。
+openstack是一个开源的云计算平台，支持所有类型的云环境。
+
+openstack服务：
+service                       项目名                      描述
+Dashborad              Horizon                    提供一个基于web的自服务门户，用于与openstack底层的服务交互，象发布实例、分配ip地址配置访问控制。
+Compute                 Nova                          管理一个openstack环境中的计算实例的生命周期。职责包括生产、调度和退出虚拟机的需求。
+Networking            Neutron                    对其他服务提供一种网络即服务的能力，例如计算服务。提供一套给用户的api用于定义网络。
+storage
+Object storage      Swift                            通过restful，基于http的api，存储和检索任意非机构化的数据对象。它带有数据复制和扩展架构，是高度容错的。
+                                                                         它的实现不像一个文件服务器的可安装目录。它将对象和文件写入多个驱动器，确保数据通过服务器集群被复制。
+Block storage        Cinder                          提供持久化的块存储来运行实例。它的插件驱动架构便于创建和管理块存储设备。
+Shared service
+Identity service    Keystone                     为其他的openstack服务提供授权和认证服务。为所有的openstack服务提供端点目录。
+Image service       Glance                           存储和检索虚拟机的磁盘镜像，openstack计算服务在提供实例的时候要用到它。
+Telemetry              Ceilometer                   监控和计算openstack云用于计费、检测、扩展和统计目的。
+Higher-level services 	  	 
+Orchestration      Heat                               协调多个复合云应用，通过本地的热模板或者AWS CloudFormation模板格式，通过openstack-native api或CloudFormation兼容的查询api

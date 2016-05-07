@@ -1,0 +1,29 @@
+安装virtualbox：
+1、
+在/etc/apt/sources.list中添加：deb http://download.virtualbox.org/virtualbox/debian trusty contrib
+2、安装：
+sudo apt-get update
+sudo apt-cache search virtualbox
+选择安装最新版：
+sudo apt-get install virtualbox-5.0
+3、启动virtualbox：
+/usr/bin/virtualbox
+
+安装centos7
+下载centos7的光盘镜像（最小化安装）：http://mirrors.163.com/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1511.iso 
+安装方法参考：http://jingyan.baidu.com/article/29697b912b9125ab20de3c84.html
+
+进入centos7之后
+执行：yum install -y etcd kubernetes
+报错：Cannot find a valid baseurl for repo: base/7/x86_64
+解决：
+【root@localhost ~]#ip addr
+查找网络配置文件的名字为：
+enp0s3
+打开该文件：
+vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+修改最后一行：
+ONBOOT=no
+改为yes
+保存后，重启网络：service network restart
+测试：ping www.baidu.com可以访问了。
