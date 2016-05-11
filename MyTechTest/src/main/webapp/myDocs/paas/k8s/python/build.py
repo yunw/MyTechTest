@@ -8,13 +8,17 @@ import pexpect
 import time 
 import sqlite3
 from script.ports import *
+from script.k8sDeploy import *
+import time
 
 rootDir = "/paas/k8s/python/"
 appDir = "apps/"
-registry = "10.25.23.165:5000"
+warsDir = "/paas/k8s/python/wars/"
+registry = "10.25.23.165:5000" 
+
 
 appName = sys.argv[1]
-appVersion = sys.argv[2]
+appVersion = sys.argv[2]+"-"+str(long(time.time()))
 warFileName = sys.argv[3]
 workingDirName = appName + "-" + appVersion + "/"
 
@@ -23,7 +27,7 @@ def init():
 
 # build a war file from Git.
 def buildImage():
-    geneWarFile = "/paas/k8s/python/wars/" + warFileName;
+    geneWarFile = warsDir + warFileName;
     # make a docker image. 
     os.system("cp " + geneWarFile + " " + rootDir + appDir + workingDirName + warFileName);
     fin = open(rootDir + "template/Dockerfile.in", "r")
@@ -34,7 +38,6 @@ def buildImage():
     fout.close()
     fin.close()
     os.system("docker build -t " + appName+":" + appVersion + " " + rootDir + appDir + workingDirName)
-
 
 # push the docker image into private registry. 
 def pushImage():
@@ -48,13 +51,15 @@ def pushImage():
 # deploy the image to the kubernetes cluster. 
 def deploy():
     port = ports()
-    debugPort = port.getFreePort(appName,1)
-    tcpPort = port.getFreePort(appName,2)
-    udpPOrt = port.getFreePort(appName,3)
+    debugPort = str(port.getFreePort(appName,1))
+    tcpPort = str(port.getFreePort(appName,2))
+    udpPort = str(port.getFreePort(appName,3))
     fin = open(rootDir + "template/war-rc.yaml.in", "r")
     fout = open(rootDir + appDir + workingDirName + "/war-rc.yaml", "w")
     for s in fin:
-        fout.write(s.replace("${WAR_FILE_NAME}", warFileName).replace("${APP_NAME}",appName).replace("${APP_VERSION}",appVersion))
+        s1 = s.replace("${WAR_FILE_NAME}", warFileName).replace("${APP_NAME}",appName).replace("${APP_VERSION}",appVersion)
+        s2 = s1.replace("${DEBUG_PORT}", debugPort).replace("${TCP_PORT}",tcpPort).replace("${UDP_PORT}",udpPort)         
+        fout.write(s2)
     print "war-rc.yaml generated."      
     fout.close()
     fin.close()
@@ -69,6 +74,7 @@ def deploy():
     fin.close()
     os.system("kubectl delete service " + appName + "-svc")
     os.system("kubectl create -f " + rootDir + appDir + workingDirName + "/war-svc.yaml")
+    return (debugPort,tcpPort,udpPort)
 
 # create nginx upstream and location. 
 def createLB():
@@ -120,15 +126,34 @@ def applyLB():
     nginxPodName = p.stdout.readline().split()[0]        
     os.system("kubectl delete pod " + nginxPodName)
 
-
-def main():
-    init()
-    buildImage()
-    pushImage()
-    deploy()
-    createLB()
-    applyLB()
+def save(exposedPorts,result):
+    d = k8sDeploy()
+    setattr(d, "stage", "0")
+    setattr(d, "appName", appName)
+    setattr(d, "appVersion", appVersion)
+    setattr(d, "appPath", warsDir + warFileName)
+    setattr(d, "accessURL", "http://10.25.23.166/" + appName)
+    setattr(d, "dubboAddress", "")
+    setattr(d, "debugPort", exposedPorts[0])
+    setattr(d, "tcpPort", exposedPorts[1])
+    setattr(d, "udpPort", exposedPorts[2])
+    setattr(d, "result", result)
+    d.saveDeployData()
     
+def main():
+    result = "success"
+    try:
+        init()
+        buildImage()
+        pushImage()
+        exposedPorts = deploy()
+        createLB()
+        applyLB()        
+    except Exception,ex:	
+        print ex
+        result = ex;
+    save(exposedPorts,result)
+        
 if __name__ == '__main__':
     main()    
         

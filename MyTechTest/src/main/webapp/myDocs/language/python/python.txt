@@ -1,3 +1,20 @@
+安装pip：
+下载：https://bootstrap.pypa.io/get-pip.py
+执行：
+python get-pip.py
+然后在环境变量中添加：D:\software\Python\Python35\Scripts
+
+安装python3.5：
+wget https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz
+tar zxvf Python-3.5.1.tgz
+cd Python-3.5.1
+./configure
+make && make install
+
+ImportError: No module named 'paramiko'
+解决：
+pip install paramiko
+
 Exception in thread "main"   File "D:\software\Python\Python35\Lib\site.py", line 176
     file=sys.stderr)
        ^

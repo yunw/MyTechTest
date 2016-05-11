@@ -5,6 +5,8 @@ from dbOps import dbOps
 import sys
 import threading
 import os
+import subprocess
+import re
 
 class ports:
 
@@ -12,9 +14,25 @@ class ports:
     def ports(self):
         pass
 
+    def find_all_ip(self):
+        ipstr = '([0-9]{1,3}\.){3}[0-9]{1,3}'
+        ipconfig_process = subprocess.Popen("ifconfig", stdout=subprocess.PIPE)
+        output = ipconfig_process.stdout.read()
+        ip_pattern = re.compile('(inet %s)' % ipstr)
+        broad_pattern = re.compile('(broadcast %s)' % ipstr)
+        pattern = re.compile(ipstr)
+        iplist = []
+        for ipaddr in re.finditer(ip_pattern, str(output)):
+            ip = pattern.search(ipaddr.group())
+            iplist.append(ip.group())
+        for broadaddr in broad_pattern.finditer(str(output)):
+            broad = pattern.search(broadaddr.group())
+            iplist.append(broad.group())
+        return iplist
+
     def getFreePort(self,appName,porttype):
-        host=['0.0.0.0','127.0.0.1', '10.25.23.165']
-        
+        #host=['0.0.0.0','127.0.0.1', '10.25.23.165']
+        host = self.find_all_ip()
         cf = ConfigParser.ConfigParser() 
         realpath = os.path.split( os.path.realpath( sys.argv[0] ) )[0] 
         cf.read(realpath + '/script/ports.properties')

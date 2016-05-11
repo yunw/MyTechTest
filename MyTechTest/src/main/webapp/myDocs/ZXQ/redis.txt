@@ -263,3 +263,5 @@ config get slaveof #查看slaveof参数的当前值
 1) "slaveof"
 2) "10.25.23.104 6379"
 
+查看集群状态：
+/usr/local/redis/bin/redis-cli cluster nodes
