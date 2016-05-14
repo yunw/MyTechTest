@@ -1,0 +1,20 @@
+#描述pod状态kubectl describe pod my-nginx-3w5aq
+#删除rc， 如果系统不停的建pod，则删除rckubectl delete rc {rc_name}
+kubectl get rc --all-namespaces
+kubectl scale replicationcontrollers --replicas=2 jenkins-slavekubectl rolling-update jenkins-slave --update-period=10s -f jenkins-slaves-v2.yml
+#通过rest访问kuberneteshttp://10.25.23.165:8080/api/v1/namespaces/kube-system/pods/kubernetes-dashboard-v1.0.0-k0irx
+kubectl delete  rc --all --namespace=kube-systemkubectl delete  pods --all --namespace=kube-systemkubectl delete  services --all --namespace=kube-system
+kubectl describe rc kubernetes-dashboard --namespace=kube-system
+kubectl describe pods --namespace=kube-system
+kubectl logs kube-dns-v6-86kx4 kube2sky  --namespace=kube-system
+kubectl -s http://k8s-master:8080 cluster-info
+#在node中进入容器的方法#找到要进入的容器namesdocker ps #进入容器docker exec -it  k8s_tomcat.368537fb_javaweb-rc-nuv8e_default_6816ea53-fbe5-11e5-aa6c-005056a3e199_302ec5b9 /bin/sh
+#在master中进入容器的方法kubectl exec javaweb-rc-nuv8e -c tomcat -it /bin/sh
+#copy主机文件到容器目录docker cp test.txt 3796659667fa:/root#copy容器文件到主机目录docker cp 3796659667fa:/root/test.txt /paas
+#列出etcd内的目录etcdctl lsetcdctl ls / --recursive
+
+#查看本地DNS配置cat /etc/resolv.conf
+#查看防火墙NAT设置iptables -t nat -L
+#创建image命令docker build -t simplewar /paas/k8s/example/ #目录下要有Dockerfile文件
+#查看容器详情docker inspect 容器id
+#查看时间服务器ntpq -p

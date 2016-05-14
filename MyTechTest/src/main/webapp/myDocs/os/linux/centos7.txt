@@ -1,0 +1,2 @@
+centos7不再使用ifconfig而是使用ip addr查看ip地址
+

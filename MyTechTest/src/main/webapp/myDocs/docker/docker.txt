@@ -53,7 +53,29 @@ TAG 信息用来标记来自同一个仓库的不同镜像。例如 tracereport�
 mkdir imgtest
 cd imgtest
 touch Dockerfile
+Dockerfile的内容如下（一个包含java和tomcat的镜像）：
+FROM centos
+MAINTAINER yinsl "2225646595@qq.com"
+WORKDIR /root/dockerroot
+RUN yum install -y java-1.8.0-openjdk wget
+RUN wget http://mirrors.hust.edu.cn/apache/tomcat/tomcat-8/v8.0.33/bin/apache-tomcat-8.0.33.tar.gz
+RUN tar xvf apache-tomcat-8.0.33.tar.gz && mv ./apache-tomcat-8.0.33 /usr/local
+RUN touch startup.sh
+RUN echo "/usr/local/apache-tomcat-8.0.33/bin/startup.sh">> startup.sh
+COPY startup.sh /root/startup.sh
+RUN chmod a+x /root/startup.sh
+EXPOSE 8080
+ENTRYPOINT /root/startup.sh
 
+
+
+创建的命令为：
+docker build [OPTIONS] path #path为包含Dockerfile的路径（包含子路径）
+该命令将读取指定路径下（包括子目录）的 Dockerfile，并将
+该路径下所有内容发送给 Docker 服务端，由服务端来创建镜像。因此一般建议放置 Dockerfile 的目录为空目录。
+也可以通过 .dockerignore 文件（每一行添加一条匹配模式）来让 Docker 忽略路径下的目录和文件。
+要指定镜像的标签信息，可以通过 -t 选项，例如：
+docker build -t myrepo/myapp /tmp/test1/
 
 Dockfile简介：
 基本结构：
@@ -81,6 +103,61 @@ CMD
 EXPOSE
 格式为 EXPOSE <port> [<port>...] 。
 告诉Docker服务端容器暴露的端口号，供互联系统使用。在启动容器时需要通过 -P，Docker主机会自动分配一个端口转发到指定的端口。
+ENV
+格式为 ENV <key> <value> 
+ 指定一个环境变量，会被后续 RUN 指令使用，并在容器运行时保持。
+ADD
+格式为 ADD <src> <dest>
+该命令将复制指定的 <src> 到容器中的 <dest> 。 其中 <src> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。
+COPY
+格式为 COPY <src> <dest>
+复制本地主机的 <src> （为 Dockerfile 所在目录的相对路径）到容器中的 <dest> 。当使用本地目录为源目录时，推荐使用 COPY 。
+ENTRYPOINT
+两种格式：
+ENTRYPOINT ["executable", "param1", "param2"]
+ENTRYPOINT command param1 param2 （shell中执行）
+配置容器启动后执行的命令，并且不可被 docker run 提供的参数覆盖。每个 Dockerfile 中只能有一个 ENTRYPOINT ，当指定多个时，只有最后一个起效
+VOLUME
+格式为 VOLUME ["/data"]
+创建一个可以从本地主机或其他容器挂载的挂载点，一般用来存放数据库和需要保持的数据等。
+USER
+格式为 USER daemon
+指定运行容器时的用户名或 UID，后续的 RUN 也会使用指定用户。
+当服务不需要管理员权限时，可以通过该命令指定运行用户。并且可以在之前创建所需要的用户，例如： RUN groupadd -r postgres && useradd -r -g postgres postgres 。
+要临时获取管理员权限可以使用 gosu ，而不推荐 sudo 。
+WORKDIR
+格式为 WORKDIR /path/to/workdir
+为后续的 RUN 、 CMD 、 ENTRYPOINT 指令配置工作目录。
+可以使用多个 WORKDIR 指令，后续命令如果参数是相对路径，则会基于之前命令指定的路径。例如：
+WORKDIR /a
+WORKDIR b
+WORKDIR c
+RUN pwd
+则最终路径为 /a/b/c 。
+ONBUILD
+格式为 ONBUILD [INSTRUCTION]
+配置当所创建的镜像作为其它新创建镜像的基础镜像时，所执行的操作指令。
+例如，Dockerfile 使用如下的内容创建了镜像 image-A 。
+[...]
+ONBUILD ADD . /app/src
+ONBUILD RUN /usr/local/bin/python-build --dir /app/src
+[...]
+如果基于 image-A 创建新的镜像时，新的Dockerfile中使用 FROM image-A 指定基础镜像时，会自动执行ONBUILD 指令内容，等价于在后面添加了两条指令。
+FROM image-A
+#Automatically run the following
+ADD . /app/src
+RUN /usr/local/bin/python-build --dir /app/src
+
+
+
+
+centos7安装docker：
+yum install docker
+service docker start
+chkconfig docker on
+
+
+
 
 
 
