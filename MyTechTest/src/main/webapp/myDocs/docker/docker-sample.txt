@@ -37,6 +37,9 @@ docker ps -a
 9、停止容器：
 docker stop containerId
 
+10、启动容器：
+docker start containerId
+
 10、删除容器：
 docker rm containerId
 
