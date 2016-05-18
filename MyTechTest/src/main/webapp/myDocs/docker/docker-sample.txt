@@ -1,20 +1,19 @@
-1、下载 jdk：
-mkdir /root/imgtest
-mkdir /root/imgtest/tmp
+win7与virtualbox centos7通信方法：http://blog.csdn.net/lydyangliu/article/details/12276689
 
-下载jdk-8u92-linux-x64.tar.gz到/root/imgtest/tmp
+yum install -y docker
+service docker start
+chkconfig docker on
 
-2、生成Dockerfile
+查看可用的jdk列表：
+yum search java | grep -i --color JDK
+
+1、、生成Dockerfile
 cd /root/imgtest
 vi Dockerfile
 Dockerfile的内容如下（一个包含java和tomcat的镜像）：
 FROM centos
 MAINTAINER yinsl "2225646595@qq.com"
-COPY ./tmp/jdk-8u92-linux-x64.tar.gz /root/tmp/      #最后一个"/"不加就会报错
-RUN tar zxf /root/tmp/jdk-8u92-linux-x64.tar.gz -C /usr/local
-ENV JAVA_HOME /usr/local/jdk1.8.0_92
-ENV PATH $JAVA_HOME/bin:$PATH
-RUN yum install -y wget
+RUN yum install -y java-1.8.0-openjdk-devel.x86_64 wget
 RUN wget http://mirrors.hust.edu.cn/apache/tomcat/tomcat-8/v8.0.33/bin/apache-tomcat-8.0.33.tar.gz
 RUN tar zxf apache-tomcat-8.0.33.tar.gz -C /usr/local
 EXPOSE 8080
@@ -33,6 +32,7 @@ docker run -p 80:8080 tomcat:v8.0.33    #80:8080是宿主机的80端口映射到
 docker ps -a
 
 8、宿主机上的浏览器输入：http://localhost就可以看到tomcat首页了
+如果没有图形界面，也可输入：curl http://localhost/
 
 9、停止容器：
 docker stop containerId
