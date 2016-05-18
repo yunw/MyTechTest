@@ -1,0 +1,79 @@
+{
+    "actions": [
+        {
+            "causes": [
+                {
+                    "shortDescription": "Started by remote host 10.25.23.165",
+                    "addr": "10.25.23.165",
+                    "note": null
+                }
+            ]
+        },
+        {
+            "buildsByBranchName": {
+                "refs/remotes/origin/zxq_dev": {
+                    "buildNumber": 38,
+                    "buildResult": null,
+                    "marked": {
+                        "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
+                        "branch": [
+                            {
+                                "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
+                                "name": "refs/remotes/origin/zxq_dev"
+                            }
+                        ]
+                    },
+                    "revision": {
+                        "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
+                        "branch": [
+                            {
+                                "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
+                                "name": "refs/remotes/origin/zxq_dev"
+                            }
+                        ]
+                    }
+                }
+            },
+            "lastBuiltRevision": {
+                "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
+                "branch": [
+                    {
+                        "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
+                        "name": "refs/remotes/origin/zxq_dev"
+                    }
+                ]
+            },
+            "remoteUrls": [
+                "ssh://jenkins@10.25.20.102:29418/Cloud/tracereport"
+            ],
+            "scmName": ""
+        },
+        {},
+        {},
+        {},
+        {}
+    ],
+    "artifacts": [],
+    "building": false,
+    "description": null,
+    "displayName": "#38",
+    "duration": 78407,
+    "estimatedDuration": 104970,
+    "executor": null,
+    "fullDisplayName": "tracereport #38",
+    "id": "38",
+    "keepLog": false,
+    "number": 38,
+    "queueId": 2926,
+    "result": "SUCCESS",
+    "timestamp": 1463402107426,
+    "url": "http://10.25.20.104:8080/view/Devops/job/tracereport/38/",
+    "builtOn": "",
+    "changeSet": {
+        "items": [],
+        "kind": "git"
+    },
+    "culprits": [],
+    "mavenArtifacts": {},
+    "mavenVersionUsed": "3.2.5"
+}

@@ -152,7 +152,7 @@ RUN /usr/local/bin/python-build --dir /app/src
 
 
 centos7安装docker：
-yum install docker
+yum install -y docker
 service docker start
 chkconfig docker on
 

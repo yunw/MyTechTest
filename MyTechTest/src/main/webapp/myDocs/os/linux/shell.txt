@@ -1,3 +1,9 @@
+登录hell和非登录shell：
+对于Bash来说，登录shell（包括交互式登录shell和使用“–login”选项的非交互shell），它会首先读取和执行/etc/profile全局配置文件中的命令，
+然后依次查找~/.bash_profile、~/.bash_login 和 ~/.profile这三个配置文件，读取和执行这三个中的第一个存在且可读的文件中命令。除非被“–noprofile”选项禁止了。
+在非登录shell里，只读取 ~/.bashrc （和 /etc/bash.bashrc、/etc/bashrc ）文件，不同的发行版里面可能有所不同，
+如RHEL6.3中非登录shell仅执行了“~/.bashrc”文件（没有执行/etc/bashrc），而KUbuntu10.04中却依次执行了/etc/bash.bashrc 和 ~/.bashrc 文件。
+
 if
 用简化 if 和$1,$2,$3来检测参数，不合理就调用help
 if [ -z "$1" ] && help                 如果第一个参数不存在（-z  字符串长度为0 ）

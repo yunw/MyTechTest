@@ -1,3 +1,94 @@
+yinslgo@gmail.com/yinsl123
+
+安装kubectl：
+下载：https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
+配置kubectl：
+
+
+设计：
+pods：k8s中的基本调度单元就是pod。一个pod由一个或多个容器（container）组成，保证在主机的同一个位置并能共享资源。每个pod都被分配了一个唯一（集群内）的IP地址。
+保证了应用程序使用端口时没有冲突的风险。一个pod可以定义一个卷（volume），例如一个本地磁盘目录或网络磁盘，并且把它暴露给pod里的容器。pod可以通过k8s api手动管理，
+或者把管理委托给控制器。
+
+Labels and Selectors（标签与标签选择器）：k8s允许客户端（用户或内部组件）附加key-value对，称为标签，给系统中的任意api对象，例如pods和nodes。相应的，标签选择器
+紧靠标签，解决匹配对象的查询。标签与选择器是k8s的主要分组机制，经常用于决定那些组件可以应用哪些操作。
+例如：如果一个应用的pods有一个标签“tier”（front-end，back-end等等）和“release_track”（canary，production等等），那么在所有的back-end canary nodes上都有一个
+操作可以使用选择器：tier=back-end AND release_track=canary
+
+Controllers：控制器是一个调节回路，它将实际的集群状态导向期望的集群状态。它通过管理一组pods来实现这一点。有一种控制器是复制控制器，它通过运行特定数量的副本，在
+集群中复制和缩放。当节点中的pods运行失败的时候，它也可以创建复制pods。其他控制器是k8s系统核心的一部分，包括一个daemonSet控制器，用于在一台机器（或一些机器的子集）
+上只运行一个pod，还有一个job控制器，用于运行pods直至完成，例如，作为批量处理的一部分。控制器管理的pods是由标签选择器决定的，作为控制器定义的一部分。
+
+Services：一个k8s的服务是一组相互协作的pods，例如一个多层应用的一层。构成一个服务的一组pods由标签选择器定义。k8s通过给服务分配一个固定的ip和dns名称来提供
+服务发现和请求路由，以及round-robin的负载均衡连接到ip地址，通过选择器匹配到pods（即使失败导致pods从机器中移除）。默认情况下一个服务暴露在集群内部（例如，后端pods
+可能划分为一个服务，来自前端pods的请求通过负载均衡到达它们），但是一个服务也可以暴露在集群外部（例如，客户端到达前端pods）。
+
+架构：
+k8s节点：是由k8s管理的单机（或虚拟机）。集群中的每个节点必须运行容器（例如docker），以及kubelet和kube-proxy。kubelet按控制面（control plane）的指示负责
+启动、停止、管理应用容器（组织进pods）。kube-proxy是网络代理和负载均衡的一个实现，并支持与其他网络操作的服务抽象。
+
+Kubernetes control plane：由几个部分组成，每个都有自己的进程，运行在一个单一的主节点。apiserver使用基于http的json为k8s api提供服务，它为k8s提供内部和外部的接口。
+apiserver将集群状态写入etcd，持久化数据存回k8s。调度器是可插拔的组件，它选择一个节点上的一个临时的pod来运行。控制器管理器是核心k8s控制器运行在其中的进程。控制器
+与apiserver通信来创建、更新和删除它们管理（pods，service endpoints等等）的资源。
+
+
+k8s配置：
+用配置文件发布一个容器：
+hello-world.yaml
+apiVersion: v1  #目前只支持以下版本："batch/v1" "autoscaling/v1" "authorization.k8s.io/v1beta1" "v1" "metrics/v1alpha1" 
+                #"extensions/v1beta1" "componentconfig/v1alpha1"
+kind: pod
+metadata:
+  name: hello-word #pod资源创建时的名称，集群内部唯一
+spec：
+  restartPolicy: Never  #never表明只运行该容器一次然后终止该pod
+  container：
+  - name: hello    #该pod内部的容器的别名
+    image：                #docker镜像的名称
+    command: ["/bin/echo","hello'?,'?world"] #覆盖docker容器的entrypoint。命令参数（与docker的一致）也可以用args来定义，例如：
+                                             # command: ["/bin/echo"]
+                                             # args: ["hello","world"]
+
+环境变量与变量表达式：
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-world
+spec:  # specification of the pod’s contents
+  restartPolicy: Never
+  containers:
+  - name: hello
+    image: "ubuntu:14.04"
+    env:
+    - name: MESSAGE
+      value: "hello world"
+    command: ["/bin/sh","-c"]
+    args: ["/bin/echo \"${MESSAGE}\""]
+
+
+可以用create命令来来创建这个pod：
+$ kubectl create -f ./hello-world.yaml
+pods/hello-world
+
+查看pods：
+$ kubectl get pods
+
+查看pod输出：
+$ kubectl logs hello-world
+
+删除pod：
+$ kubectl delete pod hello-world
+也可以用resources/name的格式删除：
+$ kubectl delete pods/hello-world
+
+
+
+
+
+
+
+
+
 #描述pod状态kubectl describe pod my-nginx-3w5aq
 #删除rc， 如果系统不停的建pod，则删除rckubectl delete rc {rc_name}
 kubectl get rc --all-namespaces

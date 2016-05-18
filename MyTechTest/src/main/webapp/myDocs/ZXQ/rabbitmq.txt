@@ -33,9 +33,19 @@ yum install -y rabbitmq-server-3.6.1-1.noarch.rpm
 
 修改配置：
 vi /etc/rabbitmq/rabbitmq-env.conf
-
+RABBITMQ_CONFIG_FILE=/etc/rabbitmq
 RABBITMQ_LOG_BASE=/app/rabbitmq/logs
 RABBITMQ_MNESIA_BASE=/app/rabbitmq/data
+
+vi /etc/rabbitmq/rabbitmq.config
+[
+    {rabbit, [{tcp_listeners, [5672]}, {cluster_partition_handling, pause_minority}]}
+].
+
+其中：Network Partition的解决方案有三种：ignore pause_minority autoheal 
+ignore：什么也不做，网络非常可靠的时候用它（默认值）
+pause_minority：保证CAP中的CP：一致性、分区容错性，网络比较可靠的时候可以用它
+autoheal：保证CAP中的AP：可用性、分区容错行，网络不可靠时用它，可能导致数据丢失
 
 保存，继续操作：
 cat /proc/sys/kernel/hostname #查看机器名

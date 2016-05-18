@@ -6,6 +6,30 @@ MMU(memory management unit)：内存管理单元，它负责虚拟地址到物�
 hosts文件的位置：
 /etc/hosts
 
+/etc/hosts.allow和/etc/hosts.deny
+修改/etc/hosts.allow文件
+#
+# hosts.allow This file describes the names of the hosts which are
+# allowed to use the local INET services, as decided
+# by the ‘/usr/sbin/tcpd’ server.
+#
+sshd:210.13.218.*:allow
+sshd:222.77.15.*:allow
+以上写法表示允许210和222两个ip段连接sshd服务（这必然需要hosts.deny这个文件配合使用），当然:allow完全可以省略的。
+/etc/hosts.deny文件，此文件是拒绝服务列表，文件内容如下：
+#
+# hosts.deny This file describes the names of the hosts which are
+# *not* allowed to use the local INET services, as decided
+# by the ‘/usr/sbin/tcpd’ server.
+#
+# The portmap line is redundant, but it is left to remind you that
+# the new secure portmap uses hosts.deny and hosts.allow. In particular
+# you should know that NFS uses portmap!
+sshd:all:deny
+注意看：sshd:all:deny表示拒绝了所有sshd远程连接。:deny可以省略。
+所以：当hosts.allow和 host.deny相冲突时，以hosts.allow设置为准。
+linux 系统会先检查/etc/hosts.deny规则，再检查/etc/hosts.allow规则，如果有冲突 按/etc/hosts.allow规则处理
+
 192.168.1.1/32表示ip地址为192.168.1.1子网掩码为255.255.255.255，整个局域网可以有1个ip地址可以用，这个局域网就一个ip地址，也就等于不存在任何局域网了。
 
 32位linux：http://www.cnblogs.com/xkfz007/articles/2715192.html
