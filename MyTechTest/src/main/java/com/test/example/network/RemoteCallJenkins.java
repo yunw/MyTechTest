@@ -26,8 +26,8 @@ public class RemoteCallJenkins {
 	}
 
 	public static void main(String[] args) throws MalformedURLException, DocumentException {
-		// remoteDeploy(args);
-		 jobStatus();
+		 remoteDeploy(args);
+//		 jobStatus();
 	}
 
 	public static void jobStatus() {

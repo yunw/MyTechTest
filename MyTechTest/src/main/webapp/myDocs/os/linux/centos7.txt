@@ -1,2 +1,7 @@
 centos7不再使用ifconfig而是使用ip addr查看ip地址
 
+virtualBox上安装centos7网络配置：
+vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+将：ONBOOT=no 改为 ONBOOT=yes
+保存后重启网卡： service network restart
+可以用 ip addr来查看网络分配状况了

@@ -148,8 +148,14 @@ FROM image-A
 ADD . /app/src
 RUN /usr/local/bin/python-build --dir /app/src
 
-
-
+关于docker run命令
+-v，--volume=[]绑定一个挂载点
+格式：([host-dir:]container-dir[:<suffix options>], where suffix options are comma delimited and selected from [rw|ro] and [z|Z].)
+例如：-v /host-dir:/container-dir，将宿主机的/host-dir绑定到docker容器的/container-dir上。
+-v选项可以使用多次以绑定多个挂载点。这些挂在点可以被其他容器使用（通过使用--volume-from选项）。
+volume可选后缀:ro 和:rw用来表明挂载点是只读还是读写模式。默认情况下为读写模式。
+volume可选后缀:z和:Z用来表明volume是公有还是私有volume。z表明是公有（所有容器都可以读写该volume），Z表明是私有（只有当前容器可以使用该volume）。
+container-dir必须是绝对路径，例如：/src/docs。
 
 centos7安装docker：
 yum install -y docker
@@ -184,3 +190,7 @@ systemctl start kube-proxy
 
 下载docker镜像（存储在本地/var/lib/docker目录下）：
 docker pull kubeguide/guestbook-php-frontend
+
+
+docker的启动配置文件：/usr/lib/systemd/system/docker.service
+其他配置文件：/etc/sysconfig/docker

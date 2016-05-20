@@ -45,3 +45,36 @@ docker rm containerId
 
 11、删除镜像
 docker rmi imgId
+
+docker私有仓库搭建：
+1、安装docker
+yum install -y docker
+service docker start
+chkconfig docker on
+
+2、下载registry镜像
+docker pull registry
+
+3、启动registry容器
+docker run -d -p 5000:5000 registry -v /opt/data/registry:/tmp/registry registry
+默认情况下，仓库存放于容器内的/tmp/registry目录下，这样如果容器被删除，则存放于容器中的镜像也会丢失，
+所以我们一般情况下会指定本地一个目录挂载到容器内的/tmp/registry下
+
+4、测试（另一台机器）：
+a、下载一个小镜像：
+[root@localhost ~]# docker pull busybox
+[root@localhost ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+docker.io/busybox   latest              307ac631f1b5        8 weeks ago         1.113 MB
+
+b、修改该镜像的tag：
+[root@localhost ~]# docker tag busybox 10.25.31.102:5000/busybox
+[root@localhost ~]# docker images
+REPOSITORY                  TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+docker.io/busybox           latest              307ac631f1b5        8 weeks ago         1.113 MB
+10.25.31.102:5000/busybox   latest              307ac631f1b5        8 weeks ago         1.113 MB
+
+c、把打了tag的镜像上传到私有仓库：
+docker push 192.168.112.136:5000/busybox
+
+

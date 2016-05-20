@@ -2,7 +2,62 @@ yinslgo@gmail.com/yinsl123
 
 安装kubectl：
 下载：https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
-配置kubectl：
+tar zxvf kubernetes.tar.gz
+cp kubernetes/platforms/linux/amd64/kubectl /usr/local/bin/kubectl
+chmod +x /usr/local/bin/kubectl
+
+cp kubernetes/platforms/linux/amd64/kubectl /usr/bin/kubectl
+chmod +x /usr/bin/kubectl
+
+[root@localhost cluster]# export K8S_VERSION=$(curl -sS https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+[root@localhost cluster]# echo $K8S_VERSION
+v1.2.4
+
+
+运行：
+export ARCH=amd64
+docker run -d \                        #-d, --detach=true|false，后台模式，默认为false。后台模式的容器不能使用 --rm选项
+    --volume=/:/rootfs:ro \
+    --volume=/sys:/sys:ro \
+    --volume=/var/lib/docker/:/var/lib/docker:rw \
+    --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
+    --volume=/var/run:/var/run:rw \
+    --net=host \        #设置容器的网路模式：
+                        # 'bridge': creates a new network stack for the container on the docker bridge
+                        # 'none': no networking for this container
+                        # 'container:<name|id>': reuses another container network stack
+                        # 'host': use the host network stack inside the container.  
+                        # Note: the host mode gives the container full access to local system services such as D-bus
+                        # and is therefore considered insecure.
+                                            
+    --pid=host \        #设置容器的PID模式，host意味着在容器内不使用宿主机的PID命名空间，host模式给予容器完全的权限访问宿主机的PID，因此是不安全的
+    --privileged \                                                   #特权，默认为false。一般不允许访问设备。给予特权的容器可以访问任何设备。
+    gcr.io/google_containers/hyperkube-${ARCH}:${K8S_VERSION} \    #docker image
+    /hyperkube kubelet \
+        --containerized \
+        --hostname-override=127.0.0.1 \
+        --api-servers=http://localhost:8080 \
+        --config=/etc/kubernetes/manifests \
+        --cluster-dns=10.0.0.10 \                        #部署dns
+        --cluster-domain=cluster.local \                 #部署dns
+        --allow-privileged --v=2
+        
+
+k8s命令：
+[root@localhost kubernetes]# kubectl config set-cluster test-doc --server=http://localhost:8080
+cluster "test-doc" set.
+[root@localhost kubernetes]# kubectl config set-context test-doc --cluster=test-doc
+context "test-doc" set.
+[root@localhost kubernetes]# kubectl config use-context test-doc
+switched to context "test-doc".
+
+
+查看节点列表：
+kubectl get nodes
+[root@k8s-master apps]# kubectl get nodes
+NAME         STATUS    AGE
+k8s-node01   Ready     4d
+k8s-node02   Ready     48d
 
 
 设计：
@@ -84,6 +139,18 @@ $ kubectl delete pods/hello-world
 
 
 
+
+
+
+etcd:
+etcd是一个高可用的键值存储系统，主要用于共享配置和服务发现。etcd是由CoreOS开发并维护的，灵感来自于 ZooKeeper 和 Doozer，它使用Go语言编写，
+并通过Raft一致性算法处理日志复制以保证强一致性。Raft是一个来自Stanford的新的一致性算法，适用于分布式系统的日志复制，Raft通过选举的方式来实现一致性，
+在Raft中，任何一个节点都可能成为Leader。Google的容器集群管理系统Kubernetes、开源PaaS平台Cloud Foundry和CoreOS的Fleet都广泛使用了etcd。
+
+etcd 集群的工作原理基于 raft 共识算法 (The Raft Consensus Algorithm)。etcd 在 0.5.0 版本中重新实现了 raft 算法，而非像之前那样依赖于第三方库 go-raft 。
+raft 共识算法的优点在于可以在高效的解决分布式系统中各个节点日志内容一致性问题的同时，也使得集群具备一定的容错能力。
+即使集群中出现部分节点故障、网络故障等问题，仍可保证其余大多数节点正确的步进。甚至当更多的节点（一般来说超过集群节点总数的一半）出现故障而导致集群不可用时，
+依然可以保证节点中的数据不会出现错误的结果。
 
 
 

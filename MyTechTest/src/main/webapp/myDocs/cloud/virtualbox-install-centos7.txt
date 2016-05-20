@@ -27,3 +27,11 @@ ONBOOT=no
 改为yes
 保存后，重启网络：service network restart
 测试：ping www.baidu.com可以访问了。
+
+固定ip地址：
+将：BOOTPROTO=DHCP 改为：staitc
+添加：IPADDR=xxx.xxx.xxx.xxx
+      NETMASK=xxx.xxx.xxx.xxx
+      GATEWAY=xxx.xxx.xxx.xxx
+      DNS1=xxx.xxx.xxx.xxx
+      
