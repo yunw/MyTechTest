@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<maven2-moduleset plugin="maven-plugin@2.10">
+	<actions />
+	<description></description>
+	<logRotator class="hudson.tasks.LogRotator">
+		<daysToKeep>3</daysToKeep>
+		<numToKeep>-1</numToKeep>
+		<artifactDaysToKeep>-1</artifactDaysToKeep>
+		<artifactNumToKeep>-1</artifactNumToKeep>
+	</logRotator>
+	<keepDependencies>false</keepDependencies>
+	<properties>
+		<hudson.model.ParametersDefinitionProperty>
+			<parameterDefinitions>
+				<hudson.model.StringParameterDefinition>
+					<name>projectName</name>
+					<description></description>
+					<defaultValue></defaultValue>
+				</hudson.model.StringParameterDefinition>
+				<hudson.model.StringParameterDefinition>
+					<name>gitBranch</name>
+					<description></description>
+					<defaultValue>zxq_dev</defaultValue>
+				</hudson.model.StringParameterDefinition>
+			</parameterDefinitions>
+		</hudson.model.ParametersDefinitionProperty>
+	</properties>
+	<scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.5">
+		<configVersion>2</configVersion>
+		<userRemoteConfigs>
+			<hudson.plugins.git.UserRemoteConfig>
+				<url>ssh://jenkins@10.25.20.102:29418/Cloud/$projectName</url>
+			</hudson.plugins.git.UserRemoteConfig>
+		</userRemoteConfigs>
+		<branches>
+			<hudson.plugins.git.BranchSpec>
+				<name>*/$gitBranch</name>
+			</hudson.plugins.git.BranchSpec>
+		</branches>
+		<doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+		<submoduleCfg class="list" />
+		<extensions />
+	</scm>
+	<canRoam>true</canRoam>
+	<disabled>false</disabled>
+	<blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+	<blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+	<authToken>tracereport-token</authToken>
+	<triggers />
+	<concurrentBuild>false</concurrentBuild>
+	<rootModule>
+		<groupId>com.zxq.iov.cloud.tracereport</groupId>
+		<artifactId>tracereport</artifactId>
+	</rootModule>
+	<goals>clean install -e -U</goals>
+	<aggregatorStyleBuild>true</aggregatorStyleBuild>
+	<incrementalBuild>false</incrementalBuild>
+	<ignoreUpstremChanges>true</ignoreUpstremChanges>
+	<archivingDisabled>false</archivingDisabled>
+	<siteArchivingDisabled>false</siteArchivingDisabled>
+	<fingerprintingDisabled>false</fingerprintingDisabled>
+	<resolveDependencies>false</resolveDependencies>
+	<processPlugins>false</processPlugins>
+	<mavenValidationLevel>-1</mavenValidationLevel>
+	<runHeadless>false</runHeadless>
+	<disableTriggerDownstreamProjects>false</disableTriggerDownstreamProjects>
+	<blockTriggerWhenBuilding>true</blockTriggerWhenBuilding>
+	<settings class="jenkins.mvn.DefaultSettingsProvider" />
+	<globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider" />
+	<reporters />
+	<publishers />
+	<buildWrappers />
+	<prebuilders />
+	<postbuilders>
+		<hudson.tasks.Shell>
+			<command>curl http://10.25.31.15:8080/devops/jenkins?buildNumber=$BUILD_NUMBER</command>
+		</hudson.tasks.Shell>
+	</postbuilders>
+	<runPostStepsIfResult>
+		<name>SUCCESS</name>
+		<ordinal>0</ordinal>
+		<color>BLUE</color>
+		<completeBuild>true</completeBuild>
+	</runPostStepsIfResult>
+</maven2-moduleset>

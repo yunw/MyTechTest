@@ -82,6 +82,21 @@
 			<version>2.7.0</version>
 		</dependency>
 		<dependency>
+			<groupId>net.jp.saf.http.cookie</groupId>
+			<artifactId>cookie-manager</artifactId>
+			<version>0.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.fabric8.devops.apps</groupId>
+			<artifactId>jenkins</artifactId>
+			<version>2.2.176</version>
+		</dependency>
+		<dependency>
+			<groupId>com.offbytwo.jenkins</groupId>
+			<artifactId>jenkins-client</artifactId>
+			<version>0.3.5</version>
+		</dependency>
+		<dependency>
 			<groupId>com.googlecode.openbox</groupId>
 			<artifactId>ssh</artifactId>
 			<version>2.1.0</version>

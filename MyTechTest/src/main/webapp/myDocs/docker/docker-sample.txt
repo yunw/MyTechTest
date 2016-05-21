@@ -75,6 +75,30 @@ docker.io/busybox           latest              307ac631f1b5        8 weeks ago 
 10.25.31.102:5000/busybox   latest              307ac631f1b5        8 weeks ago         1.113 MB
 
 c、把打了tag的镜像上传到私有仓库：
-docker push 192.168.112.136:5000/busybox
+[root@localhost ~]# docker push 10.25.31.102:5000/busybox
+The push refers to a repository [10.25.31.102:5000/busybox] (len: 1)
+unable to ping registry endpoint https://10.25.31.102:5000/v0/
+v2 ping attempt failed with error: Get https://10.25.31.102:5000/v2/: dial tcp 10.25.31.102:5000: no route to host
+ v1 ping attempt failed with error: Get https://10.25.31.102:5000/v1/_ping: dial tcp 10.25.31.102:5000: no route to host
+报错的原因是，上传镜像默认使用了https协议。
+解决方案：
+[root@localhost ~]# vi /etc/sysconfig/docker
+#OPTIONS='--selinux-enabled'
+OPTIONS='--selinux-enabled --insecure-registry 10.25.31.102:5000'
+然后重启docker：
+[root@localhost ~]# service docker restart
+Redirecting to /bin/systemctl restart  docker.service
+然后重新上传：
+[root@localhost ~]# docker push 10.25.31.102:5000/busybox
+The push refers to a repository [10.25.31.102:5000/busybox] (len: 1)
+Sending image list
+Pushing repository 10.25.31.102:5000/busybox (1 tags)
+4b51ded9aed1: Image successfully pushed 
+307ac631f1b5: Image successfully pushed 
+Pushing tag for rev [307ac631f1b5] on {http://10.25.31.102:5000/v1/repositories/busybox/tags/latest}
+
+查看私有仓库中的镜像：
+[root@localhost ~]# curl 127.0.0.1:5000/v1/search
+{"num_results": 1, "query": "", "results": [{"description": "", "name": "library/busybox"}]}
 
 

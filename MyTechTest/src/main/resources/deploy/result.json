@@ -1,18 +1,30 @@
 {
     "actions": [
         {
+            "parameters": [
+                {
+                    "name": "projectName",
+                    "value": "tracereport"
+                },
+                {
+                    "name": "gitBranch",
+                    "value": "zxq_dev"
+                }
+            ]
+        },
+        {
             "causes": [
                 {
-                    "shortDescription": "Started by remote host 10.25.23.165",
-                    "addr": "10.25.23.165",
-                    "note": null
+                    "shortDescription": "Started by user 尹顺林",
+                    "userId": "abfme",
+                    "userName": "尹顺林"
                 }
             ]
         },
         {
             "buildsByBranchName": {
                 "refs/remotes/origin/zxq_dev": {
-                    "buildNumber": 38,
+                    "buildNumber": 44,
                     "buildResult": null,
                     "marked": {
                         "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
@@ -44,36 +56,52 @@
                 ]
             },
             "remoteUrls": [
-                "ssh://jenkins@10.25.20.102:29418/Cloud/tracereport"
+                "ssh://jenkins@10.25.20.102:29418/Cloud/$projectName"
             ],
             "scmName": ""
         },
-        {},
-        {},
-        {},
-        {}
+        {
+            
+        },
+        {
+            
+        },
+        {
+            
+        },
+        {
+            
+        }
     ],
-    "artifacts": [],
+    "artifacts": [
+        
+    ],
     "building": false,
     "description": null,
-    "displayName": "#38",
-    "duration": 78407,
-    "estimatedDuration": 104970,
+    "displayName": "#44",
+    "duration": 88891,
+    "estimatedDuration": 76751,
     "executor": null,
-    "fullDisplayName": "tracereport #38",
-    "id": "38",
+    "fullDisplayName": "tracereport #44",
+    "id": "44",
     "keepLog": false,
-    "number": 38,
-    "queueId": 2926,
+    "number": 44,
+    "queueId": 5302,
     "result": "SUCCESS",
-    "timestamp": 1463402107426,
-    "url": "http://10.25.20.104:8080/view/Devops/job/tracereport/38/",
+    "timestamp": 1463800156185,
+    "url": "http://10.25.20.104:8080/view/Devops/job/tracereport/44/",
     "builtOn": "",
     "changeSet": {
-        "items": [],
+        "items": [
+            
+        ],
         "kind": "git"
     },
-    "culprits": [],
-    "mavenArtifacts": {},
+    "culprits": [
+        
+    ],
+    "mavenArtifacts": {
+        
+    },
     "mavenVersionUsed": "3.2.5"
 }

@@ -163,7 +163,13 @@ service docker start
 chkconfig docker on
 
 
-
+搜索镜像：
+[root@localhost ~]# docker search centos
+INDEX       NAME                                      DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
+docker.io   docker.io/centos                          The official build of CentOS.                   2253      [OK]       
+docker.io   docker.io/jdeathe/centos-ssh              CentOS-6 6.7 x86_64 / CentOS-7 7.2.1511 x8...   23                   [OK]
+docker.io   docker.io/jdeathe/centos-ssh-apache-php   CentOS-6 6.7 x86_64 / Apache / PHP / PHP M...   17                   [OK]
+......
 
 
 
