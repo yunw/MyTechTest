@@ -20,7 +20,7 @@
 		<geronimo.jms.version>1.1.1</geronimo.jms.version>
 		<gson.version>2.3.1</gson.version>
 		<guice.version>4.0</guice.version>
-		<httpclient.version>4.5.1</httpclient.version>
+		<httpclient.version>4.5.2</httpclient.version>
 		<!-- <ik.analyzer.version>3.2.8</ik.analyzer.version> -->
 		<java.version>1.8</java.version>
 		<javax.servlet.api.version>3.1.0</javax.servlet.api.version>
@@ -80,6 +80,11 @@
 			<groupId>org.python</groupId>
 			<artifactId>jython</artifactId>
 			<version>2.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.iharder</groupId>
+			<artifactId>base64</artifactId>
+			<version>2.3.9</version>
 		</dependency>
 		<dependency>
 			<groupId>net.jp.saf.http.cookie</groupId>
