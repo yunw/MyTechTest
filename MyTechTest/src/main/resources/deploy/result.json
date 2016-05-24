@@ -24,8 +24,7 @@
         {
             "buildsByBranchName": {
                 "refs/remotes/origin/zxq_dev": {
-                    "buildNumber": 44,
-                    "buildResult": null,
+                    "buildNumber": 51,
                     "marked": {
                         "SHA1": "44e0908b29805438759fe5900c5395cdc658abfc",
                         "branch": [
@@ -77,19 +76,6 @@
         
     ],
     "building": false,
-    "description": null,
-    "displayName": "#44",
-    "duration": 88891,
-    "estimatedDuration": 76751,
-    "executor": null,
-    "fullDisplayName": "tracereport #44",
-    "id": "44",
-    "keepLog": false,
-    "number": 44,
-    "queueId": 5302,
-    "result": "SUCCESS",
-    "timestamp": 1463800156185,
-    "url": "http://10.25.20.104:8080/view/Devops/job/tracereport/44/",
     "builtOn": "",
     "changeSet": {
         "items": [
@@ -100,8 +86,19 @@
     "culprits": [
         
     ],
+    "displayName": "#51",
+    "duration": 62255,
+    "estimatedDuration": 84356,
+    "fullDisplayName": "tracereport #51",
+    "id": "51",
+    "keepLog": false,
     "mavenArtifacts": {
         
     },
-    "mavenVersionUsed": "3.2.5"
+    "mavenVersionUsed": "3.2.5",
+    "number": 51,
+    "queueId": 5900,
+    "result": "SUCCESS",
+    "timestamp": 1463990190637,
+    "url": "http://10.25.20.104:8080/job/tracereport/51/"
 }

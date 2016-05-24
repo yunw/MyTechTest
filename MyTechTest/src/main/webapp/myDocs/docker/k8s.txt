@@ -1,5 +1,13 @@
 yinslgo@gmail.com/yinsl123
 
+centos72 10.25.31.45
+centos73 10.25.31.109
+centos74 10.25.31.33
+centos7 10.25.31.44
+centos7-private-repository 10.25.31.102 docker registry
+
+在10.25.31.33上安装k8s
+
 安装kubectl：
 下载：https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
 tar zxvf kubernetes.tar.gz
@@ -176,3 +184,140 @@ kubectl -s http://k8s-master:8080 cluster-info
 #创建image命令docker build -t simplewar /paas/k8s/example/ #目录下要有Dockerfile文件
 #查看容器详情docker inspect 容器id
 #查看时间服务器ntpq -p
+
+
+k8s集群：
+master 10.25.31.44
+slave  10.25.31.45 10.25.31.109
+
+1、master、slave
+systemctl stop firewalld
+systemctl disable firewalld
+yum -y install ntp
+systemctl start ntpd
+systemctl enable ntpd
+
+2、master
+yum -y install etcd kubernetes
+yum update -y
+reboot
+
+vi /etc/etcd/etcd.conf
+ETCD_NAME=default
+ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+ETCD_LISTEN_CLIENT_URLS="http://0.0.0.0:2379"
+
+vi /etc/kubernetes/apiserver
+KUBE_API_ADDRESS="--address=0.0.0.0"
+KUBE_API_PORT="--port=8080"
+KUBELET_PORT="--kubelet_port=10250"
+KUBE_ETCD_SERVERS="--etcd_servers=http://127.0.0.1:2379"
+KUBE_SERVICE_ADDRESSES="--portal_net=10.254.0.0/16"
+KUBE_ADMISSION_CONTROL="--admission_control=NamespaceAutoProvision,LimitRanger,ResourceQuota"
+KUBE_API_ARGS=""
+
+vi /etc/kubernetes/controller-manager
+KUBELET_ADDRESSES="--machines=10.25.31.45,10.25.31.109"
+
+for SERVICES in etcd kube-apiserver kube-controller-manager kube-scheduler; do
+systemctl restart $SERVICES
+systemctl enable $SERVICES
+systemctl status $SERVICES
+done
+
+etcdctl mk /coreos.com/network/config '{"Network":"172.17.0.0/16"}'
+
+3、slave
+yum -y install flannel kubernetes docker
+yum update -y
+reboot
+
+vi /etc/sysconfig/flanneld
+FLANNEL_ETCD="http://10.25.31.44:2379"
+FLANNEL_ETCD_KEY="/coreos.com/network"
+
+vi /etc/kubernetes/config
+KUBE_MASTER="--master=http://10.25.31.44:8080"
+
+vi /etc/kubernetes/kubelet
+KUBELET_ADDRESS="--address=10.25.31.109"
+KUBELET_PORT="--port=10250"
+KUBELET_HOSTNAME="--hostname_override=10.25.31.109"
+KUBELET_API_SERVER="--api_servers=http://10.25.31.44:8080"
+KUBELET_ARGS=""
+
+for SERVICES in etcd kube-proxy kubelet docker flanneld; do
+systemctl restart $SERVICES
+systemctl enable $SERVICES
+systemctl status $SERVICES
+done
+
+配置完毕，检测：
+1、两个slave上都可以看到两个网卡：docker0和flannel0
+[root@k8s_slave2 ~]# ip a | grep -E "flannel|docker"|grep inet
+    inet 172.17.2.1/24 scope global docker0
+    inet 172.17.2.0/16 scope global flannel0
+
+2、在master上确认slave节点状态：
+[root@k8s_master ~]#  kubectl get nodes
+NAME           STATUS    AGE
+10.25.31.109   Ready     11m
+10.25.31.45    Ready     13h
+
+3、检查kube-apiserver（显示ok说明服务正确）：
+[root@k8s_master ~]# curl -L http://10.25.31.44:8080/healthz
+ok 
+
+创建pod：
+1、创建模板文件：
+vi test.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: test-1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: test-1
+    spec:
+      containers:
+        - name: iperf
+          image: 10.25.31.102:5000/library/tomcat
+
+2、根据模板文件创建pod：
+[root@k8s_master templates]# kubectl --server=10.25.31.44:8080 create -f test.yaml
+replicationcontroller "pod-tomcat1" created
+
+3、查询存在的pod：
+[root@k8s_master templates]# kubectl --server=10.25.31.44:8080 get pods
+NAME                READY     STATUS              RESTARTS   AGE
+pod-tomcat1-xzkju   0/1       ContainerCreating   0          41s
+
+3、获取pod对应的container的ip地址：
+[root@k8s_master templates]# kubectl --server=10.25.31.44:8080 describe pod pod-tomcat1-xzkju
+Name:           pod-tomcat1-xzkju
+Namespace:      default
+Node:           10.25.31.45/10.25.31.45
+Start Time:     Tue, 24 May 2016 11:00:28 +0800
+Labels:         app=lab-tomcat1
+Status:         Pending
+IP:             172.17.37.2
+Controllers:    ReplicationController/pod-tomcat1
+Containers:
+......
+Conditions:
+......
+Events:
+......
+上述命令返回容器的纤细信息。
+
+
+
+
+
+
+
+
+

@@ -7,10 +7,9 @@ chkconfig docker on
 查看可用的jdk列表：
 yum search java | grep -i --color JDK
 
-1、、生成Dockerfile
+1、生成Dockerfile，Dockerfile的内容如下（一个包含java和tomcat的镜像）
 cd /root/imgtest
 vi Dockerfile
-Dockerfile的内容如下（一个包含java和tomcat的镜像）：
 FROM centos
 MAINTAINER yinsl "2225646595@qq.com"
 RUN yum install -y java-1.8.0-openjdk-devel.x86_64 wget
@@ -46,7 +45,9 @@ docker rm containerId
 11、删除镜像
 docker rmi imgId
 
-docker私有仓库搭建：
+
+
+docker私有仓库搭建（v1）：
 1、安装docker
 yum install -y docker
 service docker start
@@ -56,7 +57,7 @@ chkconfig docker on
 docker pull registry
 
 3、启动registry容器
-docker run -d -p 5000:5000 registry -v /opt/data/registry:/tmp/registry registry
+docker run -d -p 5000:5000 -v /opt/data/registry:/tmp/registry registry
 默认情况下，仓库存放于容器内的/tmp/registry目录下，这样如果容器被删除，则存放于容器中的镜像也会丢失，
 所以我们一般情况下会指定本地一个目录挂载到容器内的/tmp/registry下
 
@@ -98,7 +99,75 @@ Pushing repository 10.25.31.102:5000/busybox (1 tags)
 Pushing tag for rev [307ac631f1b5] on {http://10.25.31.102:5000/v1/repositories/busybox/tags/latest}
 
 查看私有仓库中的镜像：
-[root@localhost ~]# curl 127.0.0.1:5000/v1/search
+[root@localhost ~]# curl 10.25.31.102:5000/v1/search
 {"num_results": 1, "query": "", "results": [{"description": "", "name": "library/busybox"}]}
+
+
+docker私有仓库搭建（v2）：
+mkdir -p /opt/docker/registry/data
+mkdir -p /opt/docker/registry/conf
+#版本可在https://github.com/docker/distribution上查看
+docker run -d -p 5000:5000 -v /opt/docker/registry/data:/tmp/registry registry:2.4
+yum -y install httpd-tools
+htpasswd -c /opt/docker/registry/conf/docker-registry.htpasswd jack
+htpasswd -b /opt/docker/registry/conf/docker-registry.htpasswd mick
+vi  /opt/nginx/conf/nginx.conf
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+
+    include             /opt/nginx/conf/mime.types;
+    default_type        application/octet-stream;
+
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    include /opt/nginx/conf.d/*.conf;
+
+    upstream webserver {                  
+       server 10.25.31.102:5000;        
+    }
+    server {
+            listen       8080 default_server; #http://10.25.31.102:8080/v2
+            location / {
+		auth_basic  "please input username/password sina";
+		auth_basic_user_file  /opt/docker/registry/conf/docker-registry.htpasswd;
+		proxy_pass http://webserver;   # 
+            }
+    }
+
+}
+启动nginx
+/opt/nginx/sbin/nginx
+在浏览器中输入：http://10.25.31.102:5000/v2/可以看到仓库中的镜像（json格式）
+
+docker pull busybox
+docker tag busybox 10.25.31.102:5000/busybox
+docker push 10.25.31.102:5000/busybox
+
+再次查看：http://10.25.31.102:8080/v2/_catalog
+{"repositories":["busybox","tomcat8"]}
+
+
+
+
 
 
