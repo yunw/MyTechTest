@@ -283,8 +283,8 @@ spec:
         app: test-1
     spec:
       containers:
-        - name: iperf
-          image: 10.25.31.102:5000/library/tomcat
+        - name: tomcat
+          image: 10.25.31.102:5000/tomcat8
 
 2、根据模板文件创建pod：
 [root@k8s_master templates]# kubectl --server=10.25.31.44:8080 create -f test.yaml
@@ -295,7 +295,12 @@ replicationcontroller "pod-tomcat1" created
 NAME                READY     STATUS              RESTARTS   AGE
 pod-tomcat1-xzkju   0/1       ContainerCreating   0          41s
 
-3、获取pod对应的container的ip地址：
+4、删除pod：
+[root@k8s_master ~]# kubectl delete  pod pod-tomcat1-xzkju
+pod "pod-tomcat1-xzkju" deleted
+
+
+5、获取pod对应的container的ip地址：
 [root@k8s_master templates]# kubectl --server=10.25.31.44:8080 describe pod pod-tomcat1-xzkju
 Name:           pod-tomcat1-xzkju
 Namespace:      default
@@ -311,13 +316,23 @@ Conditions:
 ......
 Events:
 ......
-上述命令返回容器的纤细信息。
+上述命令返回容器的详细信息。
 
 
 
 
 
 
+k8s会出现hosts错误：
+# Kubernetes-managed hosts file.
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+fe00::0 ip6-mcastprefix
+fe00::1 ip6-allnodes
+fe00::2 ip6-allrouters
+ devops-rc-6wvr2
 
-
+@ALL，我们在DevOps Portal里面可以增加一个hosts配置项, 老尹拿到后可以先找到部署container，
+再执行docker exec -it 09a25d965c29 /bin/sh -c "echo 127.0.0.1 test >>  /etc/hosts" 这个命令将hosts加进去
 

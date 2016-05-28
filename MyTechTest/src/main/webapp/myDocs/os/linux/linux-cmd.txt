@@ -19,6 +19,21 @@ curl:
 curl -O url #下载文件，保留远程文件名不变
 curl -o filename url #下载文件，使用自己定义的filenane
 
+删除旧内核：
+1、列出所有内核：
+[root@k8s_slave2 ~]# rpm -q kernel 
+kernel-3.10.0-327.el7.x86_64
+kernel-3.10.0-327.18.2.el7.x86_64
+2、列出当前正在使用的内核：
+[root@k8s_slave2 ~]# uname -r
+3.10.0-327.18.2.el7.x86_64
+3、删除旧内核：
+[root@k8s_slave2 ~]# rpm -e kernel-3.10.0-327.el7.x86_64
+[root@k8s_slave2 ~]# rpm -q kernel 
+kernel-3.10.0-327.18.2.el7.x86_64
+
+
+
 查看用户列表：
 cat /etc/passwd
 查看用户组：

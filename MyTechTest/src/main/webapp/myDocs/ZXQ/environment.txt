@@ -1,7 +1,17 @@
 金桥pp：
+appuser/Pass1234
+sudo su -
 服务名                             主机名                  内部IP          外部IP
-HAProxy 01          UAT-PP-07-3    172.31.0.146    10.130.11.170
-HAProxy 02          UAT-PP-07-4    172.31.0.147    10.130.11.171
+HAProxy 01          UAT-PP-07-3    172.31.0.146    10.130.11.170   /etc/haproxy/haproxy.cfg 修改完直接kill进程
+HAProxy 02          UAT-PP-07-4    172.31.0.147    10.130.11.171   /etc/keepalived/keepalived.conf
 RabbitMQ Server 01  UAT-PP-05-1    172.31.0.116    10.130.11.148
 RabbitMQ Server 02  UAT-PP-05-2    172.31.0.117    10.130.11.149
 RabbitMQ Server 03  UAT-PP-05-3    172.31.0.118    10.130.11.15
+MYSQL_MyCat 01      UAT-PP-07-5    172.31.0.148    10.130.11.172
+MYSQL_MyCat 02      UAT-PP-07-6    172.31.0.149    10.130.11.173
+KAFKA 1             UAT-PP-KFK-1   172.31.0.156    10.130.11.78
+KAFKA 2             UAT-PP-KFK-2   172.31.0.157    10.130.11.79
+KAFKA 3             UAT-PP-KFK-3   172.31.0.159    10.130.11.87
+Zookeeper Server 01 UAT-PP-05-4    172.31.0.119    10.130.11.150
+Zookeeper Server 02 UAT-PP-05-5    172.31.0.120    10.130.11.151
+Zookeeper Server 03 UAT-PP-05-6    172.31.0.121    10.130.11.152

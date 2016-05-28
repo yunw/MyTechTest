@@ -44,7 +44,7 @@ docker rm containerId
 
 11、删除镜像
 docker rmi imgId
-
+批量删除none镜像：docker rmi $(docker images | awk '/^<none>/ { print $3 }')
 
 
 docker私有仓库搭建（v1）：

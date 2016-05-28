@@ -1,0 +1,748 @@
+部署环境：
+
+CentOS7.1 64bit
+ETCD版本：2.3.0
+Docker版本：1.8.2-10
+Kubernetes版本：1.2.0
+Flannel版本：0.5.5
+
+
+10.25.23.165  etcd，docker, docker registry, master(kube-apiserver, kube-controller-manager, kube-scheduler)
+10.25.23.166  etcd，flannel, minion(kube-proxy, kubelet, docker)
+10.25.23.167  etcd，flannel, minion(kube-proxy, kubelet, docker)
+
+服务器配置
+
+所有服务器
+
+同步网络时间
+yum -y install ntpdate
+ntpdate time.nist.gov
+
+修改主机名称
+vi /etc/hostname
+10.25.23.165 k8s-master
+10.25.23.166 k8s-node01
+10.25.23.167 k8s-node02
+
+增加hosts
+vi /etc/hosts
+
+10.25.23.165 k8s-master
+10.25.23.166 k8s-node01
+10.25.23.167 k8s-node02
+64.233.162.84    gcr.io
+
+关闭firewall
+systemctl stop firewalld.service #停止firewall
+systemctl disable firewalld.service #禁止firewall开机启动
+
+安装iptables防火墙
+yum install iptables-services #安装
+systemctl start iptables.service #最后重启防火墙使配置生效
+systemctl enable iptables.service #设置防火墙开机启动
+关闭防火墙  
+service iptables stop
+chkconfig iptables off
+
+关闭selinux
+vi /etc/selinux/config
+SELINUX=disabled
+init 6重启
+
+安装网桥
+yum install bridge-utils
+
+安装网络命令工具
+yum install net-tools.x86_64
+
+
+
+1，安装ETCD集群
+
+10.25.23.165 
+10.25.23.166 
+10.25.23.167 
+
+
+1) 在 10.25.23.165上执行
+cd /
+mkdir paas
+cd paas
+mkdir etcd
+cd etcd
+
+wget https://github.com/coreos/etcd/releases/download/v2.3.0/etcd-v2.3.0-linux-amd64.tar.gz
+tar xvzf etcd-v2.3.0-linux-amd64.tar.gz
+cp etcd-v2.3.0-linux-amd64/etcd etcd-v2.3.0-linux-amd64/etcdctl /usr/bin
+
+# 以服务方式启动etcd
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd01 --initial-advertise-peer-urls http://10.25.23.165:2380 \
+        --listen-peer-urls http://10.25.23.165:2380 \
+        --listen-client-urls http://10.25.23.165:2379,http://127.0.0.1:2379 \
+        --advertise-client-urls http://10.25.23.165:2379 \
+        --initial-cluster-token etcd-cluster-1 \
+        --initial-cluster etcd01=http://10.25.23.165:2380,etcd02=http://10.25.23.166:2380,etcd03=http://10.25.23.167:2380 \
+        --initial-cluster-state new 
+Restart=on-failure
+     
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+systemctl daemon-reload
+systemctl start etcd
+chkconfig etcd on
+
+2) 在 10.25.23.166上执行
+cd /
+mkdir paas
+cd paas
+mkdir etcd
+cd etcd
+wget https://github.com/coreos/etcd/releases/download/v2.3.0/etcd-v2.3.0-linux-amd64.tar.gz
+tar xvzf etcd-v2.3.0-linux-amd64.tar.gz
+cp etcd-v2.3.0-linux-amd64/etcd etcd-v2.3.0-linux-amd64/etcdctl /usr/bin
+
+# 以服务方式启动etcd
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd02 --initial-advertise-peer-urls http://10.25.23.166:2380 \
+        --listen-peer-urls http://10.25.23.166:2380 \
+        --listen-client-urls http://10.25.23.166:2379,http://127.0.0.1:2379 \
+        --advertise-client-urls http://10.25.26.165:2379 \
+        --initial-cluster-token etcd-cluster-1 \
+        --initial-cluster etcd01=http://10.25.23.165:2380,etcd02=http://10.25.23.166:2380,etcd03=http://10.25.23.167:2380 \
+        --initial-cluster-state new 
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+systemctl daemon-reload
+systemctl start etcd
+chkconfig etcd on
+
+
+3) 在 10.25.23.167上执行
+cd /
+mkdir paas
+cd paas
+mkdir etcd
+cd etcd
+wget https://github.com/coreos/etcd/releases/download/v2.3.0/etcd-v2.3.0-linux-amd64.tar.gz
+tar xvzf etcd-v2.3.0-linux-amd64.tar.gz
+cp etcd-v2.3.0-linux-amd64/etcd etcd-v2.3.0-linux-amd64/etcdctl /usr/bin
+
+# 以服务方式启动etcd
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd03 --initial-advertise-peer-urls http://10.25.23.167:2380 \
+        --listen-peer-urls http://10.25.23.167:2380 \
+        --listen-client-urls http://10.25.23.167:2379,http://127.0.0.1:2379 \
+        --advertise-client-urls http://10.25.23.167:2379 \
+        --initial-cluster-token etcd-cluster-1 \
+        --initial-cluster etcd01=http://10.25.23.165:2380,etcd02=http://10.25.23.166:2380,etcd03=http://10.25.23.167:2380 \
+        --initial-cluster-state new 
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+systemctl daemon-reload
+systemctl start etcd
+chkconfig etcd on
+
+
+检查命令：
+curl -L http://127.0.0.1:2379/v2/members
+etcdctl set /foo/bar "hello world"
+etcdctl get /foo/bar
+
+
+安装Docker
+1) 在10.25.23.165上执行
+安装最新的yum源
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+systemctl start docker.service
+chkconfig docker on
+
+2) 在10.25.23.166上执行
+安装最新的yum源
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+systemctl start docker.service
+
+3) 在10.25.23.167上执行
+安装最新的yum源
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+
+
+安装Docker Registry
+
+在10.25.23.165上执行
+
+systemctl start docker.service
+chkconfig docker on
+
+docker run -d -p 5000:5000 --restart=always -v /paas/my_registry:/tmp/registry registry
+#验证
+curl http://10.25.23.165:5000/v1/search
+#如果registry没有启动，再执行下面命令，得到容器ID
+docker run -d -p 5000:5000 -v /paas/my_registry:/tmp/registry registry  
+#启动容器
+docker start 7f84f44f49e97b3dfccc7a7052f10d7aa1bacf5ca13972b0411c40631ff28beb
+
+
+修改docker配置，增加私服地址
+1) 在10.25.23.165上执行
+vi /etc/sysconfig/docker
+INSECURE_REGISTRY='--insecure-registry 10.25.23.165:5000'
+
+2) 在10.25.23.166上执行
+vi /etc/sysconfig/docker
+#修改下面参数
+INSECURE_REGISTRY='--insecure-registry 10.25.23.165:5000'
+#增加下面一行
+DOCKER_NOFILE=1000000 
+
+
+3) 在10.25.23.167上执行
+vi /etc/sysconfig/docker
+#修改下面参数
+INSECURE_REGISTRY='--insecure-registry 10.25.23.165:5000'
+#增加下面一行
+DOCKER_NOFILE=1000000
+
+安装Flannel
+1) 在10.25.23.165上执行
+etcdctl set /coreos.com/network/config '{"Network":"172.16.0.0/16"}'
+
+2) 在10.25.23.166上执行
+
+service docker stop
+ifconfig docker0 down
+brctl delbr docker0
+
+mkdir /paas/flannel
+cd /paas/flannel
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.23.165:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+#启动flannel
+先启动docker
+systemctl start docker.service
+systemctl daemon-reload
+systemctl start flanneld.service
+
+#flannel启动后生成/run/flannel/subnet.env文件
+cat /run/flannel/subnet.env
+
+mk-docker-opts.sh -i
+source /run/flannel/subnet.env
+ifconfig docker0 ${FLANNEL_SUBNET}
+
+systemctl restart docker
+
+
+3) 在10.25.23.167上执行
+
+service docker stop
+ifconfig docker0 down
+brctl delbr docker0
+
+mkdir /paas/flannel
+cd /paas/flannel
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.23.165:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+#启动flannel
+先启动docker
+systemctl start docker.service
+systemctl daemon-reload
+systemctl start flanneld.service
+
+#flannel启动后生成/run/flannel/subnet.env文件
+cat /run/flannel/subnet.env
+
+mk-docker-opts.sh -i
+source /run/flannel/subnet.env
+ifconfig docker0 ${FLANNEL_SUBNET}
+
+systemctl restart docker
+
+#验证
+etcdctl ls /coreos.com/network/subnets
+etcdctl get /coreos.com/network/subnets/172.16.37.0-24 (分配的FLANNEL_SUBNET地址)
+
+详情见flannel原理图
+
+
+安装Kubernetes
+
+1) 在10.25.23.165上执行
+
+mkdir /paas/k8s
+cd /paas/k8s
+wget https://github.com/kubernetes/kubernetes/releases/download/v1.2.0/kubernetes.tar.gz
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kube-apiserver kube-controller-manager kube-scheduler  kubectl /usr/bin
+
+#kube-apiserver服务
+
+vi /lib/systemd/system/kube-apiserver.service
+
+[Unit]
+Description=K8S API Server
+After=etcd.service
+Wants=etcd.service
+
+[Service]
+ExecStart=/usr/bin/kube-apiserver \
+                 --logtostderr=true \
+                 --v=0   \
+                 --allow-privileged=false \
+                 --insecure-bind-address=0.0.0.0 \
+                 --insecure-port=8080 \
+                 --etcd-servers=http://10.25.23.165:2379 \
+                 --service-cluster-ip-range=172.16.0.0/16
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+#kube-controller-manager服务
+
+vi /lib/systemd/system/kube-controller-manager.service
+
+[Unit]
+Description=K8S Controller Manager
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://k8s-master:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+#kube-scheduler服务
+
+vi /lib/systemd/system/kube-scheduler.service
+
+[Unit]
+Description=K8S Scheduler
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-scheduler \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://k8s-master:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload     
+systemctl start kube-apiserver.service
+systemctl start kube-controller-manager.service
+systemctl start kube-scheduler.service
+
+
+
+2) 在10.25.23.166上执行
+
+mkdir /paas/k8s
+cd /paas/k8s
+#拷贝
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kubelet kube-proxy /usr/bin
+
+vi /lib/systemd/system/kubelet.service
+
+[Unit]
+Description=K8S Kubelet Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+ExecStart=/usr/bin/kubelet \
+                 --logtostderr=true \
+                 --v=0   \
+                 --api-servers=http://k8s-master:8080 \
+                 --address=0.0.0.0  \
+                 --port=10250  \
+                 --allow-privileged=false 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+vi /lib/systemd/system/kube-proxy.service
+
+[Unit]
+Description=K8S Kube-Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://k8s-master:8080 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload     
+systemctl start kubelet.service
+systemctl start kube-proxy.service
+
+
+
+2) 在10.25.23.167上执行
+
+mkdir /paas/k8s
+cd /paas/k8s
+#拷贝
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kubelet kube-proxy /usr/bin
+
+vi /lib/systemd/system/kubelet.service
+
+[Unit]
+Description=K8S Kubelet Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+ExecStart=/usr/bin/kubelet \
+                 --logtostderr=true \
+                 --v=0   \
+                 --api-servers=http://k8s-master:8080 \
+                 --address=0.0.0.0  \
+                 --port=10250  \
+                 --allow-privileged=false 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+vi /lib/systemd/system/kube-proxy.service
+
+[Unit]
+Description=K8S Kube-Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://k8s-master:8080 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload     
+systemctl start kubelet.service
+systemctl start kube-proxy.service
+
+#验证
+kubectl --server=10.25.23.165:8080 get nodes
+
+
+
+安装Kubernetes DNS
+
+kubectl create -f skydns-rc.yaml
+kubectl create -f skydns-svc.yaml
+
+在10.25.23.166和10.25.23.167上修改kubelet.service
+vi /lib/systemd/system/kubelet.service
+增加下面启动项
+--cluster-dns=172.16.168.168 \     
+--cluster-domain=zxq.com
+
+#重启kubelet
+systemctl daemon-reload
+systemctl restart kubelet.service
+
+#安装busybox
+kubectl create -f busybox.yaml
+
+kubectl exec busybox nslookup kube-dns.kube-system
+
+
+安装Kubernetes-dashboard
+
+#增加路由策略
+
+#在10.25.23.165上
+route add -net 172.16.31.0 netmask 255.255.255.0 gw 10.25.23.166
+route add -net 172.16.80.0 netmask 255.255.255.0 gw 10.25.23.167
+
+#在10.25.23.166上
+route add -net 172.16.80.0 netmask 255.255.255.0 gw 10.25.23.167
+
+#在10.25.23.167上
+route add -net 172.16.31.0 netmask 255.255.255.0 gw 10.25.23.166
+
+#将kubernetes-dashboard依赖上传到私有repository，前提是已经docker pull下来
+#包括gcr.io/google_containers/kubernetes-dashboard-amd64:v1.0.0，gcr.io/google_containers/pause:2.0
+#在10.25.23.165上，先通过docker images找到需要push到私有repository的image的id号，先打tag
+docker tag 12109c8ee673 10.25.23.165:5000/gcr.io/google_containers/kubernetes-dashboard-amd64:v1.0.0
+docker push 10.25.23.165:5000/gcr.io/google_containers/kubernetes-dashboard-amd64:v1.0.0
+
+
+#在10.25.23.166和10.25.23.167上，下载已经push到私有repository的镜像
+#也可以直接从gcr.io上直接下载，不过公网速度慢，而且经常连不上
+docker pull  10.25.23.165:5000/gcr.io/google_containers/kubernetes-dashboard-amd64:v1.0.0
+docker push 10.25.23.165:5000/gcr.io/google_containers/pause:2.0
+
+
+#在k8s-master上安装kubenetes-dashboard
+
+cd /paas/k8s/kubernetes/cluster/addons/dashboard
+#修改dashboard-controller.yaml文件，见dashboard-controller-2.yaml, 增加 --apiserver-host=http://10.25.23.165:8080
+kubectl create -f dashboard-controller-2.yaml
+
+kubectl create -f dashboard-service.yaml
+
+#访问kubernetes-dashboard
+http://10.25.23.165:8080/ui
+
+
+kubectl exec busybox -- nslookup kubernetes-dashboard.kube-system.zxq.com
+
+
+
+
+安装nginxplus作为负载均衡（借助于skydns）
+
+1) 创建nginxplus-rc.yaml文件
+    选中166做nginxplus的安装节点，这在niginxplus-rc.yaml文件中已经指定
+
+2) 在166上创建主机映射目录，并创建backend.conf文件，为后面javaweb-svc做upstream策略
+
+mkdir /etc/nginx/conf.d
+vi  /etc/nginx/conf.d/backend.conf
+
+resolver 172.16.168.168 valid=5s;
+
+upstream backend {
+zone upstream-backend 64k;
+server javaweb-svc.default.zxq.com:8080 resolve;
+}
+
+server {
+listen 80;
+
+status_zone backend-servers;
+
+location /javaweb-svc/ {
+    proxy_pass http://backend/;
+    health_check;
+}
+}
+
+server {
+listen 8080;
+
+root /usr/share/nginx/html;
+
+location = /status.html { }
+
+location /status {
+    status;
+}
+}
+
+#在165上执行
+kubectl create -f nginxplus-rc.yaml
+
+
+
+安装Javaweb应用
+
+kubectl create -f javaweb-rc.yaml
+kubectl create -f javaweb-svc.yaml  #是一个headless service
+
+
+#验证：
+http://10.25.23.166:8080/status.html
+http://10.25.23.166/javaweb-svc/
+
+
+
+命令参考
+
+
+#描述pod状态
+kubectl describe pod my-nginx-3w5aq
+
+#删除rc， 如果系统不停的建pod，则删除rc
+kubectl delete rc {rc_name}
+
+kubectl get rc --all-namespaces
+
+kubectl scale replicationcontrollers --replicas=2 jenkins-slave
+kubectl rolling-update jenkins-slave --update-period=10s -f jenkins-slaves-v2.yml
+
+#通过rest访问kubernetes
+http://10.25.23.165:8080/api/v1/namespaces/kube-system/pods/kubernetes-dashboard-v1.0.0-k0irx
+
+kubectl delete  rc --all --namespace=kube-system
+kubectl delete  pods --all --namespace=kube-system
+kubectl delete  services --all --namespace=kube-system
+
+kubectl describe rc kubernetes-dashboard --namespace=kube-system
+
+kubectl describe pods --namespace=kube-system
+
+kubectl logs kube-dns-v6-86kx4 kube2sky  --namespace=kube-system
+
+kubectl -s http://k8s-master:8080 cluster-info
+
+#在node中进入容器的方法
+#找到要进入的容器names
+docker ps 
+#进入容器
+docker exec -it  k8s_tomcat.368537fb_javaweb-rc-nuv8e_default_6816ea53-fbe5-11e5-aa6c-005056a3e199_302ec5b9 /bin/sh
+
+#在master中进入容器的方法
+kubectl exec javaweb-rc-nuv8e -c tomcat -it /bin/sh
+
+#copy主机文件到容器目录
+docker cp test.txt 3796659667fa:/root
+#copy容器文件到主机目录
+docker cp 3796659667fa:/root/test.txt /paas
+
+#列出etcd内的目录
+etcdctl ls
+etcdctl ls / --recursive
+
+
+#查看本地DNS配置
+cat /etc/resolv.conf
+
+#查看防火墙NAT设置
+iptables -t nat -L
+
+#创建image命令
+docker build -t simplewar /paas/k8s/example/ #目录下要有Dockerfile文件
+
+#查看容器详情
+docker inspect 容器id
+
+#查看时间服务器
+ntpq -p
+
+
+docker exec -it 容器id /bin/sh -c "echo 内容 >> /etc/hosts"
+docker exec -it 09a25d965c29 /bin/sh -c "echo 127.0.0.1 test >>  /etc/hosts"
+
+
+
+
+

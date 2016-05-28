@@ -1,5 +1,10 @@
 youdao:yin_slin@163.com/
 
+zk缺陷
+kafka 消费者
+jvm8默认gc
+
+
 日报、周报
 
 java nio aio
