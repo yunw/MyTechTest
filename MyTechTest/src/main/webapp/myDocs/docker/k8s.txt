@@ -318,6 +318,18 @@ Events:
 ......
 上述命令返回容器的详细信息。
 
+kubectl get nodes
+kubectl get pods
+kubectl get services
+
+rest api:
+curl -s -L http://10.25.23.165:8080/api/v1/services 
+curl -s -L http://10.25.23.165:8080/api/v1/pods 
+curl -s -L http://10.25.23.165:8080/api/v1/namespaces/default/pods/test6-rc-u9lvx
+curl -s -L http://10.25.23.165:8080/api/v1/nodes
+curl -s -L http://10.25.23.165:8080/api/v1/nodes/k8s-node01
+
+
 
 
 

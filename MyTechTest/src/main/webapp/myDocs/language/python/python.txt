@@ -1,4 +1,36 @@
-安装pip：
+In Python 3, ConfigParser has been renamed to configparser for PEP 8 compliance. It looks like the package you are installing does not support Python 3.
+The urllib2 module has been split across several modules in Python 3 named urllib.request and urllib.error.
+Deprecated since version 2.6: The commands module has been removed in Python 3.0. Use the subprocess module instead.
+
+安装Python2.7后， yum出现“No module named yum”错误
+解决办法：
+由于yum命令不兼容python2.7的最新版，需修改/usr/bin/yum文件，将第一行由“#!/usr/bin/python”改为“#!/usr/bin/python_old"
+python_old就是前面的版本
+另外：vi /usr/libexec/urlgrabber-ext-down 第一行也改为：#! /usr/bin/python_old
+
+
+安装setuptools的时候报错：
+RuntimeError: Compression requires the (missing) zlib module
+解决办法：
+yum install zlib-devel zlib
+然后进入python目录，重新
+./configure --prefix=/usr/local/python27
+make && make install
+
+linux安装pip：
+wget https://pypi.python.org/packages/13/e8/35d9c7528b3c266a17e888bea1e02eb061e9ab6cdabc7107dfb7da83a1d2/setuptools-21.2.1.tar.gz#md5=b6f59b1987fe9642874448e54ee33315
+tar zxvf setuptools-21.2.1.tar.gz
+cd setuptools-21.2.1
+python setup.py build
+python setup.py install
+
+wget https://pypi.python.org/packages/e7/a8/7556133689add8d1a54c0b14aeff0acb03c64707ce100ecd53934da1aa13/pip-8.1.2.tar.gz#md5=87083c0b9867963b29f7aba3613e8f4a
+tar zxvf pip-8.1.2.tar.gz
+cd pip-8.1.2
+python setup.py install
+pip install paramiko
+
+windows安装pip：
 下载：https://bootstrap.pypa.io/get-pip.py
 执行：
 python get-pip.py

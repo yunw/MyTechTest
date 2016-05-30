@@ -124,3 +124,7 @@ setAcl /cfg/redis/properties digest:test:vUtFteQU15A8l5nPNBf2CF2CIKY=:rw
 
 create [-s] [-e] path data acl  #其中"-s"表示创建一个"有序"节点,"-e"表示创建一个临时节点.默认为持久性节点
 create /cfg/properties a=b
+
+
+zookeeper:
+ZooKeeper是按照CP原则构建的，也就是说它能保证每个节点的数据保持一致;一个Service发现服务应该从一开始就被设计成高可用的才行！
