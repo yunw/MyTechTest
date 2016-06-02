@@ -18,11 +18,14 @@ This is another message
 查看消息：
 /usr/local/kafka/bin/kafka-console-consumer.sh --zookeeper 10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test --topic test --from-beginning
 
+
+
 创建集群（10.25.23.37、10.25.23.38、10.25.23.39）：
-iptables -A INPUT -p tcp --dport 9092 -j ACCEPT
-iptables -A INPUT -p tcp --dport 8083 -j ACCEPT
+iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 9092 -j ACCEPT
 service iptables save
 service iptables status
+
+关闭防火墙
 service iptables stop
 
 yum search openjdk

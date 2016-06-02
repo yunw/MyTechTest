@@ -1,0 +1,171 @@
+system disable firewalld
+system stop firewalld
+yum install -y etcd kubernates
+vi /etc/sysconfig/docker
+OPTIONS='--selinux-enabled=false --insecure-registry gcr.io'
+
+vi /etc/kubernetes/apiserver
+把--admission_control的参数中的ServiceAccount删除
+
+systemctl restart etcd
+systemctl restart docker
+systemctl restart kube-apiserver
+systemctl restart kube-controller-manager
+systemctl restart kube-scheduler
+systemctl restart kubelet
+systemctl restart kube-proxy
+
+mkdir -p /root/templates
+cd /root/templates
+vi redis-master-rc.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: redis-master
+  labels:
+    name: redis-master
+spec:
+  replicas: 1
+  selector:
+    name: redis-master
+  template:
+    metadata:
+      labels:
+        name: redis-master
+    spec:
+      containers:
+      - name: master
+        image: kubeguide/redis-master
+        ports:
+        - containerPort: 6379
+
+kubectl create -f redis-master-rc.yaml
+kubectl get rc
+kubectl get pods
+
+vi redis-master-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  labels:
+    name: redis-master
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    name: redis-master
+
+kubectl create -f redis-master-svc.yaml
+kubectl get services
+
+vi redis-slave-rc.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata: 
+  name: redis-slave
+  labels: 
+    name: redis-slave
+spec: 
+  replicas: 2
+  selector: 
+    name: redis-slave
+  template: 
+    metadata: 
+      labels: 
+        name: redis-slave
+    spec: 
+      containers: 
+      - name: slave
+        image: kubeguide/guestbook-redis-slave
+        env: 
+        - name: GET_HOSTS_FROM
+          value: env
+        ports: 
+        - containerPort: 6379
+      
+kubectl create -f redis-slave-rc.yaml
+kubectl get rc
+kubectl get pods
+      
+vi redis-slave-svc.yaml
+apiVersion: v1
+kind: Service
+metadata: 
+  name: redis-slave
+  labels:
+    name: redis-slave
+spec:
+  ports: 
+  - port: 6379
+  selector: 
+    name: redis-slave
+    
+kubectl create -f redis-slave-svc.yaml
+kubectl get services
+
+vi frontend-rc.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata: 
+  name: frontend
+  labels: 
+    name: frontend
+spec: 
+  replicas: 3
+  selector: 
+    name: frontend
+  template: 
+    metadata: 
+      labels: 
+        name: frontend
+    spec: 
+      containers: 
+      - name: frontend
+        image: kubeguide/guestbook-php-frontend
+        env: 
+        - name: frontend
+          value: env
+        ports: 
+        - containerPort: 80
+
+kubectl create -f frontend-rc.yaml
+kubectl get rc
+kubectl get pods
+
+vi frontend-svc.yaml
+apiVersion: v1
+kind: Service
+metadata: 
+  name: frontend
+  labels: 
+    name: frontend
+spec: 
+  type: NodePort
+  ports: 
+  - port: 80
+    nodePort: 30001
+  selector: 
+    name: frontend
+
+kubectl create -f frontend-svc.yaml
+kubectl get services
+
+至此，配置完成。验证：
+在浏览器地址栏输入：
+http://10.25.31.33:30001
+
+
+
+
+
+
+
+
+
+
+
+
+
+

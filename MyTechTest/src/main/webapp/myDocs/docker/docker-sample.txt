@@ -69,6 +69,8 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 docker.io/busybox   latest              307ac631f1b5        8 weeks ago         1.113 MB
 
 b、修改该镜像的tag：
+docker tag [-f|--force[=false]] [--help] IMAGE[:TAG] [REGISTRY_HOST/][USERNAME/]NAME[:TAG]
+
 [root@localhost ~]# docker tag busybox 10.25.31.102:5000/busybox
 [root@localhost ~]# docker images
 REPOSITORY                  TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
@@ -76,6 +78,8 @@ docker.io/busybox           latest              307ac631f1b5        8 weeks ago 
 10.25.31.102:5000/busybox   latest              307ac631f1b5        8 weeks ago         1.113 MB
 
 c、把打了tag的镜像上传到私有仓库：
+docker push [-f|--force[=false]] [--help] NAME[:TAG] | [REGISTRY_HOST[:REGISTRY_PORT]/]NAME[:TAG]
+
 [root@localhost ~]# docker push 10.25.31.102:5000/busybox
 The push refers to a repository [10.25.31.102:5000/busybox] (len: 1)
 unable to ping registry endpoint https://10.25.31.102:5000/v0/
@@ -157,7 +161,7 @@ http {
 }
 启动nginx
 /opt/nginx/sbin/nginx
-在浏览器中输入：http://10.25.31.102:5000/v2/可以看到仓库中的镜像（json格式）
+在浏览器中输入：http://10.25.31.102:5000/v2/ 可以看到仓库中的镜像（json格式）
 
 docker pull busybox
 docker tag busybox 10.25.31.102:5000/busybox
@@ -169,5 +173,11 @@ docker push 10.25.31.102:5000/busybox
 
 
 
+
+错误：
+Jun 02 10:46:45 k8s_slave1 forward-journal[2301]: time="2016-06-02T10:46:45.693451358+08:00" level=fatal msg="Error starting daemon: Error initializing network controller: could not delete the default bridge network: network bridge has active endpoints"
+解决方案：
+mv /var/lib/docker/network/files/ /tmp/dn-bak
+service docker restart
 
 

@@ -1,9 +1,9 @@
 yinslgo@gmail.com/yinsl123
 
-centos72 10.25.31.45
-centos73 10.25.31.109
-centos74 10.25.31.33
-centos7 10.25.31.44
+centos72 10.25.31.45     slave
+centos73 10.25.31.109    slave
+centos74 10.25.31.33      
+centos7 10.25.31.44      master
 centos7-private-repository 10.25.31.102 docker registry
 
 在10.25.31.33上安装k8s
@@ -187,8 +187,9 @@ kubectl -s http://k8s-master:8080 cluster-info
 
 
 k8s集群：
-master 10.25.31.44
-slave  10.25.31.45 10.25.31.109
+master 10.25.31.44(centos7)
+slave  10.25.31.45(centos72) 
+       10.25.31.109(centos73)
 
 1、master、slave
 systemctl stop firewalld
@@ -299,8 +300,11 @@ pod-tomcat1-xzkju   0/1       ContainerCreating   0          41s
 [root@k8s_master ~]# kubectl delete  pod pod-tomcat1-xzkju
 pod "pod-tomcat1-xzkju" deleted
 
+5、更新pod：
+kubectl replace -f test.yaml
 
-5、获取pod对应的container的ip地址：
+
+6、获取pod对应的container的ip地址：
 [root@k8s_master templates]# kubectl --server=10.25.31.44:8080 describe pod pod-tomcat1-xzkju
 Name:           pod-tomcat1-xzkju
 Namespace:      default
@@ -329,6 +333,21 @@ curl -s -L http://10.25.23.165:8080/api/v1/namespaces/default/pods/test6-rc-u9lv
 curl -s -L http://10.25.23.165:8080/api/v1/nodes
 curl -s -L http://10.25.23.165:8080/api/v1/nodes/k8s-node01
 
+创建service：
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-svc
+  labels:
+    k8s-app: tomcat-svc
+    kubernetes.io/cluster-service: "true"
+spec:
+  clusterIP: None
+  selector:
+    k8s-app: lab-tomcat1
+  ports:
+  - port: 80
+    targetPort: 8080
 
 
 
