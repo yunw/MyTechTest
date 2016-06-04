@@ -5,3 +5,169 @@ vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
 将：ONBOOT=no 改为 ONBOOT=yes
 保存后重启网卡： service network restart
 可以用 ip addr来查看网络分配状况了
+
+固定ip配置：
+TYPE=Ethernet
+#BOOTPROTO=dhcp
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=enp0s3
+UUID=fd970639-5431-470a-9cca-a122e4e316ff
+DEVICE=enp0s3
+ONBOOT=yes
+IPADDR=10.25.31.105
+NETMASK=255.255.255.0
+GATEWAY=10.25.31.1
+DNS1=10.25.20.251
+
+hostname
+
+在CentOS/RHEL中，有三种定义的主机名:a、静态的（static），b、瞬态的（transient），以及c、灵活的（pretty）。
+“静态”主机名也称为内核主机名，是系统在启动时从/etc/hostname自动初始化的主机名。
+“瞬态”主机名是在系统运行时临时分配的主机名，例如，通过DHCP或mDNS服务器分配。
+静态主机名和瞬态主机名都遵从作为互联网域名同样的字符限制规则。而另一方面，
+“灵活”主机名则允许使用自由形式（包括特殊/空白字符）的主机名，以展示给终端用户（如Dan's Computer）。
+
+在CentOS/RHEL 7中，有个叫hostnamectl的命令行工具，它允许你查看或修改与主机名相关的配置。
+ hostnamectl status [--static|--transient|--pretty]
+ hostnamectl set-hostname <host-name>                    #立即永久生效
+ hostnamectl --static set-hostname <host-name>           #立即永久生效
+
+保存在：/proc/sys/kernel/hostname文件中
+hostname的值来自内核参数/proc/sys/kernel/hostname
+#修改了内核参数，那么hostname就变为了Test了，立即生效，重启后无效
+[root@localhost ~]# sysctl kernel.hostname=Test
+kernel.hostname = Test
+[root@localhost ~]# hostname
+Test
+[root@localhost ~]# reboot
+Last login: Fri Jun  3 21:22:32 2016 from 10.25.31.15
+[root@localhost ~]# hostname
+localhost.localdomain
+
+
+#立即生效，重启后无效
+[root@localhost ~]# hostname newname 
+[root@localhost ~]# hostname
+newname
+[root@localhost ~]# reboot
+Last login: Fri Jun  3 21:24:54 2016 from 10.25.31.15
+[root@localhost ~]# hostname
+localhost.localdomain
+
+
+#立即生效，重启后无效
+[root@localhost ~]# echo DB-Server  > /proc/sys/kernel/hostname
+[root@localhost ~]# hostname
+DB-Server
+[root@localhost ~]# reboot
+Last login: Fri Jun  3 21:26:21 2016 from 10.25.31.15
+[root@localhost ~]# hostname
+localhost.localdomain
+
+
+安装ntp server：
+1、检查ntp是否已经安装：
+[root@centos72 ~]# rpm -q ntp
+package ntp is not installed
+2、安装服务：
+[root@centos72 ~]# yum -y install ntp
+设置开机自动
+[root@centos72 ~]# systemctl enable ntpd
+Created symlink from /etc/systemd/system/multi-user.target.wants/ntpd.service to /usr/lib/systemd/system/ntpd.service.
+启动服务
+[root@centos72 ~]# systemctl start ntpd
+[root@centos72 ~]# systemctl status ntpd
+ntpd.service - Network Time Service
+   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Fri 2016-06-03 23:48:49 CST; 10h ago
+  Process: 2721 ExecStart=/usr/sbin/ntpd -u ntp:ntp $OPTIONS (code=exited, status=0/SUCCESS)
+ Main PID: 2722 (ntpd)
+ ......
+
+3、配置服务器
+A、同步互联网服务器时间：
+ntpdate -u cn.pool.ntp.org
+B、修改配置文件：
+vi /etc/ntp.conf
+#列出需要修改的属性
+restrict 控制相关权限。
+语法为： restrict IP地址 mask 子网掩码 参数
+参数有以下几个：
+ignore  ：关闭所有的 NTP 联机服务
+nomodify：客户端不能更改服务端的时间参数，但是客户端可以通过服务端进行网络校时。
+notrust ：客户端除非通过认证，否则该客户端来源将被视为不信任子网
+noquery ：不提供客户端的时间查询：用户端不能使用ntpq，ntpc等命令来查询ntp服务器
+notrap ：不提供trap远端登陆：拒绝为匹配的主机提供模式6控制消息陷阱服务。陷阱服务是ntpdq控制消息协议的子系统，用于远程事件日志记录程序。
+nopeer ：用于阻止主机尝试与服务器对等，并允许欺诈性服务器控制时钟
+kod ： 访问违规时发送 KoD 包。
+restrict -6 表示IPV6地址的权限设置。
+restrict 10.25.31.0 mask 255.255.255.0 nomodify notrap
+
+设定NTP主机来源（其中prefer表示优先主机），10.25.31.61是本地的NTP服务器，所以优先指定从该主机同步时间
+server 10.25.31.61 prefer
+server 2.cn.pool.ntp.org
+server 1.asia.pool.ntp.org
+server 2.asia.pool.ntp.org
+
+restrict 2.cn.pool.ntp.org nomodify notrap noquery
+restrict 1.asia.pool.ntp.org nomodify notrap noquery
+restrict 2.asia.pool.ntp.org nomodify notrap noquery
+
+server 127.0.0.1 # local clock
+fudge 127.0.0.1 stratum 10
+
+重启服务：
+systemctl restart ntpd
+
+使用ntpq -p 查看网络中的NTP服务器，同时显示客户端和每个服务器的关系
+[root@centos72 ~]# ntpq -p
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+ 10.25.31.61     .INIT.          16 u    -   64    0    0.000    0.000   0.000
+*time4.aliyun.co 10.137.38.86     2 u    1   64    1   32.812   -0.038   0.971
+ news.neu.edu.cn .INIT.          16 u    -   64    0    0.000    0.000   0.000
+
+查看时间同步状态：
+[root@centos72 ~]# ntpstat 
+synchronised to NTP server (120.25.108.11) at stratum 3 
+   time correct to within 233 ms
+   polling server every 64 s
+
+安装ntp client：
+1、检查ntp是否已经安装：
+[root@centos72 ~]# rpm -q ntp
+package ntp is not installed
+2、安装服务：
+[root@centos72 ~]# yum -y install ntp
+设置开机自动
+[root@centos72 ~]# systemctl enable ntpd
+Created symlink from /etc/systemd/system/multi-user.target.wants/ntpd.service to /usr/lib/systemd/system/ntpd.service.
+启动服务
+[root@centos72 ~]# systemctl start ntpd
+[root@centos72 ~]# systemctl status ntpd
+
+3、配置：
+vi /etc/ntp.conf
+server 10.25.31.1
+
+restrict 10.25.31.1 nomodify notrap noquery
+
+server 127.0.0.1
+fudge 127.0.0.1 stratum 10
+
+重启服务：
+systemctl restart ntpd
+
+查看同步状况：
+ntpq -p
+ntpstat 

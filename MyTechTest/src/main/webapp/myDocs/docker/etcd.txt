@@ -1,1 +1,142 @@
 http://www.tuicool.com/articles/NvEZV3F
+安装环境：
+centos71  10.25.31.105    
+centos72 10.25.31.61    
+centos73 10.25.31.37 
+
+yum install -y git wget
+
+安装go：
+mkdir -p ~/downloads
+cd ~/downloads
+wget https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.6.2.linux-amd64.tar.gz
+vi /etc/profile
+#在最后添加（GOROOT是go语言安装的路径，GOPATH是用go语言开发的项目的路径）：
+export GOROOT=/usr/local/go  
+export GOPATH=/root/go       
+export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
+
+source /etc/profile
+echo $GOPATH
+
+安装etcd(方式一)：
+mkdir -p $GOPATH/bin
+mkdir -p $GOPATH/pkg
+mkdir -p $GOPATH/src/github.com/coreos
+cd $GOPATH/src/github.com/coreos
+git clone github.com:coreos/etcd.git
+
+报错：
+Warning: Permanently added 'github.com,192.30.252.129' (RSA) to the list of known hosts.
+Permission denied (publickey).
+fatal: Could not read from remote repository.
+解决方案：
+[root@localhost coreos]# cd ~
+[root@localhost ~]# ll -a
+total 36
+dr-xr-x---.  5 root root 4096 Jun  3 17:20 .
+dr-xr-xr-x. 17 root root 4096 Jun  3 14:53 ..
+-rw-------.  1 root root 1006 Jun  3 14:53 anaconda-ks.cfg
+-rw-r--r--.  1 root root   18 Dec 29  2013 .bash_logout
+-rw-r--r--.  1 root root  176 Dec 29  2013 .bash_profile
+-rw-r--r--.  1 root root  176 Dec 29  2013 .bashrc
+-rw-r--r--.  1 root root  100 Dec 29  2013 .cshrc
+drwxr-xr-x.  3 root root 4096 Jun  3 16:51 downloads
+drwxr-----.  3 root root   18 Jun  3 16:49 .pki
+drwx------.  2 root root   24 Jun  3 17:21 .ssh
+
+[root@localhost ~]# cd .ssh
+[root@localhost .ssh]# ls
+known_hosts
+[root@localhost .ssh]# ssh-keygen -t rsa -C "yin_slin@sina.com"   #邮件地址是你在github.com上注册的邮箱（其实可以是任意字符串）
+然后一直默认回车，就会创建两个文件：id_rsa  id_rsa.pub 
+[root@localhost .ssh]# ls
+id_rsa  id_rsa.pub  known_hosts
+[root@localhost .ssh]# vi id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC415dfm8zl89WfEg3Isn46bXugtI+AgEiLTr+qCNCc6qfv5SLWIw8cTo94N8Amq3qBhnnMwswGZyBZT/9AWf4WL6mf19fOmCxcr1lcNXkMmMZ+Om76UqfShb/oR8536J2wxI/B9AEQAZtuUs8zCUZv2Pua74pX+JRFCt+UNT3qBqKVCybJBu2tHd7O35QAEpJbTe4/2udeUXhNwP3xXdiwlRkLB9RQevQzlJp0znQkCF/FZSKawU/yMdEACk7PlwCWWEOwRmyvhI+LXFLJUa0ro4DXy1sdnHBSiY5DDStigzYKEN3g3K2LnKkIdjL/qwAsfWVtFO+nqhf0E8WSp53/ yin_slin@sina.com
+把id_rsa.pub里面的内容贴到https://github.com/settings/ssh中去（New SSH key）
+##########
+为什么GitHub需要SSH Key呢？因为GitHub需要识别出你推送的提交确实是你推送的，而不是别人冒充的，而Git支持SSH协议，所以，
+GitHub只要知道了你的公钥，就可以确认只有你自己才能推送。
+　　当然，GitHub允许你添加多个Key。假定你有若干电脑，你一会儿在公司提交，一会儿在家里提交，只要把每台电脑的Key都添加到GitHub，
+就可以在每台电脑上往GitHub推送了。
+##########
+
+再次执行：
+cd $GOPATH/src/github.com/coreos
+git clone github.com:coreos/etcd.git
+cd etcd
+./build
+cp bin/* $GOPATH/bin
+
+安装etcd(方式二)：
+mkdir -p $HOME/downloads
+cd $HOME/downloads
+curl -L  https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz -o etcd-v2.3.6-linux-amd64.tar.gz
+tar xzvf etcd-v2.3.6-linux-amd64.tar.gz
+cd etcd-v2.3.6-linux-amd64
+cp -f etcd* $GOPATH/bin
+
+集群启动（静态配置、etcd自身服务发现、通过DNS进行发现），下面采用静态配置的方式启动：
+静态配置有两种方式：
+A、环境变量
+B、参数配置
+下面采用环境变量配置的方法启动集群：
+设置环境变量(10.25.31.105)：
+vi /etc/profile
+# [member]
+export ETCD_NAME=etcd1
+export ETCD_DATA_DIR=/var/lib/etcd/etcd1.etcd
+export ETCD_LISTEN_PEER_URLS=http://10.25.31.105:2380
+export ETCD_LISTEN_CLIENT_URLS=http://10.25.31.105:2379,http://127.0.0.1:2379,http://127.0.0.1:4001
+#[cluster]
+export ETCD_INITIAL_ADVERTISE_PEER_URLS=http://10.25.31.105:2380
+# if you use different ETCD_NAME (e.g. test), set ETCD_INITIAL_CLUSTER value for this name, i.e. "test=http://..."
+export ETCD_INITIAL_CLUSTER=etcd1=http://10.25.31.105:2380,etcd2=http://10.25.31.61:2380,etcd3=http://10.25.31.37:2380
+export ETCD_INITIAL_CLUSTER_STATE=new
+export ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+export ETCD_ADVERTISE_CLIENT_URLS=http://10.25.31.105:2379
+
+source /etc/profile
+etcd
+
+设置环境变量(10.25.31.61)：
+vi /etc/profile
+# [member]
+export ETCD_NAME=etcd2
+export ETCD_DATA_DIR=/var/lib/etcd/etcd2.etcd
+export ETCD_LISTEN_PEER_URLS=http://10.25.31.61:2380
+export ETCD_LISTEN_CLIENT_URLS=http://10.25.31.61:2379,http://127.0.0.1:2379,http://127.0.0.1:4001
+#[cluster]
+export ETCD_INITIAL_ADVERTISE_PEER_URLS=http://10.25.31.61:2380
+# if you use different ETCD_NAME (e.g. test), set ETCD_INITIAL_CLUSTER value for this name, i.e. "test=http://..."
+export ETCD_INITIAL_CLUSTER=etcd1=http://10.25.31.105:2380,etcd2=http://10.25.31.61:2380,etcd3=http://10.25.31.37:2380
+export ETCD_INITIAL_CLUSTER_STATE=exist
+export ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+export ETCD_ADVERTISE_CLIENT_URLS=http://10.25.31.61:2379
+
+source /etc/profile
+etcd
+
+设置环境变量(10.25.31.37)：
+vi /etc/profile
+# [member]
+export ETCD_NAME=etcd3
+export ETCD_DATA_DIR=/var/lib/etcd/etcd3.etcd
+export ETCD_LISTEN_PEER_URLS=http://10.25.31.37:2380
+export ETCD_LISTEN_CLIENT_URLS=http://10.25.31.37:2379,http://127.0.0.1:2379,http://127.0.0.1:4001
+#[cluster]
+export ETCD_INITIAL_ADVERTISE_PEER_URLS=http://10.25.31.37:2380
+# if you use different ETCD_NAME (e.g. test), set ETCD_INITIAL_CLUSTER value for this name, i.e. "test=http://..."
+export ETCD_INITIAL_CLUSTER=etcd1=http://10.25.31.105:2380,etcd2=http://10.25.31.61:2380,etcd3=http://10.25.31.37:2380
+export ETCD_INITIAL_CLUSTER_STATE=exist
+export ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+export ETCD_ADVERTISE_CLIENT_URLS=http://10.25.31.37:2379
+
+source /etc/profile
+etcd
+
+安装完成，检测：
+etcdctl cluster-health
+etcdctl member list

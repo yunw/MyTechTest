@@ -1,10 +1,16 @@
 yinslgo@gmail.com/yinsl123
 
+k8s网络配置方案：
+直接路由、flannel、Open vSwitch
+
+centos7-private-repository 10.25.31.102 docker registry
+centos7  10.25.31.44      master
 centos72 10.25.31.45     slave
 centos73 10.25.31.109    slave
-centos74 10.25.31.33      
-centos7 10.25.31.44      master
-centos7-private-repository 10.25.31.102 docker registry
+
+centos74 10.25.31.33     单机实现权威指南
+
+
 
 在10.25.31.33上安装k8s
 
@@ -323,8 +329,21 @@ Events:
 上述命令返回容器的详细信息。
 
 kubectl get nodes
-kubectl get pods
+kubectl get pods --namespace=default
 kubectl get services
+kubectl get endpoints
+kubectl get services
+kubectl get rc
+kubectl get namespaces
+kubectl label pod pod-tomcat1-o76ht role=backend  #给pod添加一个标签
+kubectl label pod pod-tomcat1-o76ht role-  #在标签的key的后面添加一个减号
+kubectl label pod pod-tomcat1-o76ht role=master --overwrite  #修改一个标签的值
+kubectl get pods -Lrole  #查看pod列表，如果该pod有一个标签叫role，则显示该标签的值，如果没有，显示<none>
+[root@k8s_master templates]# kubectl get pods -Lrole
+NAME                READY     STATUS             RESTARTS   AGE       ROLE
+pod-tomcat1-o76ht   1/1       Running            0          9h        backend
+test-2-v1p19        0/1       ImagePullBackOff   0          10h       <none>
+
 
 rest api:
 curl -s -L http://10.25.23.165:8080/api/v1/services 

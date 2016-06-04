@@ -1,0 +1,18 @@
+1配置软件源
+vim /etc/yum.repos.d/upgrade.repo
+[upgrade]
+name=upgrade
+baseurl=http://dev.centos.org/centos/6/upg/x86_64/
+enable=1
+gpgcheck=0
+
+2、安装工具：
+yum -y install preupgrade-assistant-contents redhat-upgrade-tool preupgrade-assistant
+
+3、升级前检查潜在问题
+preupg
+preupg --riskcheck --verbose
+redhat-upgrade-tool --force --cleanup-post --network 7.0 --instrepo=http://ftp.sjtu.edu.cn/centos/7.2.1511/os/x86_64/
+reboot
+4、升级完成，检查：
+cat /etc/redhat-release

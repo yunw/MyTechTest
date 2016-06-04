@@ -32,7 +32,13 @@ kernel-3.10.0-327.18.2.el7.x86_64
 [root@k8s_slave2 ~]# rpm -q kernel 
 kernel-3.10.0-327.18.2.el7.x86_64
 
-
+centos /boot空间不足：
+umount /boot
+mkdir /boot_old
+mount /dev/sda1  /boot_old
+到/boot_old目录下: cp -rp * /boot
+删除/etc/fstab表中含有 /boot项
+该方法是取消将/boot挂在到sda1上，而是直接使用/boot目录，但是需要将原来在/dev/sda1上的文件拷贝到/boot下。 
 
 查看用户列表：
 cat /etc/passwd

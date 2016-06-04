@@ -366,6 +366,7 @@ vi /lib/systemd/system/kube-apiserver.service
 
 [Unit]
 Description=K8S API Server
+#kube-apiserver依赖etcd服务，因此加入下面两行
 After=etcd.service
 Wants=etcd.service
 
