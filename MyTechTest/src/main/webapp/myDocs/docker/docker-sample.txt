@@ -103,7 +103,7 @@ Pushing repository 10.25.31.102:5000/busybox (1 tags)
 Pushing tag for rev [307ac631f1b5] on {http://10.25.31.102:5000/v1/repositories/busybox/tags/latest}
 
 查看私有仓库中的镜像：
-[root@localhost ~]# curl 10.25.31.102:5000/v1/search
+[root@localhost ~]# curl http://10.25.31.102:5000/v1/search
 {"num_results": 1, "query": "", "results": [{"description": "", "name": "library/busybox"}]}
 
 

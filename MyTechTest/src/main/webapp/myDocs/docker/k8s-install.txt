@@ -1,0 +1,207 @@
+安装Kubernetes
+
+1) 在10.25.31.105上执行
+
+mkdir -p /paas/k8s
+cd /paas/k8s
+wget https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kube-apiserver kube-controller-manager kube-scheduler  kubectl /usr/bin
+
+#kube-apiserver服务
+
+vi /lib/systemd/system/kube-apiserver.service
+
+[Unit]
+Description=K8S API Server
+After=etcd.service
+Wants=etcd.service
+
+[Service]
+ExecStart=/usr/bin/kube-apiserver \
+                 --logtostderr=true \
+                 --v=0   \
+                 --allow-privileged=false \
+                 --insecure-bind-address=0.0.0.0 \
+                 --insecure-port=8080 \
+                 --etcd-servers=http://10.25.31.105:2379 \
+                 --service-cluster-ip-range=172.16.0.0/16
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+#kube-controller-manager服务
+
+vi /lib/systemd/system/kube-controller-manager.service
+
+[Unit]
+Description=K8S Controller Manager
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://10.25.31.105:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+#kube-scheduler服务
+
+vi /lib/systemd/system/kube-scheduler.service
+
+[Unit]
+Description=K8S Scheduler
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-scheduler \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://10.25.31.105:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload    
+
+for SERVICES in kube-apiserver kube-controller-manager kube-scheduler; do
+  systemctl restart $SERVICES
+  systemctl enable $SERVICES
+  systemctl status $SERVICES
+done
+
+
+
+2) 在10.25.31.61上执行
+
+mkdir /paas/k8s
+cd /paas/k8s
+#拷贝
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kubelet kube-proxy /usr/bin
+
+vi /lib/systemd/system/kubelet.service
+
+[Unit]
+Description=K8S Kubelet Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+ExecStart=/usr/bin/kubelet \
+                 --logtostderr=true \
+                 --v=0   \
+                 --api-servers=http://10.25.31.105:8080 \
+                 --address=0.0.0.0  \
+                 --port=10250  \
+                 --allow-privileged=false 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+vi /lib/systemd/system/kube-proxy.service
+
+[Unit]
+Description=K8S Kube-Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://10.25.31.105:8080 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload     
+systemctl start kubelet.service
+systemctl start kube-proxy.service
+
+
+
+2) 在10.25.31.37上执行
+
+mkdir /paas/k8s
+cd /paas/k8s
+#拷贝
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kubelet kube-proxy /usr/bin
+
+vi /lib/systemd/system/kubelet.service
+
+[Unit]
+Description=K8S Kubelet Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+ExecStart=/usr/bin/kubelet \
+                 --logtostderr=true \
+                 --v=0   \
+                 --api-servers=http://10.25.31.105:8080 \
+                 --address=0.0.0.0  \
+                 --port=10250  \
+                 --allow-privileged=false 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+vi /lib/systemd/system/kube-proxy.service
+
+[Unit]
+Description=K8S Kube-Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://10.25.31.105:8080 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload     
+systemctl start kubelet.service
+systemctl start kube-proxy.service
+
+#验证
+kubectl --server=10.25.31.105:8080 get nodes
+

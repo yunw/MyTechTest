@@ -1,0 +1,15 @@
+java.io.IOException: Too many open files
+
+服务器端修改：
+查看系统允许打开的最大文件数
+#cat /proc/sys/fs/file-max
+
+查看每个用户允许打开的最大文件数
+ulimit -a
+
+发现系统默认的是open files (-n) 1024，问题就出现在这里。
+
+在系统文件/etc/security/limits.conf中修改这个数量限制，在文件中加入内容：
+
+* soft nofile 65536
+* hard nofile 65536

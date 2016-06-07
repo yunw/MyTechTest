@@ -1,0 +1,145 @@
+CIDR(Classless Inter-Domain Routing：无类别域间路由):
+无类别指不考虑ip地址所属类别（A类、B类、C类等），路由的策略完全基于整个32bit IP地址的掩码来操作。
+CIDR 地址中包含标准的32位IP地址和有关网络前缀位数的信息。
+以CIDR地址128.14.32.0/20为例，其中“/20”表示其前面地址中的前20位代表网络部分，其余位代表主机部分，那么地址范围的计算：
+最小地址：01111111.00010110.0010 0000.00000000   128.14.32.0    空格前20位为网络部分，空格后12位为主机部分
+最大地址：01111111.00010110.0010 1111.11111111   128.14.42.255  空格前20位为网络部分，空格后12位为主机部分
+那么128.14.32.0/20一共有2^12-2=4094个主机地址（减2是因为全0和全1地址一般不用）
+
+flannel从etcd读取它的配置。默认情况下，它从/coreos.com/network/config下读取配置。你可以用etcdctl往etcd中设置值。
+例如：etcdctl set /coreos.com/network/config '{"Network":"172.16.0.0/16"}'
+配置的值是一个json字典，带有下列的key：https://github.com/coreos/flannel
+Network (string):    整个flannel网络使用的CIDR格式的IPv4网络，这是唯一必须的键
+SubnetLen (integer):  分配给每个主机的子网长度，默认为24(/24)Defaults to 24 (i.e. /24)，除非网络配置得比/24还小
+SubnetMin (string):   子网分配开始的ip范围的开始，默认为第一个子网。
+SubnetMax (string):   子网分配结束的ip范围的结尾，默认为最后一个子网
+Backend (dictionary): Type of backend to use and specific configurations for that backend. The list of available backends and the keys that can be put into the this dictionary are listed below. Defaults to "udp" backend.
+
+安装：
+yum install kernel-headers golang gcc wget git
+
+安装go：
+mkdir -p ~/downloads
+cd ~/downloads
+wget https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.6.2.linux-amd64.tar.gz
+vi /etc/profile
+#在最后添加（GOROOT是go语言安装的路径，GOPATH是用go语言开发的项目的路径）：
+export GOROOT=/usr/local/go  
+export GOPATH=/root/go       
+export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
+
+source /etc/profile
+echo $GOPATH
+
+安装Flannel
+1) 在10.25.31.105上执行
+etcdctl set /coreos.com/network/config '{"Network":"172.16.0.0/16"}'
+etcdctl get /coreos.com/network/config
+
+2) 在10.25.31.61上执行
+
+service docker stop
+ifconfig docker0 down
+brctl delbr docker0
+systemctl stop docker.service
+systemctl status docker.service
+
+cd ~/downloads
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.31.105:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+#启动flannel
+先启动docker
+systemctl start docker.service
+systemctl daemon-reload
+systemctl restart flanneld.service
+systemctl status flanneld.service
+
+#flannel启动后生成/run/flannel/subnet.env文件
+cat /run/flannel/subnet.env
+
+ip addr show
+systemctl stop docker
+mk-docker-opts.sh -i
+source /run/flannel/subnet.env
+#ifconfig docker0 ${FLANNEL_SUBNET}
+ip addr add ${FLANNEL_SUBNET} dev docker0
+ip addr show
+
+systemctl restart docker
+
+
+3) 在10.25.31.37上执行
+
+service docker stop
+ifconfig docker0 down
+brctl delbr docker0
+
+ ip addr del 172.17.0.1/16 dev docker0
+ ip link set docker0 up
+
+mkdir /paas/flannel
+cd /paas/flannel
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.31.105:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+#启动flannel
+先启动docker
+systemctl start docker.service
+systemctl daemon-reload
+systemctl restart flanneld.service
+systemctl status flanneld.service
+
+#flannel启动后生成/run/flannel/subnet.env文件
+cat /run/flannel/subnet.env
+
+mk-docker-opts.sh -i
+source /run/flannel/subnet.env
+#ifconfig docker0 ${FLANNEL_SUBNET}
+ip addr add ${FLANNEL_SUBNET} dev docker0
+
+systemctl restart docker
+
+#验证
+etcdctl ls /coreos.com/network/subnets
+etcdctl get /coreos.com/network/subnets/172.16.37.0-24 (分配的FLANNEL_SUBNET地址)
+
+详情见flannel原理图

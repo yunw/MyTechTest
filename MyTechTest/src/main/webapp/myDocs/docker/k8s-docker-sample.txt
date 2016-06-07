@@ -1,6 +1,6 @@
-system disable firewalld
-system stop firewalld
-yum install -y etcd kubernates
+systemctl disable firewalld
+systemctl stop firewalld
+yum install -y etcd kubernetes
 vi /etc/sysconfig/docker
 OPTIONS='--selinux-enabled=false --insecure-registry gcr.io'
 

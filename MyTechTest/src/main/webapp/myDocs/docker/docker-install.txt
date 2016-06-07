@@ -1,0 +1,69 @@
+安装Docker
+1) 在10.25.31.105上执行
+安装最新的yum源
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+systemctl restart docker.service
+systemctl enable docker.service
+systemctl status docker.service
+
+2) 在10.25.31.61上执行
+安装最新的yum源
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+systemctl start docker.service
+systemctl enable docker.service
+systemctl status docker.service
+
+3) 在10.25.31.37上执行
+安装最新的yum源
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+systemctl start docker.service
+systemctl enable docker.service
+systemctl status docker.service
+
+安装Docker Registry
+
+在10.25.31.105上执行
+
+systemctl start docker.service
+systemctl enable docker.service
+
+docker run -d -p 5000:5000 --restart=always -v /paas/my_registry:/tmp/registry registry
+#验证
+curl http://10.25.23.165:5000/v1/search
+#如果registry没有启动，再执行下面命令，得到容器ID
+docker run -d -p 5000:5000 -v /paas/my_registry:/tmp/registry registry  
+#启动容器
+docker start 7f84f44f49e97b3dfccc7a7052f10d7aa1bacf5ca13972b0411c40631ff28beb
+
+
+修改docker配置，增加私服地址
+1) 在10.25.31.105上执行
+vi /etc/sysconfig/docker
+INSECURE_REGISTRY='--insecure-registry 10.25.31.105:5000'
+
+2) 在10.25.31.61上执行
+vi /etc/sysconfig/docker
+#修改下面参数
+INSECURE_REGISTRY='--insecure-registry 10.25.31.105:5000'
+#增加下面一行
+DOCKER_NOFILE=1000000 
+
+
+3) 在10.25.31.37上执行
+vi /etc/sysconfig/docker
+#修改下面参数
+INSECURE_REGISTRY='--insecure-registry 10.25.31.105:5000'
+#增加下面一行
+DOCKER_NOFILE=1000000

@@ -1,6 +1,6 @@
 centos7不再使用ifconfig而是使用ip addr查看ip地址
 
-virtualBox上安装centos7网络配置：
+virtualBox上安装centos7网络配置(采用桥接网卡)：
 vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
 将：ONBOOT=no 改为 ONBOOT=yes
 保存后重启网卡： service network restart
@@ -28,6 +28,26 @@ IPADDR=10.25.31.105
 NETMASK=255.255.255.0
 GATEWAY=10.25.31.1
 DNS1=10.25.20.251
+
+systemctl restart network.service
+
+yum update -y
+
+修改时区：
+ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+修改hostname：
+hostnamectl set-hostname centos71
+
+
+
+
+
+
+
+
+
+
 
 hostname
 
@@ -171,3 +191,52 @@ systemctl restart ntpd
 查看同步状况：
 ntpq -p
 ntpstat 
+
+
+centos7网络：
+firewall-config：图形界面工具
+firewall-cmd：命令行工具
+Centos升级到7之后使用firewalld代替了原来的iptables：
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+命令含义：
+--zone #作用域
+--add-port=80/tcp  #添加端口，格式为：端口/通讯协议
+--permanent   #永久生效，没有此参数重启后失效
+重启防火墙
+firewall-cmd --reload
+
+获取活动作用域：
+firewall-cmd --get-active-zones
+
+获取默认区域的网络设置：
+firewall-cmd --get-default-zone
+
+设置默认区域：
+firewall-cmd --set-default-zone=
+
+查看所有网络接口：
+[root@centos72 yum.repos.d]# firewall-cmd  --list-interfaces
+enp0s3
+
+查看分配给某个区域的所有网络接口：
+[root@centos72 yum.repos.d]# firewall-cmd  --list-interfaces --zone=public
+enp0s3
+
+查看某个区域下开放的端口：
+[root@centos72 yum.repos.d]# firewall-cmd --zone=public --list-ports
+2379/tcp 2380/tcp 4001/tcp
+
+添加一个端口范围到某个区域：
+firewall-cmd --zone=public --add-port=5060-5061/udp
+
+
+使用xml文件配置firewall：
+firewall的配置放在文件夹：/etc/firewalld/下，默认配置放在/usr/lib/firewalld/下（请不要编辑该文件夹下的文件），这些文件
+必须要root权限才能查看和编辑。
+
+firewalld是centos7的一大特性，最大的好处有两个：支持动态更新，不用重启服务；第二个就是加入了防火墙的“zone”概念
+
+理解网络区域（network zone）：
+
+
+

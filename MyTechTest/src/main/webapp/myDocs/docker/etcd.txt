@@ -4,7 +4,25 @@ centos71  10.25.31.105
 centos72 10.25.31.61    
 centos73 10.25.31.37 
 
-yum install -y git wget
+vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+ONBOOT=yes
+IPADDR=10.25.31.105
+NETMASK=255.255.255.0
+GATEWAY=10.25.31.1
+DNS1=10.25.20.251
+
+yum install -y git wget ntp
+
+#所有服务器同步网络时间：
+ntpdate -u cn.pool.ntp.org
+
+firewall-cmd --zone=public --add-port=2379/tcp --permanent
+firewall-cmd --zone=public --add-port=2380/tcp --permanent
+firewall-cmd --zone=public --add-port=4001/tcp --permanent
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --reload
+
+
 
 安装go：
 mkdir -p ~/downloads
@@ -20,9 +38,11 @@ export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
 source /etc/profile
 echo $GOPATH
 
-安装etcd(方式一)：
 mkdir -p $GOPATH/bin
 mkdir -p $GOPATH/pkg
+mkdir -p $GOPATH/src
+
+安装etcd(方式一git clone)：
 mkdir -p $GOPATH/src/github.com/coreos
 cd $GOPATH/src/github.com/coreos
 git clone github.com:coreos/etcd.git
@@ -70,7 +90,7 @@ cd etcd
 ./build
 cp bin/* $GOPATH/bin
 
-安装etcd(方式二)：
+安装etcd(方式二 curl)：
 mkdir -p $HOME/downloads
 cd $HOME/downloads
 curl -L  https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz -o etcd-v2.3.6-linux-amd64.tar.gz
@@ -140,3 +160,113 @@ etcd
 安装完成，检测：
 etcdctl cluster-health
 etcdctl member list
+curl -L http://127.0.0.1:2379/v2/members
+etcdctl set /foo/bar "hello world"
+etcdctl get /foo/bar
+
+以系统服务方式启动etcd（该方式不需要登录即可运行，因此不能以环境变量的方式配置，环境变量/etc/profile需要登录才能读取）
+
+10.25.31.105
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/root/go/bin/etcd --name etcd1 \
+          --data-dir /var/lib/etcd/etcd1.etcd \
+          --listen-peer-urls http://10.25.31.105:2380 \
+          --listen-client-urls http://10.25.31.105:2379,http://127.0.0.1:2379,http://127.0.0.1:4001 \
+          --initial-advertise-peer-urls http://10.25.31.105:2380 \
+          --initial-cluster etcd1=http://10.25.31.105:2380,etcd2=http://10.25.31.61:2380,etcd3=http://10.25.31.37:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://10.25.31.105:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+     
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+#重新载入 systemd，扫描新的或有变动的单元
+systemctl daemon-reload
+systemctl restart etcd.service
+systemctl enable etcd.service
+systemctl status etcd.service
+
+
+10.25.31.61
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/root/go/bin/etcd --name etcd2 \
+          --data-dir /var/lib/etcd/etcd2.etcd \
+          --listen-peer-urls http://10.25.31.61:2380 \
+          --listen-client-urls http://10.25.31.61:2379,http://127.0.0.1:2379,http://127.0.0.1:4001 \
+          --initial-advertise-peer-urls http://10.25.31.61:2380 \
+          --initial-cluster etcd1=http://10.25.31.105:2380,etcd2=http://10.25.31.61:2380,etcd3=http://10.25.31.37:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://10.25.31.61:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+     
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+#重新载入 systemd，扫描新的或有变动的单元
+systemctl daemon-reload
+systemctl restart etcd.service
+systemctl enable etcd.service
+systemctl status etcd.service
+
+
+
+10.25.31.37
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/root/go/bin/etcd --name etcd3 \
+          --data-dir /var/lib/etcd/etcd3.etcd \
+          --listen-peer-urls http://10.25.31.37:2380 \
+          --listen-client-urls http://10.25.31.37:2379,http://127.0.0.1:2379,http://127.0.0.1:4001 \
+          --initial-advertise-peer-urls http://10.25.31.37:2380 \
+          --initial-cluster etcd1=http://10.25.31.105:2380,etcd2=http://10.25.31.61:2380,etcd3=http://10.25.31.37:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://10.25.31.37:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+     
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+#重新载入 systemd，扫描新的或有变动的单元
+systemctl daemon-reload
+systemctl restart etcd.service
+systemctl enable etcd.service
+systemctl status etcd.service
+
+安装完成，检测：
+etcdctl cluster-health
+etcdctl member list
+curl -L http://127.0.0.1:2379/v2/members
+etcdctl set /foo/bar "hello world"
+etcdctl get /foo/bar
+
+
