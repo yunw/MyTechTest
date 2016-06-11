@@ -3,19 +3,23 @@
 vi /etc/resolv.conf
 nameserver 114.114.114.114
 
-2、安装前的准备：
-cd /app
-wget http://download.redis.io/releases/redis-3.0.7.tar.gz
+2、安装前的准备(所欲节点上都要执行)：
+service iptables status
+
 iptables -I INPUT -p tcp --dport 6379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 16379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 26379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 36379 -j ACCEPT
 service iptables save
+service iptables status
+
 yum install -y wget openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
-gem install redis
+#gem install redis
+
+cd /app
+wget http://download.redis.io/releases/redis-3.0.7.tar.gz
 mkdir /etc/redis
-mkdir /app/logs
-mkdir /app/logs/redis
+mkdir -p /app/logs/redis
 mkdir /app/redisdb
 cd /app
 tar -zxvf redis-3.0.7.tar.gz
@@ -83,33 +87,33 @@ cluster-enabled yes
 cluster-config-file /etc/redis/nodes-6379.conf
 cluster-node-timeout 15000
 
-4、配置sentinel
+4、配置sentinel（只在master上执行）
 vi /etc/redis/26379.conf
 port 26379
-sentinel monitor mymaster1 10.25.23.101 6379 2
+sentinel monitor mymaster1 10.129.12.47 6379 2
 sentinel down-after-milliseconds mymaster1 60000
 sentinel failover-timeout mymaster1 180000
 sentinel parallel-syncs mymaster1 1
 
-sentinel monitor mymaster2 10.25.23.102 6379 2
+sentinel monitor mymaster2 10.129.12.48 6379 2
 sentinel down-after-milliseconds mymaster2 60000
 sentinel failover-timeout mymaster2 180000
 sentinel parallel-syncs mymaster2 1
 
-sentinel monitor mymaster3 10.25.23.103 6379 2
+sentinel monitor mymaster3 10.129.12.49 6379 2
 sentinel down-after-milliseconds mymaster3 60000
 sentinel failover-timeout mymaster3 180000
 sentinel parallel-syncs mymaster3 1
 
-启动redis：
-/usr/local/redis/bin/redis-server /etc/redis/6379.conf
-
-启动sentinel：
+启动redis和sentinel：
+/usr/local/redis/bin/redis-server /etc/redis/6379.conf &
 /usr/local/redis/bin/redis-server /etc/redis/26379.conf --sentinel 2>&1>>/app/logs/redis/redis_26379.log &
 
 二、集群：
 1、创建：
-/app/redis-3.0.7/src/redis-trib.rb create --replicas 1 10.25.23.101:6379 10.25.23.102:6379 10.25.23.103:6379 10.25.23.104:6379 10.25.23.105:6379 10.25.23.106:6379
+wget https://rubygems.org/downloads/redis-3.3.0.gem
+gem install -l ./redis-3.3.0.gem
+/app/redis-3.0.7/src/redis-trib.rb create --replicas 1 10.129.12.47:6379 10.129.12.48:6379 10.129.12.49:6379 10.129.12.50:6379 10.129.12.51:6379 10.129.12.52:6379
 上述命令创建集群，每个master都有一个slave。
 如果出现下面的信息：
 [OK] All nodes agree about slots configuration.

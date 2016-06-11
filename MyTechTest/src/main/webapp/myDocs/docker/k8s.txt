@@ -386,3 +386,7 @@ fe00::2 ip6-allrouters
 @ALL，我们在DevOps Portal里面可以增加一个hosts配置项, 老尹拿到后可以先找到部署container，
 再执行docker exec -it 09a25d965c29 /bin/sh -c "echo 127.0.0.1 test >>  /etc/hosts" 这个命令将hosts加进去
 
+
+
+
+

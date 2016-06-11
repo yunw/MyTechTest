@@ -8,7 +8,7 @@ vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
 
 固定ip配置：
 TYPE=Ethernet
-#BOOTPROTO=dhcp
+#BOOTPROTO=static
 BOOTPROTO=static
 DEFROUTE=yes
 PEERDNS=yes
@@ -49,7 +49,7 @@ hostnamectl set-hostname centos71
 
 
 
-hostname
+hostname(/etc/hostname)
 
 在CentOS/RHEL中，有三种定义的主机名:a、静态的（static），b、瞬态的（transient），以及c、灵活的（pretty）。
 “静态”主机名也称为内核主机名，是系统在启动时从/etc/hostname自动初始化的主机名。
