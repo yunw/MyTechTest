@@ -1,0 +1,5 @@
+http://kubernetes.io/docs/getting-started-guides/docker-multinode/
+
+ yum install bridge-utils net-tools.x86_64 docker
+
+

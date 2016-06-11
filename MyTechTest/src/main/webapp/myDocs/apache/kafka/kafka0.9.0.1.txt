@@ -35,29 +35,30 @@ yum install -y wget java-1.8.0-openjdk-devel.x86_64
 SSSVL0028
 
 vi /etc/hosts
-10.25.23.37     SSSVL0028.smc.saicmotor.com SSSVL0028
-10.25.23.38     SSSVL0029.smc.saicmotor.com SSSVL0029
-10.25.23.39     SSSVL0030.smc.saicmotor.com SSSVL0030
+10.129.12.44     SCSV00466
+10.129.12.45     SCSV00467
+10.129.12.46     SCSV00468
 
 wget http://mirrors.cnnic.cn/apache/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
 #wget http://apache.fayea.com/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz
 tar zxvf kafka_2.11-0.9.0.1.tgz
 mv kafka_2.11-0.9.0.1 /usr/local/
+cd /usr/local
 ln -s kafka_2.11-0.9.0.1 kafka
-mkdir -p /data/kafka-logs
+mkdir -p /app/kafka-logs
 
-mkdir -p /data/kafka-runtime-logs
+mkdir -p /app/kafka-runtime-logs
 vi /usr/local/kafka/bin/kafka-run-class.sh
 #在最前面加上：
-LOG_DIR=/data/kafka-runtime-logs
+LOG_DIR=/app/kafka-runtime-logs
 
 10.25.23.37:
 vi /usr/local/kafka/config/server.properties
 broker.id=90
 host.name=10.25.23.37
 advertised.host.name=10.25.23.37
-log.dirs=/data/kafka-logs
-zookeeper.connect=10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-test
+log.dirs=/app/kafka-logs
+zookeeper.connect=10.129.13.76:2181,10.129.13.77:2181,10.129.13.78:2181,10.129.13.79:2181,10.129.13.80:2181/kafka-prd
 
 10.25.23.38:
 vi /usr/local/kafka/config/server.properties

@@ -1,0 +1,403 @@
+centos71 10.25.31.82
+centos72 10.25.31.31
+centos73 10.25.31.218
+
+yum update -y
+
+#modify time zone
+#ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+#modify hostname
+hostnamectl set-hostname centos71
+
+yum install -y git wget ntp  net-tools.x86_64 curl #bridge-utils
+
+# synchronize time
+ntpdate -u cn.pool.ntp.org
+
+systemctl start ntpd
+date
+ntpstat
+
+firewall-cmd --zone=public --add-port=2379/tcp --permanent
+firewall-cmd --zone=public --add-port=2380/tcp --permanent
+#firewall-cmd --zone=public --add-port=4001/tcp --permanent
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --zone=public --add-port=443/tcp --permanent
+firewall-cmd --zone=public --add-port=6443/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --zone=public --list-ports
+
+systemctl stop firewalld.service
+systemctl disable firewalld.service
+
+vi /etc/selinux/config
+SELINUX=disabled
+
+init 6
+
+vi /etc/hosts
+
+10.25.31.82 k8s-master
+10.25.31.31 k8s-node01
+10.25.31.218 k8s-node02
+
+64.233.162.84    gcr.io
+
+# -----------------------------------------------------
+#                 install etcd
+# -----------------------------------------------------
+
+#for 10.25.31.82
+
+mkdir -p ~/downloads
+cd ~/downloads
+wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
+tar xvzf etcd-v2.3.6-linux-amd64.tar.gz
+cp etcd-v2.3.6-linux-amd64/etcd etcd-v2.3.6-linux-amd64/etcdctl /usr/bin
+
+# create etcd service config
+vi /lib/systemd/system/etcd.service
+
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd01 --initial-advertise-peer-urls http://10.25.31.82:2380 \
+        --listen-peer-urls http://10.25.31.82:2380 \
+        --listen-client-urls http://10.25.31.82:2379,http://127.0.0.1:2379 \
+        --advertise-client-urls http://10.25.31.82:2379 \
+        --initial-cluster-token etcd-cluster-1 \
+        --initial-cluster etcd01=http://10.25.31.82:2380,etcd02=http://10.25.31.31:2380,etcd03=http://10.25.31.218:2380 \
+        --initial-cluster-state new 
+Restart=on-failure
+     
+[Install]
+WantedBy=multi-user.target
+
+#start etcd
+systemctl daemon-reload
+systemctl start etcd
+systemctl enable etcd
+systemctl status etcd
+
+#for 10.25.31.31
+mkdir -p ~/downloads
+cd ~/downloads
+wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
+tar xvzf etcd-v2.3.6-linux-amd64.tar.gz
+cp etcd-v2.3.6-linux-amd64/etcd etcd-v2.3.6-linux-amd64/etcdctl /usr/bin
+
+# create etcd service
+vi /lib/systemd/system/etcd.service
+
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd02 --initial-advertise-peer-urls http://10.25.31.31:2380 \
+        --listen-peer-urls http://10.25.31.31:2380 \
+        --listen-client-urls http://10.25.31.31:2379,http://127.0.0.1:2379 \
+        --advertise-client-urls http://10.25.31.31:2379 \
+        --initial-cluster-token etcd-cluster-1 \
+        --initial-cluster etcd01=http://10.25.31.82:2380,etcd02=http://10.25.31.31:2380,etcd03=http://10.25.31.218:2380 \
+        --initial-cluster-state new 
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl start etcd
+systemctl enable etcd
+systemctl status etcd
+
+#for 10.25.31.218
+mkdir -p ~/downloads
+cd ~/downloads
+wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
+tar xvzf etcd-v2.3.6-linux-amd64.tar.gz
+cp etcd-v2.3.6-linux-amd64/etcd etcd-v2.3.6-linux-amd64/etcdctl /usr/bin
+
+# 以服务方式启动etcd
+vi /lib/systemd/system/etcd.service
+增加以下内容
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd03 --initial-advertise-peer-urls http://10.25.31.218:2380 \
+        --listen-peer-urls http://10.25.31.218:2380 \
+        --listen-client-urls http://10.25.31.218:2379,http://127.0.0.1:2379 \
+        --advertise-client-urls http://10.25.31.218:2379 \
+        --initial-cluster-token etcd-cluster-1 \
+        --initial-cluster etcd01=http://10.25.31.82:2380,etcd02=http://10.25.31.31:2380,etcd03=http://10.25.31.218:2380 \
+        --initial-cluster-state new 
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+启动etcd
+systemctl daemon-reload
+systemctl start etcd
+systemctl enable etcd
+systemctl status etcd
+
+#etcd install over, test:
+curl -L http://127.0.0.1:2379/v2/members
+etcdctl set /foo/bar "hello world"
+etcdctl get /foo/bar
+
+
+# -------------------------------------------------
+#             install docker
+# -------------------------------------------------
+
+#for 10.25.31.82
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+vi /etc/sysconfig/docker
+INSECURE_REGISTRY='--insecure-registry 10.25.31.82:5000'
+DOCKER_NOFILE=1000000 
+
+systemctl restart docker.service
+systemctl enable docker.service
+systemctl status docker.service
+
+#for 10.25.31.31
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+vi /etc/sysconfig/docker
+INSECURE_REGISTRY='--insecure-registry 10.25.31.82:5000'
+DOCKER_NOFILE=1000000 
+
+systemctl restart docker.service
+systemctl enable docker.service
+systemctl status docker.service
+
+
+#for 10.25.31.218
+cd  /etc/yum.repos.d/
+wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+yum makecache
+yum -y install docker
+
+vi /etc/sysconfig/docker
+INSECURE_REGISTRY='--insecure-registry 10.25.31.82:5000'
+DOCKER_NOFILE=1000000 
+
+systemctl restart docker.service
+systemctl enable docker.service
+systemctl status docker.service
+
+
+# ----------------------------------------------------------
+#                install flannel
+# ----------------------------------------------------------
+
+# for 10.25.31.82
+etcdctl set /coreos.com/network/config '{"Network":"172.16.0.0/16"}'
+
+# for 10.25.31.31
+
+systemctl stop docker
+ifconfig docker0 down
+brctl delbr docker0
+ip addr
+ifconfig
+
+mkdir -p /paas/flannel
+cd /paas/flannel
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.31.82:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+systemctl start docker.service
+systemctl daemon-reload
+systemctl start flanneld.service
+mk-docker-opts.sh -i
+source /run/flannel/subnet.env
+ifconfig docker0 ${FLANNEL_SUBNET}
+
+systemctl restart docker
+
+
+# for 10.25.31.218
+
+systemctl stop docker
+ifconfig docker0 down
+#brctl delbr docker0
+ip addr
+ifconfig
+
+mkdir -p /paas/flannel
+cd /paas/flannel
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.31.82:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+#systemctl start docker.service
+systemctl daemon-reload
+systemctl start flanneld.service
+mk-docker-opts.sh -i
+source /run/flannel/subnet.env
+ifconfig docker0 ${FLANNEL_SUBNET}
+
+systemctl restart docker
+
+# install over, test:
+[root@localhost flannel-0.5.5]# etcdctl ls /coreos.com/network/subnets
+/coreos.com/network/subnets/172.16.82.0-24
+/coreos.com/network/subnets/172.16.29.0-24
+[root@localhost flannel-0.5.5]# etcdctl get /coreos.com/network/subnets/172.16.82.0-24
+{"PublicIP":"10.25.31.31"}
+[root@localhost flannel-0.5.5]# etcdctl get /coreos.com/network/subnets/172.16.29.0-24
+{"PublicIP":"10.25.31.218"}
+
+
+
+# ----------------------------------------------------------
+#                  install Kubernetes
+# ----------------------------------------------------------
+
+# for 10.25.31.82
+
+mkdir -p /paas/k8s
+cd /paas/k8s
+wget https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
+tar xzvf kubernetes.tar.gz
+cd kubernetes/server
+tar xzvf kubernetes-server-linux-amd64.tar.gz
+cd  /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kube-apiserver kube-controller-manager kube-scheduler  kubectl /usr/bin
+
+#install kube-apiserver service
+
+vi /lib/systemd/system/kube-apiserver.service
+
+[Unit]
+Description=K8S API Server
+After=etcd.service
+Wants=etcd.service
+
+[Service]
+ExecStart=/usr/bin/kube-apiserver \
+                 --logtostderr=true \
+                 --log-dir=/root/logs/kube-apiserver \
+                 --v=0   \
+                 --allow-privileged=false \
+                 --insecure-bind-address=0.0.0.0 \
+                 --insecure-port=8080 \
+                 --etcd-servers=http://10.25.31.82:2379 \
+                 --service-cluster-ip-range=172.16.0.0/16
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+# install kube-controller-manager service
+
+vi /lib/systemd/system/kube-controller-manager.service
+
+[Unit]
+Description=K8S Controller Manager
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+                 --logtostderr=true \
+                 --log-dir=/root/logs/kube-controller-manager \
+                 --v=0   \
+                 --master=http://10.25.31.82:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+# install kube-scheduler service
+
+vi /lib/systemd/system/kube-scheduler.service
+
+[Unit]
+Description=K8S Scheduler
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-scheduler \
+                 --logtostderr=true \
+                 --log-dir=/root/logs/kube-scheduler \
+                 --v=0   \
+                 --master=http://k8s-master:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload    
+
+for SERVICES in kube-apiserver kube-controller-manager kube-scheduler; do
+    systemctl restart $SERVICES
+    systemctl enable $SERVICES
+    systemctl status $SERVICES
+done
+
