@@ -91,3 +91,5 @@ tmpfs                 3.9G  112K  3.9G   1% /dev/shm
 217M    ./root
 16K     ./lost+found
 
+crontab:
+/etc/anacrontab   #http://bbs.chinaunix.net/thread-4146297-1-1.html

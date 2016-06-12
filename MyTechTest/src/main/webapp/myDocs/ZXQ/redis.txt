@@ -9,7 +9,6 @@ service iptables status
 iptables -I INPUT -p tcp --dport 6379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 16379 -j ACCEPT
 iptables -I INPUT -p tcp --dport 26379 -j ACCEPT
-iptables -I INPUT -p tcp --dport 36379 -j ACCEPT
 service iptables save
 service iptables status
 
@@ -81,7 +80,6 @@ vi /etc/redis/6379.conf
 将如下属性的值按下列值进行配置：
 daemonize yes
 pidfile /var/run/redis_6379.pid
-logfile "/app/logs/redis/redis_6379.log"
 dir /app/redisdb
 cluster-enabled yes
 cluster-config-file /etc/redis/nodes-6379.conf

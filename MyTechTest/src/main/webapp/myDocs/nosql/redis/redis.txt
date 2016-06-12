@@ -226,7 +226,6 @@ vi /etc/redis/6379.conf
 修改/etc/redis/6379.conf将对应内容修改为：
 daemonize yes
 pidfile /var/run/redis_6379.pid
-logfile "/data/logs/redis/redis_6379.log"
 启动redis服务：
 service redis start
 

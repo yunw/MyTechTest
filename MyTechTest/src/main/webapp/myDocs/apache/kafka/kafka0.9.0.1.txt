@@ -52,6 +52,16 @@ vi /usr/local/kafka/bin/kafka-run-class.sh
 #在最前面加上：
 LOG_DIR=/app/kafka-runtime-logs
 
+vi /usr/local/kafka/config/log4j.properties
+#修改日志级别
+
+vi /etc/cron.daily/kafka-logs-cron
+#!/bin/sh
+find /app/kafka-runtime-logs -type f -ctime +30 | xargs rm -rf
+
+chmod +x /etc/cron.daily/kafka-logs-cron
+
+
 10.25.23.37:
 vi /usr/local/kafka/config/server.properties
 broker.id=90
