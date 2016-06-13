@@ -1,0 +1,129 @@
+centos71 10.25.31.16
+centos72 10.25.31.215
+centos73 10.25.31.123
+
+固定ip地址：
+IPADDR=10.25.31.105
+NETMASK=255.255.255.0
+GATEWAY=10.25.31.1
+DNS1=10.25.20.251
+
+在 centos71上执行
+systemctl stop firewalld.service
+systemctl disable firewalld.service
+
+yum install -y wget
+wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
+tar xvf etcd-v2.3.6-linux-amd64.tar.gz 
+cd etcd-v2.3.6-linux-amd64
+mv etcd* /usr/bin
+
+vi /lib/systemd/system/etcd.service
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd1 \
+          --data-dir /var/lib/etcd/etcd1.etcd \
+          --listen-peer-urls http://centos71:2380 \
+          --listen-client-urls http://centos71:2379,http://127.0.0.1:2379 \
+          --initial-advertise-peer-urls http://centos71:2380 \
+          --initial-cluster etcd1=http://centos71:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://centos71:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload
+systemctl restart etcd.service
+systemctl status etcd.service
+
+ss -nap | grep LISTEN | grep etcd
+
+etcdctl ls /
+etcdctl mkdir /test
+
+etcdctl set /coreos.com/network/config '{"Network":"172.17.0.0/16", "SubnetMin": "172.17.1.0", "SubnetMax": "172.17.254.0"}'
+etcdctl get /coreos.com/network/config
+
+在 centos71、centos72、centos73上执行
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+
+[Service]
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.31.16:2379 -etcd-prefix=/coreos.com/network
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl restart flanneld.service
+systemctl status flanneld.service
+
+yum install -y docker
+systemctl start docker
+
+#该脚本生成部分docker参数，放在/run/docker_opts.env文件中
+/usr/bin/mk-docker-opts.sh -i 
+vi /run/docker_opts.env
+DOCKER_OPT_BIP="--bip=172.17.15.1/24"
+DOCKER_OPT_IPMASQ="--ip-masq=true"
+DOCKER_OPT_MTU="--mtu=1472"
+
+将其中的参数摘出：
+--bip=172.17.15.1/24 --ip-masq=true --mtu=1472
+添加到docker的启动参数中：
+vi /etc/sysconfig/docker
+#OPTIONS='--selinux-enabled'
+OPTIONS='--selinux-enabled --bip=172.17.15.1/24 --ip-masq=true --mtu=1472'
+
+[root@centos71 bin]# ip a s docker0
+3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN 
+    link/ether 02:42:16:27:06:76 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 scope global docker0
+       valid_lft forever preferred_lft forever
+
+[root@centos71 bin]# systemctl restart docker
+
+[root@centos71 bin]# ip a s docker0
+3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN 
+    link/ether 02:42:16:27:06:76 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.15.1/24 scope global docker0
+       valid_lft forever preferred_lft forever
+
+#可以看到docker0已经获取了flannel网段的地址
+
+# -------------------------------------------
+测试网络连通性：
+#在三台机器上各启动一个容器：
+docker run -ti centos bash
+#查看容器ip
+cat /etc/hosts
+172.17.47.2     615062300fc0
+#测试连通性，都成功就OK了
+#到跨物理机容器
+ping -c 1 172.17.164.7
+ping -c 1 172.17.67.1
+#到宿主机
+ping -c 1 10.25.31.16
+#到别的物理机
+ping -c 1 10.25.31.123
+
+
+
+
+

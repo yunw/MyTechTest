@@ -1,0 +1,126 @@
+可以参考：http://www.open-open.com/lib/view/open1450192416578.html
+
+master:10.25.31.31
+slave:10.25.31.218
+
+# ------------------------------------------------------------------------
+#                        install master
+# ------------------------------------------------------------------------
+
+添加yum源：
+vi /etc/yum.repos.d/CentOS-Base.repo
+[virt7-docker-common-release]
+name=virt7-docker-common-release
+baseurl=http://cbs.centos.org/repos/virt7-docker-common-release/x86_64/os/
+gpgcheck=0
+
+yum -y install git wget ntp curl etcd
+yum -y install --enablerepo=virt7-docker-common-release kubernetes
+
+vi /etc/kubernetes/config
+# Comma separated list of nodes in the etcd cluster
+KUBE_ETCD_SERVERS="--etcd-servers=http://10.25.31.31:2379"
+
+# logging to stderr means we get it in the systemd journal
+KUBE_LOGTOSTDERR="--logtostderr=true"
+
+# journal message level, 0 is debug
+KUBE_LOG_LEVEL="--v=0"
+
+# Should this cluster be allowed to run privileged docker containers
+KUBE_ALLOW_PRIV="--allow-privileged=false"
+
+
+
+systemctl disable firewalld
+systemctl stop firewalld
+
+
+vi /etc/kubernetes/apiserver
+# The address on the local server to listen to.
+KUBE_API_ADDRESS="--address=0.0.0.0"
+
+# The port on the local server to listen on.
+KUBE_API_PORT="--port=8080"
+
+# How the replication controller and scheduler find the kube-apiserver
+KUBE_MASTER="--master=http://10.25.31.31:8080"
+
+# Port kubelets listen on
+KUBELET_PORT="--kubelet-port=10250"
+
+# Address range to use for services
+KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=10.254.0.0/16"
+
+# Add your own!
+KUBE_API_ARGS=""
+
+
+for SERVICES in etcd kube-apiserver kube-controller-manager kube-scheduler; do 
+    systemctl restart $SERVICES
+    systemctl enable $SERVICES
+    systemctl status $SERVICES 
+done
+
+
+
+# ------------------------------------------------------------------------
+#                        install slave
+# ------------------------------------------------------------------------
+
+添加yum源：
+vi /etc/yum.repos.d/CentOS-Base.repo
+[virt7-docker-common-release]
+name=virt7-docker-common-release
+baseurl=http://cbs.centos.org/repos/virt7-docker-common-release/x86_64/os/
+gpgcheck=0
+
+yum -y install git wget ntp curl etcd
+yum -y install --enablerepo=virt7-docker-common-release kubernetes
+
+vi /etc/kubernetes/config
+# Comma separated list of nodes in the etcd cluster
+KUBE_ETCD_SERVERS="--etcd-servers=http://10.25.31.31:2379"
+
+# logging to stderr means we get it in the systemd journal
+KUBE_LOGTOSTDERR="--logtostderr=true"
+
+# journal message level, 0 is debug
+KUBE_LOG_LEVEL="--v=0"
+
+# Should this cluster be allowed to run privileged docker containers
+KUBE_ALLOW_PRIV="--allow-privileged=false"
+
+
+
+systemctl disable firewalld
+systemctl stop firewalld
+
+
+vi /etc/kubernetes/kubelet
+# The address for the info server to serve on
+KUBELET_ADDRESS="--address=0.0.0.0"
+
+# The port for the info server to serve on
+KUBELET_PORT="--port=10250"
+
+# You may leave this blank to use the actual hostname
+KUBELET_HOSTNAME="--hostname-override=10.25.31.218"
+
+# Location of the api-server
+KUBELET_API_SERVER="--api-servers=http://10.25.31.31:8080"
+
+# Add your own!
+KUBELET_ARGS=""
+
+for SERVICES in kube-proxy kubelet docker; do 
+    systemctl restart $SERVICES
+    systemctl enable $SERVICES
+    systemctl status $SERVICES 
+done
+
+# ----------------------------------------------------
+#                   check install
+# ----------------------------------------------------
+kubectl get nodes
+
