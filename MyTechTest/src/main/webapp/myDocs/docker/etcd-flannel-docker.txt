@@ -1,16 +1,25 @@
-centos71 10.25.31.16
-centos72 10.25.31.215
-centos73 10.25.31.123
+参考：http://www.jianshu.com/p/a2039a8855ec#
+
+centos71 10.25.31.16     master
+centos72 10.25.31.215    slave
+centos73 10.25.31.123    slave
 
 固定ip地址：
-IPADDR=10.25.31.105
+IPADDR=10.25.31.16
 NETMASK=255.255.255.0
 GATEWAY=10.25.31.1
 DNS1=10.25.20.251
 
-在 centos71上执行
+# --------------------------------------------------------
+#               on centos71 centos72 centos73
+# --------------------------------------------------------
 systemctl stop firewalld.service
 systemctl disable firewalld.service
+
+vi /etc/hosts
+10.25.31.16    centos71
+10.25.31.215   centos72
+10.25.31.123   centos73
 
 yum install -y wget
 wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
@@ -19,6 +28,7 @@ cd etcd-v2.3.6-linux-amd64
 mv etcd* /usr/bin
 
 vi /lib/systemd/system/etcd.service
+
 [Unit]
 Description=ETCD
 
@@ -29,7 +39,7 @@ ExecStart=/usr/bin/etcd --name etcd1 \
           --listen-peer-urls http://centos71:2380 \
           --listen-client-urls http://centos71:2379,http://127.0.0.1:2379 \
           --initial-advertise-peer-urls http://centos71:2380 \
-          --initial-cluster etcd1=http://centos71:2380 \
+          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
           --initial-cluster-state new \
           --initial-cluster-token etcd-cluster \
           --advertise-client-urls http://centos71:2379 \
@@ -42,18 +52,18 @@ WantedBy=multi-user.target
 
 
 systemctl daemon-reload
+systemctl enable etcd.service
 systemctl restart etcd.service
 systemctl status etcd.service
 
 ss -nap | grep LISTEN | grep etcd
 
-etcdctl ls /
-etcdctl mkdir /test
-
 etcdctl set /coreos.com/network/config '{"Network":"172.17.0.0/16", "SubnetMin": "172.17.1.0", "SubnetMax": "172.17.254.0"}'
 etcdctl get /coreos.com/network/config
 
-在 centos71、centos72、centos73上执行
+etcdctl cluster-health
+etcdctl member list
+
 wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
 tar xvzf flannel-0.5.5-linux-amd64.tar.gz
 cd  flannel-0.5.5
@@ -65,28 +75,28 @@ vi /lib/systemd/system/flanneld.service
 Description=Flanneld overlay address etcd agent
 
 [Service]
-ExecStart=/usr/bin/flanneld -etcd-endpoints=http://10.25.31.16:2379 -etcd-prefix=/coreos.com/network
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://centos71:2379,http://centos72:2379,http://centos73:2379 -etcd-prefix=/coreos.com/network
 
 [Install]
 WantedBy=multi-user.target
 
 systemctl daemon-reload
+systemctl enable flanneld.service
 systemctl restart flanneld.service
 systemctl status flanneld.service
 
 yum install -y docker
+systemctl enable docker
 systemctl start docker
+systemctl status docker
 
-#该脚本生成部分docker参数，放在/run/docker_opts.env文件中
 /usr/bin/mk-docker-opts.sh -i 
 vi /run/docker_opts.env
+
 DOCKER_OPT_BIP="--bip=172.17.15.1/24"
 DOCKER_OPT_IPMASQ="--ip-masq=true"
 DOCKER_OPT_MTU="--mtu=1472"
 
-将其中的参数摘出：
---bip=172.17.15.1/24 --ip-masq=true --mtu=1472
-添加到docker的启动参数中：
 vi /etc/sysconfig/docker
 #OPTIONS='--selinux-enabled'
 OPTIONS='--selinux-enabled --bip=172.17.15.1/24 --ip-masq=true --mtu=1472'
@@ -116,12 +126,174 @@ cat /etc/hosts
 172.17.47.2     615062300fc0
 #测试连通性，都成功就OK了
 #到跨物理机容器
-ping -c 1 172.17.164.7
-ping -c 1 172.17.67.1
+ping -c 3 172.17.164.7
+ping -c 3 172.17.67.1
 #到宿主机
-ping -c 1 10.25.31.16
+ping -c 3 10.25.31.16
 #到别的物理机
-ping -c 1 10.25.31.123
+ping -c 3 10.25.31.123
+
+
+# -----------------------------------
+#            on centos71
+# -----------------------------------
+mkdir -p /paas/k8s
+cd /paas/k8s
+wget https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
+tar xzf kubernetes.tar.gz
+cd kubernetes/server
+tar xzf kubernetes-server-linux-amd64.tar.gz
+cd /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kube-apiserver kube-controller-manager kube-scheduler  kubectl /usr/bin
+
+#kube-apiserver service
+
+vi /lib/systemd/system/kube-apiserver.service
+
+[Unit]
+Description=K8S API Server
+After=etcd.service
+Wants=etcd.service
+
+[Service]
+ExecStart=/usr/bin/kube-apiserver \
+                 --logtostderr=true \
+                 --v=0   \
+                 --allow-privileged=false \
+                 --insecure-bind-address=0.0.0.0 \
+                 --insecure-port=8080 \
+                 --etcd-servers=http://centos71:2379,http://centos72:2379,http://centos73:2379 \
+                 --admission-control=NamespaceAutoProvision,LimitRanger,ResourceQuota \
+                 --service-cluster-ip-range=172.17.0.0/16
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+#kube-controller-manager service
+
+vi /lib/systemd/system/kube-controller-manager.service
+
+[Unit]
+Description=K8S Controller Manager
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://centos71:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+#kube-scheduler service
+
+vi /lib/systemd/system/kube-scheduler.service
+
+[Unit]
+Description=K8S Scheduler
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-scheduler \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://centos71:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload    
+
+for SERVICES in kube-apiserver kube-controller-manager kube-scheduler; do
+  systemctl restart $SERVICES
+  systemctl enable $SERVICES
+  systemctl status $SERVICES
+done
+
+kubectl cluster-info
+
+# -----------------------------------
+#            on centos72 centos73
+# -----------------------------------
+mkdir -p /paas/k8s
+cd /paas/k8s
+scp root@10.25.31.16:/paas/k8s/kubernetes.tar.gz .
+
+tar xzf kubernetes.tar.gz
+cd kubernetes/server
+tar xzf kubernetes-server-linux-amd64.tar.gz
+cd /paas/k8s/kubernetes/server/kubernetes/server/bin/
+cp kubelet kube-proxy /usr/bin
+mkdir -p /var/lib/kubelet
+
+vi /lib/systemd/system/kubelet.service
+
+[Unit]
+Description=K8S Kubelet Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+ExecStart=/usr/bin/kubelet \
+                 --logtostderr=true \
+                 --v=0   \
+                 --api-servers=http://centos71:8080 \
+                 --address=0.0.0.0  \
+                 --port=10250  \
+                 --allow-privileged=false 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+vi /lib/systemd/system/kube-proxy.service
+
+[Unit]
+Description=K8S Kube-Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://centos71:8080 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload   
+systemctl enable kubelet.service
+systemctl enable kube-proxy.service
+systemctl start kubelet.service
+systemctl start kube-proxy.service
+systemctl status kubelet.service
+systemctl status kube-proxy.service
+
+
+kubectl get nodes
+
+
+
+
 
 
 
