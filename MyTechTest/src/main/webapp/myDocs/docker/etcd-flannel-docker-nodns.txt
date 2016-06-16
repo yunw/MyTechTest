@@ -8841,166 +8841,136 @@ systemctl status kube-proxy.service
 # ---------------------
 kubectl get nodes
 
-# ------------------------------------------------------
-#            install skyDns on centos71
-# ------------------------------------------------------
-mkdir -p ~/templates
-cd ~/templates
-vi skyDns-svc.yaml
+vi redis-master-rc.yaml
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: redis-master
+  labels:
+    name: redis-master
+spec:
+  replicas: 1
+  selector:
+    name: redis-master
+  template:
+    metadata:
+      labels:
+        name: redis-master
+    spec:
+      containers:
+      - name: master
+        image: kubeguide/redis-master
+        ports:
+        - containerPort: 6379
+
+vi redis-master-svc.yaml
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: skydns-svc
+  name: redis-master
   labels:
-    app: skydns-svc
-    version: v9
+    name: redis-master
 spec:
-  selector:
-    app: skydns
-    version: v9
-  type: ClusterIP
-  clusterIP: 172.17.40.1
   ports:
-    - name: dns
-      port: 53
-      protocol: UDP
-    - name: dns-tcp
-      port: 53
-      protocol: TCP
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+  selector:
+    name: redis-master
 
-cd ~/templates
-vi skyDns-rc.yaml
+vi redis-slave-rc.yaml
 
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: skydns
+  name: redis-slave
   labels:
-    app: skydns
-    version: v9
+    name: redis-slave
 spec:
-  replicas: 1
+  replicas: 2
   selector:
-    app: skydns
-    version: v9
+    name: redis-slave
   template:
-    metadata:
-      labels:
-        app: skydns
-        version: v9
-    spec:
-      containers:
-        - name: skydns
-          image: 10.25.31.16:5000/skydns
-          command:
-            - "/skydns"
-          args:
-            - "--machines=http://centos71:2379,http://centos72:2379,http://centos73:2379"
-            - "--domain=yin.com"
-            - "--addr=0.0.0.0:53"
-          ports:
-            - containerPort: 53
-              name: dns-udp
-              protocol: UDP
-            - containerPort: 53
-              name: dns-tcp
-              protocol: TCP
+    labels:
+      name: redis-slave
+  spec:
+    containers:
+    - name: master
+      image: kubeguide/guestbook-redis-slave
+      env:
+      - name: GET_HOSTS_FROM
+        value: env
+      ports:
+      - containerPort: 6379
 
-cd ~/templates
-vi kube2sky-rc.yaml
+vi redis-slave-svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-slave
+  labels:
+    name: redis-slave
+  spec:
+    ports:
+    - port: 6379
+      targetPort: 6379
+    selector:
+      name: redis-slave
+
+
+vi frontend-rc.yaml
 
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: kube2sky
+  name: frontend
   labels:
-    app: kube2sky
-    version: v9
+    name: frontend
 spec:
-  replicas: 1
+  replicas: 2
   selector:
-    app: kube2sky
-    version: v9
+    name: frontend
   template:
     metadata:
       labels:
-        app: kube2sky
-        version: v9
+        name: frontend
     spec:
       containers:
-        - name: kube2sky
-          image: 10.25.31.16:5000/kube2sky
-          command:
-            - "/kube2sky"
-          args:
-            - "--etcd-server=http://10.25.31.16:2379,http://10.25.31.123:2379,http://10.25.31.215:2379"
-            - "--domain=yin.com"
-            - "--kube-master-url=http://10.25.31.16:8080"
+      - name: frontend
+        image: kubeguide/guestbook-php-frontend
+        env:
+        - name: GET_HOSTS_FROM
+          value: env
+        ports:
+        - containerPort: 80
 
-kubectl create -f skyDns-svc.yaml
-kubectl create -f skyDns-rc.yaml
-kubectl create -f kube2sky-rc.yaml
 
-# test
-kubectl get pods
-kubectl get services | grep skydns
-
-# ----------------------------------------------------------
-#             on centos72 centos73
-# ----------------------------------------------------------
-vi /lib/systemd/system/kubelet.service
-# add parameters:
---cluster-dns=172.17.40.1 --cluster-domain=yin.com
-
-systemctl daemon-reload
-systemctl restart kubelet.service
-systemctl status kubelet.service
-
-# --------------------------------------
-#     test skydns on centos71
-# --------------------------------------
-cd ~/templates
-vi busybox.yaml
+vi frontend-svc.yaml
 
 apiVersion: v1
-kind: Pod
+kind: Service
 metadata:
-  name: busybox
-  namespace: default
+  name: frontend
+  labels:
+    name: frontend
 spec:
-  containers:
-  - image:  10.25.31.16:5000/busybox
-    command:
-      - sleep
-      - "3600"
-    imagePullPolicy: IfNotPresent
-    name: busybox
-  restartPolicy: Always
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30001
+  selector:
+    name: frontend
 
-kubectl create -f busybox.yaml
+kubectl create -f frontend-svc.yaml
+kubectl create -f redis-slave-svc.yaml
+kubectl create -f redis-master-svc.yaml
 
-# Wait for this pod to go into the running state
-kubectl get pods busybox
-
-# Validate DNS works
-kubectl exec busybox -- nslookup yin.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+kubectl create -f redis-master-rc.yaml
+kubectl create -f redis-slave-rc.yaml
+kubectl create -f frontend-rc.yaml
 
 
 
