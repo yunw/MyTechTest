@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: javaweb-rc
+  labels:
+    k8s-app: javeweb    
+    kubernetes.io/cluster-service: "true"
+spec:
+    replicas: 1
+    selector:
+        k8s-app: javaweb        
+    template:
+        metadata:
+          labels:
+            k8s-app: javaweb
+            kubernetes.io/cluster-service: "true"
+        spec:            
+            containers:
+            - image: resouer/sample:v2
+              name: war
+              lifecycle:
+                postStart:
+                  exec:
+                    command:
+                      - "cp"
+                      - "/sample.war"
+                      - "/app"
+              volumeMounts:
+              - mountPath: /app
+                name: app-volume
+            - image: tomcat
+              name: tomcat
+              volumeMounts:
+              - mountPath: /usr/local/tomcat/webapps
+                name: app-volume
+              ports:
+              - containerPort: 8080
+                hostPort: 8001 
+            volumes:
+            - name: app-volume
+              emptyDir: {}
+            

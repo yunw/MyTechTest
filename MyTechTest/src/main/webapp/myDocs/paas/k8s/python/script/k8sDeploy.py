@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from dbOps import dbOps
+from script.dbOps import dbOps
 import sys
 import threading
 import os

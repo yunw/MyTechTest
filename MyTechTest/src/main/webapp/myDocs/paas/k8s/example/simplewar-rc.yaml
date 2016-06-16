@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: simplewar-rc
+  labels:
+    k8s-app: simplewar    
+    kubernetes.io/cluster-service: "true"
+spec:
+    replicas: 1
+    selector:
+        k8s-app: simplewar        
+    template:
+        metadata:
+          labels:
+            k8s-app: simplewar
+            kubernetes.io/cluster-service: "true"
+        spec:            
+            containers:
+            - image: 10.25.23.165:5000/simplewar
+              name: war
+              lifecycle:
+                postStart:
+                  exec:
+                    command:
+                      - "cp"
+                      - "/simplewar.war"
+                      - "/app"
+              volumeMounts:
+              - mountPath: /app
+                name: app-volume
+            - image: tomcat
+              name: tomcat              
+              volumeMounts:
+              - mountPath: /usr/local/tomcat/webapps
+                name: app-volume
+              ports:
+              - containerPort: 8080 
+                hostPort: 8002               
+            volumes:
+            - name: app-volume
+              emptyDir: {}
+            

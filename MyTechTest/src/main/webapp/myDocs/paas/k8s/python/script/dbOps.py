@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sqlite3
 import os
+#import configparser
 import ConfigParser
 import traceback
 import sys
@@ -66,10 +67,15 @@ class dbOps:
         data=(appName,type)
         conn = self.get_conn(self.getDbFilePath())
         cu= self.get_cursor(conn)
-        cu.execute(sql,data)
-        rows=cu.fetchall()
+        try:
+            cu.execute(sql,data)
+            rows=cu.fetchall()
 
-        if (len(rows)>0):
-           for row in rows:
-               return row[0]
-        self.close_all(conn,cu)
+            if (len(rows)>0):
+                for row in rows:
+                    return row[0]
+        finally:
+            self.close_all(conn,cu)
+
+    if __name__ == "__main__":
+        print("wo kao")

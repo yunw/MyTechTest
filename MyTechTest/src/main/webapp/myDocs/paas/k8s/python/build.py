@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # prepare for this build. 
 # ****************************************************************************************
 import os
@@ -18,7 +19,7 @@ registry = "10.25.23.165:5000"
 
 
 appName = sys.argv[1]
-appVersion = sys.argv[2]+"-"+str(long(time.time()))
+appVersion = sys.argv[2]
 warFileName = sys.argv[3]
 workingDirName = appName + "-" + appVersion + "/"
 
@@ -49,11 +50,12 @@ def pushImage():
 
 
 # deploy the image to the kubernetes cluster. 
-def deploy():
+def deploy():    
     port = ports()
     debugPort = str(port.getFreePort(appName,1))
     tcpPort = str(port.getFreePort(appName,2))
     udpPort = str(port.getFreePort(appName,3))
+    print debugPort + ":" + tcpPort + ":" + udpPort
     fin = open(rootDir + "template/war-rc.yaml.in", "r")
     fout = open(rootDir + appDir + workingDirName + "/war-rc.yaml", "w")
     for s in fin:
@@ -148,11 +150,11 @@ def main():
         pushImage()
         exposedPorts = deploy()
         createLB()
-        applyLB()        
+        applyLB() 
+        save(exposedPorts,result)       
     except Exception,ex:	
         print ex
-        result = ex;
-    save(exposedPorts,result)
+        result = ex;    
         
 if __name__ == '__main__':
     main()    

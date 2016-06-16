@@ -1,7 +1,10 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+#import configparser
 import ConfigParser
 import traceback
 import socket
-from dbOps import dbOps
+from script.dbOps import dbOps
 import sys
 import threading
 import os
@@ -32,7 +35,7 @@ class ports:
 
     def getFreePort(self,appName,porttype):
         #host=['0.0.0.0','127.0.0.1', '10.25.23.165']
-        host = self.find_all_ip()
+        hosts = self.find_all_ip()
         cf = ConfigParser.ConfigParser() 
         realpath = os.path.split( os.path.realpath( sys.argv[0] ) )[0] 
         cf.read(realpath + '/script/ports.properties')
@@ -48,7 +51,7 @@ class ports:
         if lock.acquire():
             for port in range(int(minPort), int(maxPort)):
                 cnt = 0
-                for h in host:
+                for h in hosts:
                     try:
                         s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                         s.bind((h,port))
@@ -56,16 +59,21 @@ class ports:
                         cnt= cnt+1
                     except:
                         break
-                if (cnt == 3):
+                if (cnt == len(hosts)):
                     whitePorts=cf.get('whitePorts', 'ports')
                     wps = whitePorts.split(',')
+                    isWhite = False
                     for p in wps:
                         if (int(p) == port):
-                            continue
-                        else:
-                            sql='INSERT INTO ports values(?,?,?)'
-                            data=[(port,appName,porttype),]
-                            res = db.save(sql, data)
-                            if (res == 0):
-                                return port
+                            isWhite = True
+                            break
+                    if (isWhite == False):
+                        sql='INSERT INTO ports values(?,?,?)'
+                        data=[(port,appName,porttype),]
+                        res = db.save(sql, data)
+                        if (res == 0):
+                            return port
             lock.release()
+    
+    if __name__ == "__main__":
+        print('-------main------')
