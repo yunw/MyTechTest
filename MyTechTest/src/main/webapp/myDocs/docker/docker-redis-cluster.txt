@@ -1,0 +1,216 @@
+# -----------------------------------------------------------------
+#  refrence: http://www.linuxidc.com/Linux/2015-02/112995.htm
+# -----------------------------------------------------------------
+
+
+
+yum install -y wget ntp # net-tools.x86_64
+ntpdate -u cn.pool.ntp.org
+systemctl start ntpd
+systemctl enable ntpd
+date
+ntpstat
+
+
+yum install -y wget openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+
+wget https://rubygems.org/downloads/redis-3.3.0.gem
+gem install -l ./redis-3.3.0.gem
+
+wget http://download.redis.io/releases/redis-3.2.0.tar.gz
+tar zxf redis-3.2.0.tar.gz
+cd redis-3.2.0
+make
+
+mkdir -p ~/template/scripts
+
+cd src
+cp redis-cli redis-server redis-sentinel ~/template/scripts
+
+cd ..
+cp redis.conf ~/template/scripts/redis.conf
+vi ~/template/scripts/redis.conf
+
+#bind 127.0.0.1
+protected-mode no
+
+
+cd ~/template/scripts
+vi redis
+
+#!/bin/sh
+# chkconfig: 2345 80 90
+# Simple Redis init.d script conceived to work on Linux systems
+# as it does use of the /proc filesystem.
+
+REDISPORT=6379
+EXEC=/usr/bin/redis-server
+CLIEXEC=/usr/bin/redis-cli
+
+PIDFILE=/var/run/redis_${REDISPORT}.pid
+CONF="/etc/redis/${REDISPORT}.conf"
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+                echo "$PIDFILE exists, process is already running or crashed"
+        else
+                echo "Starting Redis server..."
+                $EXEC $CONF &
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "$PIDFILE does not exist, process is not running"
+        else
+                PID=$(cat $PIDFILE)
+                echo "Stopping ..."
+                $CLIEXEC -p $REDISPORT shutdown
+                while [ -x /proc/${PID} ]
+                do
+                    echo "Waiting for Redis to shutdown ..."
+                    sleep 1
+                done
+                echo "Redis stopped"
+        fi
+        ;;
+    *)
+        echo "Please use start or stop as first argument"
+        ;;
+esac
+
+chkconfig --add redis
+chkconfig redis on
+
+cd ~/template/scripts
+vi Dockerfile
+
+FROM centos
+MAINTAINER yinsl "2225646595@qq.com"
+COPY redis-cli /usr/bin/
+COPY redis-server /usr/bin/
+COPY redis-sentinel /usr/bin/
+RUN mkdir -p /etc/redis/
+COPY redis.conf /etc/redis/
+COPY redis /etc/rc.d/init.d/
+EXPOSE 6379
+CMD redis-server /etc/redis/redis.conf
+
+yum install -y docker
+
+systemctl daemon-reload
+systemctl enable docker
+systemctl restart docker
+systemctl status docker
+
+docker build -t redis .
+docker images
+
+vi /etc/sysconfig/docker-storage
+
+#DOCKER_STORAGE_OPTIONS=
+DOCKER_STORAGE_OPTIONS=--storage-opt dm.no_warn_on_loop_devices=true
+
+systemctl restart docker
+
+docker run -d -p 7001:6379 --name redis redis
+
+# ------------------------------------------------------------
+#               test
+# ------------------------------------------------------------
+cd ~/template/scripts
+./redis-cli -p 7001
+127.0.0.1:7001> 
+
+docker commit redis redis-cluster-node
+
+# masters
+docker run -d --name node1 -p 7001:6379 redis-cluster-node
+docker run -d --name node2 -p 7002:6379 redis-cluster-node
+docker run -d --name node3 -p 7003:6379 redis-cluster-node
+
+# ------------------------------------------------------------
+#               test
+# ------------------------------------------------------------
+cd ~/template/scripts
+./redis-cli -p 7001
+127.0.0.1:7001> 
+
+./redis-cli -p 7002
+127.0.0.1:7002>
+
+./redis-cli -p 7003
+127.0.0.1:7003>
+
+# slaves
+docker run -d --name node4 -p 7004:6379 redis-cluster-node
+docker run -d --name node5 -p 7005:6379 redis-cluster-node
+docker run -d --name node6 -p 7006:6379 redis-cluster-node
+
+# ----------------------------------------------------
+#        modify config, create cluster
+# ----------------------------------------------------
+docker exec -it node1 /bin/sh
+cat /etc/hosts                                                                                                                                                                     
+172.17.0.2      8ae582d9f86a
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+docker exec -it node4 /bin/sh
+vi /etc/redis/redis.conf
+slaveof 172.17.0.2 6379
+
+docker exec -it node2 /bin/sh
+cat /etc/hosts                                                                                                                                                                        
+172.17.0.3      3f83664c45e3
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+docker exec -it node5 /bin/sh
+vi /etc/redis/redis.conf
+slaveof 172.17.0.3 6379
+
+docker exec -it node3 /bin/sh
+cat /etc/hosts                                                                                                                                                                        
+172.17.0.4      e64f3d100b46
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+docker exec -it node6 /bin/sh
+vi /etc/redis/redis.conf
+slaveof 172.17.0.4 6379
+
+
+
+# ------------------------------------------------------------
+#             error
+# ------------------------------------------------------------
+1.
+Usage of loopback devices is strongly discouraged for production use. Either use `--storage-opt dm.thinpooldev` or use `--storage-opt dm.no_warn_on_loop_devices=true` to suppress this warning.
+vi /etc/sysconfig/docker-storage
+
+#DOCKER_STORAGE_OPTIONS=
+DOCKER_STORAGE_OPTIONS=--storage-opt dm.no_warn_on_loop_devices=true
+
+systemctl restart docker
+
+
+
+
+
+
+

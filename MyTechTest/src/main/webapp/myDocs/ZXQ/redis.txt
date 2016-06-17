@@ -267,3 +267,12 @@ config get slaveof #查看slaveof参数的当前值
 
 查看集群状态：
 /usr/local/redis/bin/redis-cli cluster nodes
+
+停止redis进程：
+/usr/local/redis/bin/redis-cli -p 6379 shutdown
+/usr/local/redis/bin/redis-cli -p 26379 shutdown
+
+
+redis3.2.0:
+bind 127.0.0.1 #只能在本机访问
+protected-mode yes #默认为保护模式，只能在本机访问

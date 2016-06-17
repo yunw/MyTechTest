@@ -8572,6 +8572,7 @@ etcdctl member list
 # -----------------------------------
 #    on centos71 centos72 centos73
 # -----------------------------------
+cd ~
 wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
 tar xvzf flannel-0.5.5-linux-amd64.tar.gz
 cd  flannel-0.5.5
@@ -8613,7 +8614,7 @@ systemctl restart docker
 systemctl status docker
 
 /usr/bin/mk-docker-opts.sh -i 
-vi /run/docker_opts.env
+cat /run/docker_opts.env
 
 DOCKER_OPT_BIP="--bip=172.17.15.1/24"
 DOCKER_OPT_IPMASQ="--ip-masq=true"

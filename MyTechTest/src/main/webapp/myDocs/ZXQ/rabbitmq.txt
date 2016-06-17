@@ -178,3 +178,10 @@ service rabbitmq-server start
 http://ip:15672/
 网页右上角显示的是升级后的版本号。
 注意：先升级磁盘节点，后升级内存节点。
+
+
+重启服务：
+service rabbitmq-server stop
+/usr/lib64/erlang/erts-6.3/bin/epmd -kill 
+/usr/lib64/erlang/erts-6.3/bin/epmd -daemon  
+service rabbitmq-server start
