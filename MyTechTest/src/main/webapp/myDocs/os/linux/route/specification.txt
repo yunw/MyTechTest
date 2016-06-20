@@ -1,0 +1,33 @@
+路由原理：
+IP层维护着一张路由表，它包含以下主要的条目项：
+目的IP地址：表示目标的IP地址。这个IP地址可以是某台主机的地址，也可以是一个网络地址。如果是主机地址，
+那么它的主机ID有一个非零的主机号（以指定某一特定的主机）。如果是网络地址，那么它的主机ID被标记为零（以指定网络中的所有主机）。
+下一个路由器的IP地址：采用下一个的说法，是因为下一个路由器并不总是最后的目的路由器，很可能是一个中间路由器。
+                                         该条目给出下一个路由器的地址用于转发从相应接口收到的IP数据报文。
+标志：该字段提供了另一组重要信息，如目的IP地址是一个主机地址还是一个网络地址。此外，从标志中可以得知下一个路由器真的是一个路由器还是一个直接相连的接口。
+网络接口规范：一些数据报文的网络接口规范，这个规范跟随报文一起传播。
+
+路由表示例：
+[root@centos75 ~]# route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         10.25.31.1      0.0.0.0         UG    100    0        0 enp0s3      
+10.25.31.0      0.0.0.0         255.255.255.0   U     100    0        0 enp0s3
+172.17.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
+
+Flags  可能出现的标志有：
+              U (route is up) 路由正常
+              H (target is a host) 主机路由
+              G (use gateway) 使用网关的间接路由
+              R (reinstate route for dynamic routing) 为动态选路恢复路由
+              D (dynamically installed by daemon or redirect) 该路由由选路进程或重定向动态创建
+              M (modified from routing daemon or rederict) 该路由已由选路进程或重定向修改
+              ! (reject route) 阻塞路由
+
+进本的路由是如何工作的？
+路由算法：
+1、                       
+                       
+                       
+                       
+                       
