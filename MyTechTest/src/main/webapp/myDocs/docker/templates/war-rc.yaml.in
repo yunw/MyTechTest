@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: ${APP_NAME}-rc
+  labels:
+    k8s-app: ${APP_NAME}
+    kubernetes.io/cluster-service: "true"
+spec:
+    replicas: 1
+    selector:
+        k8s-app: ${APP_NAME}
+    template:
+        metadata:
+          labels:
+            k8s-app: ${APP_NAME}
+            kubernetes.io/cluster-service: "true"
+        spec:
+            containers:
+            - image: 10.25.31.16:5000/${APP_NAME}:${APP_VERSION}
+              name: war
+              lifecycle:
+                postStart:
+                  exec:
+                    command:
+                      - "cp"
+                      - "/${WAR_FILE_NAME}"
+                      - "/app"
+              volumeMounts:
+              - mountPath: /app
+                name: app-volume
+            - image: 10.25.31.16:5000/tomcat
+              name: tomcat
+              volumeMounts:
+              - mountPath: /opt/tomcat/webapps
+                name: app-volume
+              ports:
+              - name: http
+                containerPort: 8080
+              - name: dubbo
+                containerPort: 20910
+              - name: dubug
+                containerPort: 8000
+                hostPort: ${DEBUG_PORT}
+              - name: tcp
+                containerPort: 40001
+                hostPort: ${TCP_PORT}
+              - name: udp
+                containerPort: 40002
+                hostPort: ${UDP_PORT}
+            volumes:
+            - name: app-volume
+              emptyDir: {}

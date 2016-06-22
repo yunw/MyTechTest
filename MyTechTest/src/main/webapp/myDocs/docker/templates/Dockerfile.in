@@ -1,0 +1,3 @@
+FROM busybox:latest
+ADD ${WAR_FILE_NAME} ${WAR_FILE_NAME}
+CMD "tail" "-f" "/dev/null"

@@ -1,63 +1,9 @@
-# ref：http://www.jianshu.com/p/a2039a8855ec#
-#      http://www.cnblogs.com/openxxs/p/5015734.html
-#      http://kubernetes.io/docs/api-reference/v1/definitions/
-#      http://stackoverflow.com/questions/36694769/kubernetes-skydns-failure-to-forward-request
-#      http://kubernetes.io/docs/user-guide/connecting-applications/
-#      https://github.com/kubernetes/kubernetes/blob/release-1.2/cluster/addons/dns/README.md#how-do-i-configure-it
-#      http://www.open-open.com/lib/view/open1453124958011.html
-# github k8s: https://github.com/kubernetes/kubernetes/
-# github skydns: https://github.com/skynetservices/skydns
-# github kube2sky: https://github.com/gravitational/kube2sky
+# ---------------------------------
+# refer: http://kubernetes.io/docs/getting-started-guides/docker-multinode/master/
+#        http://www.oschina.net/question/2601623_2159584
+# ---------------------------------
 
-
-# download golang: http://pan.baidu.com/s/1mgYuvpu  password: 39ji
-
-# -------------------
-# redis cluster reference
-# http://www.linuxidc.com/Linux/2016-03/129287.htm 
-# http://www.lxy520.net/2015/10/20/docker/
-# https://www.sdk.cn/news/2829
-# -------------------
-
-# log：
-journalctl -xe
-
-# env:
-# centos71 10.25.31.31     master
-# centos72 10.25.31.41    slave
-# centos73 10.25.31.42    slave
-
-# --------------------------------------------------------
-#         prepare      on centos71 centos72 centos73
-# --------------------------------------------------------
-
-# change ip addr:
-vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
-
-TYPE=Ethernet
-BOOTPROTO=static           # dhcp --> static
-DEFROUTE=yes
-PEERDNS=yes
-PEERROUTES=yes
-IPV4_FAILURE_FATAL=no
-IPV6INIT=yes
-IPV6_AUTOCONF=yes
-IPV6_DEFROUTE=yes
-IPV6_PEERDNS=yes
-IPV6_PEERROUTES=yes
-IPV6_FAILURE_FATAL=no
-NAME=enp0s3
-UUID=39f4726c-e9c4-4ad9-ae1d-f39fec1da395
-DEVICE=enp0s3
-ONBOOT=yes                 # no --> yes
-IPADDR=10.25.31.42        # added the line
-NETMASK=255.255.255.0      # added the line
-GATEWAY=10.25.31.1         # added the line
-DNS1=10.25.20.251          # added the line
-
-systemctl restart network
-
-yum install -y wget ntp net-tools.x86_64
+yum install -y wget ntp git # net-tools.x86_64
 ntpdate -u cn.pool.ntp.org
 systemctl start ntpd
 systemctl enable ntpd
@@ -79,13 +25,7 @@ vi /etc/selinux/config
 
 SELINUX=disabled
 
-init 6
-
 vi /etc/hosts
-
-10.25.31.31   centos71
-10.25.31.41   centos72
-10.25.31.42   centos73
 
 # Current Version 58.b
 # Newest Version http://go.netsh.org/link/gethosts
@@ -8443,580 +8383,262 @@ vi /etc/hosts
 # END OF ALL
 
 
-# -----------------------------------------------------------------------
-#       install etcd cluster
-# -----------------------------------------------------------------------
+# --------------------------------------------------
+#           master node
+# --------------------------------------------------
+# ----------------
+#  install docker
+# ----------------
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
 
-# ------------------
-#    on centos71
-# ------------------
-cd ~
-wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
-tar xvf etcd-v2.3.6-linux-amd64.tar.gz 
-cd etcd-v2.3.6-linux-amd64
-mv etcd* /usr/bin
+yum install -y docker-engine
 
-vi /lib/systemd/system/etcd.service
+systemctl start docker
 
-[Unit]
-Description=ETCD
+# ----------------
+#  test docker
+# ----------------
 
-[Service]
-Type=notify
-ExecStart=/usr/bin/etcd --name etcd1 \
-          --data-dir /var/lib/etcd/etcd.etcd \
-          --listen-peer-urls http://centos71:2380 \
-          --listen-client-urls http://centos71:2379,http://127.0.0.1:2379 \
-          --initial-advertise-peer-urls http://centos71:2380 \
-          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
-          --initial-cluster-state new \
-          --initial-cluster-token etcd-cluster \
-          --advertise-client-urls http://centos71:2379 \
-          --election-timeout 1000
+docker run hello-world
 
-Restart=on-failure
+# ---------------------
+#  install k8s
+# ---------------------
 
-[Install]
-WantedBy=multi-user.target
-
-
-systemctl daemon-reload
-systemctl enable etcd.service
-systemctl restart etcd.service
-systemctl status etcd.service
-
-ss -nap | grep LISTEN | grep etcd
-
-etcdctl set /coreos.com/network/config '{"Network":"172.17.0.0/16", "SubnetMin": "172.17.1.0", "SubnetMax": "172.17.254.0"}'
-etcdctl get /coreos.com/network/config
-
-etcdctl cluster-health
-etcdctl member list
-
-# ------------------
-#    on centos72
-# ------------------
-cd ~
-wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
-tar xvf etcd-v2.3.6-linux-amd64.tar.gz 
-cd etcd-v2.3.6-linux-amd64
-mv etcd* /usr/bin
-
-vi /lib/systemd/system/etcd.service
-
-[Unit]
-Description=ETCD
-
-[Service]
-Type=notify
-ExecStart=/usr/bin/etcd --name etcd2 \
-          --data-dir /var/lib/etcd/etcd.etcd \
-          --listen-peer-urls http://centos72:2380 \
-          --listen-client-urls http://centos72:2379,http://127.0.0.1:2379 \
-          --initial-advertise-peer-urls http://centos72:2380 \
-          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
-          --initial-cluster-state new \
-          --initial-cluster-token etcd-cluster \
-          --advertise-client-urls http://centos72:2379 \
-          --election-timeout 1000
-
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-
-
-systemctl daemon-reload
-systemctl enable etcd.service
-systemctl restart etcd.service
-systemctl status etcd.service
-
-ss -nap | grep LISTEN | grep etcd
-
-etcdctl cluster-health
-etcdctl member list
-
-# ------------------
-#    on centos73
-# ------------------
-cd ~
-wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
-tar xvf etcd-v2.3.6-linux-amd64.tar.gz 
-cd etcd-v2.3.6-linux-amd64
-mv etcd* /usr/bin
-
-vi /lib/systemd/system/etcd.service
-
-[Unit]
-Description=ETCD
-
-[Service]
-Type=notify
-ExecStart=/usr/bin/etcd --name etcd3 \
-          --data-dir /var/lib/etcd/etcd.etcd \
-          --listen-peer-urls http://centos73:2380 \
-          --listen-client-urls http://centos73:2379,http://127.0.0.1:2379 \
-          --initial-advertise-peer-urls http://centos73:2380 \
-          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
-          --initial-cluster-state new \
-          --initial-cluster-token etcd-cluster \
-          --advertise-client-urls http://centos73:2379 \
-          --election-timeout 1000
-
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-
-systemctl daemon-reload
-systemctl enable etcd.service
-systemctl restart etcd.service
-systemctl status etcd.service
-
-ss -nap | grep LISTEN | grep etcd
-
-etcdctl cluster-health
-etcdctl member list
-
-# ---------------------------------------------------
-#          install flannel
-# ---------------------------------------------------
-
-# -----------------------------------
-#    on centos71 centos72 centos73
-# -----------------------------------
-cd ~
-wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
-tar xvzf flannel-0.5.5-linux-amd64.tar.gz
-cd  flannel-0.5.5
-cp flanneld mk-docker-opts.sh /usr/bin/
-
-vi /lib/systemd/system/flanneld.service
-
-[Unit]
-Description=Flanneld overlay address etcd agent
-
-[Service]
-ExecStart=/usr/bin/flanneld -etcd-endpoints=http://centos71:2379,http://centos72:2379,http://centos73:2379 -etcd-prefix=/coreos.com/network
-
-[Install]
-WantedBy=multi-user.target
-
-systemctl daemon-reload
-systemctl enable flanneld.service
-systemctl restart flanneld.service
-systemctl status flanneld.service
-
-# -----------------------------------
-#    install docker
-# -----------------------------------
-
-# --------------------------------------
-#    on centos71 centos72 centos73
-# --------------------------------------
-yum install -y docker
-
-
-vi /etc/sysconfig/docker
-
-INSECURE_REGISTRY='--insecure-registry 10.25.31.31:5000'
-
-systemctl daemon-reload
-systemctl enable docker
-systemctl restart docker
-systemctl status docker
-
-/usr/bin/mk-docker-opts.sh -i 
-cat /run/docker_opts.env
-
-DOCKER_OPT_BIP="--bip=172.17.15.1/24"
-DOCKER_OPT_IPMASQ="--ip-masq=true"
-DOCKER_OPT_MTU="--mtu=1472"
-
-vi /etc/sysconfig/docker
-
-#OPTIONS='--selinux-enabled'
-OPTIONS='--selinux-enabled --bip=172.17.15.1/24 --ip-masq=true --mtu=1472'
-
-ip a s docker0
-systemctl restart docker
-ip a s docker0
-
-#可以看到docker0已经获取了flannel网段的地址
-
-# -------------------------------------------
-测试网络连通性：
-#在三台机器上各启动一个容器：
-docker run -ti centos bash
-
-#查看容器ip
-cat /etc/hosts
-172.17.47.2     615062300fc0
-#测试连通性，都成功就OK了
-#到跨物理机容器
-ping -c 3 172.17.164.7
-ping -c 3 172.17.67.1
-#到宿主机
-ping -c 3 10.25.31.31
-#到别的物理机
-ping -c 3 10.25.31.42
-
-# -------------------------------------
-#      install docker registry
-# -------------------------------------
-# ---------------------------
-#         on centos71
-# ---------------------------
-mkdir -p /paas/my_registry
-cd ~
-docker run -d -p 5000:5000 --restart=always -v /paas/my_registry:/tmp/registry registry
-
-curl http://10.25.31.31:5000/v1/search
-
-docker pull docker.io/kz8s/skydns
-docker pull busybox
-docker pull docker.io/kubernetes/kube2sky
-docker pull gcr.io/google_containers/kube2sky:1.15
-
-docker tag busybox 10.25.31.31:5000/busybox
-docker tag docker.io/kz8s/skydns 10.25.31.31:5000/skydns
-docker tag docker.io/kubernetes/kube2sky 10.25.31.31:5000/kube2sky
-docker tag gcr.io/google_containers/kube2sky:1.15 10.25.31.31:5000/kube2sky:1.15
-
-docker push 10.25.31.31:5000/busybox
-docker push 10.25.31.31:5000/kube2sky
-docker push 10.25.31.31:5000/skydns
-docker push 10.25.31.31:5000/kube2sky:1.15
-
-curl http://10.25.31.31:5000/v1/search
-
-# -----------------------------------
-#    install k8s
-# -----------------------------------
-
-# -----------------------------------
-#            on centos71
-# -----------------------------------
-mkdir -p /paas/k8s
-cd /paas/k8s
 wget https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
-tar xzf kubernetes.tar.gz
+tar zxf kubernetes.tar.gz
 cd kubernetes/server
 tar xzf kubernetes-server-linux-amd64.tar.gz
 cd kubernetes/server/bin/
-cp kube-apiserver kube-controller-manager kube-scheduler  kubectl /usr/bin
+cp kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/bin
 
-#kube-apiserver service
 
-vi /lib/systemd/system/kube-apiserver.service
+# ------------------
+#  test
+# ------------------
 
-[Unit]
-Description=K8S API Server
-After=etcd.service
-Wants=etcd.service
+export MASTER_IP=10.25.31.41
+export K8S_VERSION=1.2.4
+export ETCD_VERSION=2.2.1
+export FLANNEL_VERSION=0.5.5
+export FLANNEL_IFACE=enp0s3
+export FLANNEL_IPMASQ=true
 
-[Service]
-ExecStart=/usr/bin/kube-apiserver \
+sh -c 'docker daemon -H unix:///var/run/docker-bootstrap.sock -p /var/run/docker-bootstrap.pid \
+--iptables=false --ip-masq=false --bridge=none --exec-root=/var/lib/docker-bootstrap \
+--graph=/var/lib/docker-bootstrap 2> /var/log/docker-bootstrap.log 1> /dev/null &'
+
+
+docker -H unix:///var/run/docker-bootstrap.sock run -d \
+    --net=host \
+    gcr.io/google_containers/etcd-amd64:${ETCD_VERSION} \
+    /usr/local/bin/etcd \
+        #--initial-advertise-peer-urls http://${MASTER_IP}:2380 \
+        #--listen-peer-urls http://${MASTER_IP}:2380 \
+        --listen-client-urls=http://127.0.0.1:2379,http://${MASTER_IP}:2379 \
+        --advertise-client-urls=http://${MASTER_IP}:2379 \
+        --data-dir=/var/etcd/data
+
+# -------------------
+#  error msg:
+#  docker: Error response from daemon: rpc error: code = 2 desc = "oci runtime error: 
+#  rootfs (\"/var/lib/docker-bootstrap/devicemapper/mnt/a17d60f3b1000c9f7970a067710dfeeda6352533757af0672898e9c6d048d1fb/rootfs\") 
+#  does not exist".
+#--------------------
+# fix:
+# sudo sh -c 'docker daemon -H unix:///var/run/docker-bootstrap.sock -p /var/run/docker-bootstrap.pid \
+# --iptables=false --ip-masq=false --bridge=none --graph=/var/lib/docker-bootstrap 2> /var/log/docker-bootstrap.log 1> /dev/null &'
+# change to:
+# sudo sh -c 'docker daemon -H unix:///var/run/docker-bootstrap.sock -p /var/run/docker-bootstrap.pid \
+# --iptables=false --ip-masq=false --bridge=none --exec-root=/var/lib/docker-bootstrap \
+# --graph=/var/lib/docker-bootstrap 2> /var/log/docker-bootstrap.log 1> /dev/null &'
+# ##### add paras:  --exec-root=/var/lib/docker-bootstrap
+# refer: http://serve.3ezy.com/github.com/docker/docker/issues/22684
+#        http://serve.3ezy.com/github.com/kubernetes/kubernetes/issues/24654
+# -------------------
+
+
+sudo docker -H unix:///var/run/docker-bootstrap.sock run \
+    --net=host \
+    gcr.io/google_containers/etcd-amd64:${ETCD_VERSION} \
+    etcdctl set /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
+
+
+systemctl stop docker
+
+docker -H unix:///var/run/docker-bootstrap.sock run -d \
+    --net=host \
+    --privileged \
+    -v /dev/net:/dev/net \
+    quay.io/coreos/flannel:${FLANNEL_VERSION} \
+    /opt/bin/flanneld \
+        --ip-masq=${FLANNEL_IPMASQ} \
+        --iface=${FLANNEL_IFACE}
+
+docker -H unix:///var/run/docker-bootstrap.sock \
+exec 07c70d974602111d084406027e6af57796043bf45a46ff66af831c2dcb44b05e cat /run/flannel/subnet.env
+
+vi /lib/systemd/system/docker.service
+
+#--bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
+--bip=10.1.14.1/24 --mtu=1472
+
+
+yum install -y bridge-utils
+
+
+ifconfig docker0 down
+brctl delbr docker0
+
+
+systemctl daemon-reload
+systemctl restart docker
+ip addr
+
+docker run \
+    --volume=/:/rootfs:ro \
+    --volume=/sys:/sys:ro \
+    --volume=/var/lib/docker/:/var/lib/docker:rw \
+    --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
+    --volume=/var/run:/var/run:rw \
+    --net=host \
+    --privileged=true \
+    --pid=host \
+    -d \
+    gcr.io/google_containers/hyperkube-amd64:v${K8S_VERSION} \
+    /hyperkube kubelet \
+        --allow-privileged=true \
+        --api-servers=http://localhost:8080 \
+        --v=2 \
+        --address=0.0.0.0 \
+        --enable-server \
+        --hostname-override=127.0.0.1 \
+        --config=/etc/kubernetes/manifests-multi \
+        --containerized \
+        --cluster-dns=10.0.0.10 \
+        --cluster-domain=cluster.local
+
+/usr/bin/kube-apiserver \
                  --logtostderr=true \
                  --v=0   \
                  --allow-privileged=false \
                  --insecure-bind-address=0.0.0.0 \
                  --insecure-port=8080 \
-                 --etcd-servers=http://centos71:2379,http://centos72:2379,http://centos73:2379 \
-                 --admission-control=NamespaceAutoProvision,LimitRanger,ResourceQuota \
-                 --service-cluster-ip-range=172.17.0.0/16
-Restart=on-failure
-Type=notify
-LimitNOFILE=65536
-
-[Install]
-WantedBy=multi-user.target
-
-#kube-controller-manager service
-
-vi /lib/systemd/system/kube-controller-manager.service
-
-[Unit]
-Description=K8S Controller Manager
-After=etcd.service
-After=kube-apiserver.service
-Requires=etcd.service
-Requires=kube-apiserver.service
-
-[Service]
-ExecStart=/usr/bin/kube-controller-manager \
-                 --logtostderr=true \
-                 --v=0   \
-                 --master=http://centos71:8080 
-Restart=on-failure
-Type=notify
-LimitNOFILE=65536
-
-[Install]
-WantedBy=multi-user.target
-
-#kube-scheduler service
-
-vi /lib/systemd/system/kube-scheduler.service
-
-[Unit]
-Description=K8S Scheduler
-After=etcd.service
-After=kube-apiserver.service
-Requires=etcd.service
-Requires=kube-apiserver.service
-
-[Service]
-ExecStart=/usr/bin/kube-scheduler \
-                 --logtostderr=true \
-                 --v=0   \
-                 --master=http://centos71:8080 
-Restart=on-failure
-Type=notify
-LimitNOFILE=65536
-
-[Install]
-WantedBy=multi-user.target
-
-systemctl daemon-reload    
-
-for SERVICES in kube-apiserver kube-controller-manager kube-scheduler; do
-  systemctl restart $SERVICES
-  systemctl enable $SERVICES
-  systemctl status $SERVICES
-done
+                 --etcd-servers=http://10.25.31.41:2379 \
+                 --service-cluster-ip-range=10.1.0.0/16 &
 
 kubectl cluster-info
-kubectl api-versions
 
-# -----------------------------------
-#            on centos72 centos73
-# -----------------------------------
-mkdir -p /paas/k8s
-cd /paas/k8s
-scp root@10.25.31.31:/root/kubernetes.tar.gz .
-
-tar xzf kubernetes.tar.gz
-cd kubernetes/server
-tar xzf kubernetes-server-linux-amd64.tar.gz
-cd kubernetes/server/bin/
-cp kubelet kube-proxy /usr/bin
-mkdir -p /var/lib/kubelet
-
-vi /lib/systemd/system/kubelet.service
-
-[Unit]
-Description=K8S Kubelet Server
-After=docker.service
-Requires=docker.service
-
-[Service]
-WorkingDirectory=/var/lib/kubelet
-ExecStart=/usr/bin/kubelet \
-                 --logtostderr=true \
-                 --v=0   \
-                 --api-servers=http://centos71:8080 \
-                 --address=0.0.0.0  \
-                 --port=10250  \
-                 --allow-privileged=false 
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-
-vi /lib/systemd/system/kube-proxy.service
-
-[Unit]
-Description=K8S Kube-Proxy Server
-After=network.target
-
-[Service]
-ExecStart=/usr/bin/kube-proxy \
-                 --logtostderr=true \
-                 --v=0   \
-                 --master=http://centos71:8080 
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-
-
-systemctl daemon-reload   
-systemctl enable kubelet.service
-systemctl enable kube-proxy.service
-systemctl start kubelet.service
-systemctl start kube-proxy.service
-systemctl status kubelet.service
-systemctl status kube-proxy.service
-
-# ---------------------
-# test on centos71
-# ---------------------
 kubectl get nodes
 
-vi redis-master-rc.yaml
+# --------------------------------------------------
+#           worker node
+# --------------------------------------------------
 
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  name: redis-master
-  labels:
-    name: redis-master
-spec:
-  replicas: 1
-  selector:
-    name: redis-master
-  template:
-    metadata:
-      labels:
-        name: redis-master
-    spec:
-      containers:
-      - name: master
-        image: kubeguide/redis-master
-        ports:
-        - containerPort: 6379
+# ----------------
+#  install docker
+# ----------------
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
 
-vi redis-master-svc.yaml
+yum install -y docker-engine
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis-master
-  labels:
-    name: redis-master
-spec:
-  ports:
-  - port: 6379
-    targetPort: 6379
-    protocol: TCP
-  selector:
-    name: redis-master
+systemctl start docker
 
-vi redis-slave-rc.yaml
+# ----------------
+#  test docker
+# ----------------
 
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  name: redis-slave
-  labels:
-    name: redis-slave
-spec:
-  replicas: 2
-  selector:
-    name: redis-slave
-  template:
-    labels:
-      name: redis-slave
-  spec:
-    containers:
-    - name: master
-      image: kubeguide/guestbook-redis-slave
-      env:
-      - name: GET_HOSTS_FROM
-        value: env
-      ports:
-      - containerPort: 6379
-
-vi redis-slave-svc.yaml
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis-slave
-  labels:
-    name: redis-slave
-  spec:
-    ports:
-    - port: 6379
-      targetPort: 6379
-    selector:
-      name: redis-slave
+docker run hello-world
 
 
-vi frontend-rc.yaml
+export MASTER_IP=10.25.31.41
+export K8S_VERSION=1.2.4
+export FLANNEL_VERSION=0.5.5
+export FLANNEL_IFACE=enp0s3
+export FLANNEL_IPMASQ=true
 
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  name: frontend
-  labels:
-    name: frontend
-spec:
-  replicas: 2
-  selector:
-    name: frontend
-  template:
-    metadata:
-      labels:
-        name: frontend
-    spec:
-      containers:
-      - name: frontend
-        image: kubeguide/guestbook-php-frontend
-        env:
-        - name: GET_HOSTS_FROM
-          value: env
-        ports:
-        - containerPort: 80
-
-
-vi frontend-svc.yaml
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  labels:
-    name: frontend
-spec:
-  type: NodePort
-  ports:
-  - port: 80
-    nodePort: 30001
-  selector:
-    name: frontend
-
-kubectl create -f frontend-svc.yaml
-kubectl create -f redis-slave-svc.yaml
-kubectl create -f redis-master-svc.yaml
-
-kubectl create -f redis-master-rc.yaml
-kubectl create -f redis-slave-rc.yaml
-kubectl create -f frontend-rc.yaml
+ps -ef | grep docker
+sudo sh -c 'docker daemon -H unix:///var/run/docker-bootstrap.sock -p /var/run/docker-bootstrap.pid \
+--exec-root=/var/lib/docker-bootstrap --iptables=false --ip-masq=false \
+--bridge=none --graph=/var/lib/docker-bootstrap 2> /var/log/docker-bootstrap.log 1> /dev/null &'
+ps -ef | grep docker
 
 
 
+systemctl stop docker
+
+docker -H unix:///var/run/docker-bootstrap.sock run -d \
+    --net=host \
+    --privileged \
+    -v /dev/net:/dev/net \
+    quay.io/coreos/flannel:${FLANNEL_VERSION} \
+    /opt/bin/flanneld \
+        --ip-masq=${FLANNEL_IPMASQ} \
+        --etcd-endpoints=http://${MASTER_IP}:2379 \
+        --iface=${FLANNEL_IFACE}
+
+docker -H unix:///var/run/docker-bootstrap.sock \
+exec e6de8b606096ac32ff93415c8b56c17b1c5d5d3b85533b090e1e66a84d209521 cat /run/flannel/subnet.env
+
+vi /lib/systemd/system/docker.service
+
+#--bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
+--bip=10.1.14.1/24 --mtu=1472
 
 
+yum install -y bridge-utils
+
+ifconfig docker0 down
+brctl delbr docker0
 
 
+systemctl daemon-reload
+systemctl restart docker
+ip addr
 
+docker run \
+    --volume=/:/rootfs:ro \
+    --volume=/sys:/sys:ro \
+    --volume=/dev:/dev \
+    --volume=/var/lib/docker/:/var/lib/docker:rw \
+    --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
+    --volume=/var/run:/var/run:rw \
+    --net=host \
+    --privileged=true \
+    --pid=host \
+    -d \
+    gcr.io/google_containers/hyperkube-amd64:v${K8S_VERSION} \
+    /hyperkube kubelet \
+        --allow-privileged=true \
+        --api-servers=http://${MASTER_IP}:8080 \
+        --v=2 \
+        --address=0.0.0.0 \
+        --enable-server \
+        --containerized \
+        --cluster-dns=10.0.0.10 \
+        --cluster-domain=cluster.local
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# error:
-# 1. Failed to start service controller: ServiceController should not be run without a cloudprovider.
-# 不影响使用，如果设置了cloud-provider那么servicecontroller使用它的TCPLoadBalancer来做负载均衡，自己实现负载均衡的话，忽略就行
-#
-
-
-
-
-
-
-
+docker run -d \
+    --net=host \
+    --privileged \
+    gcr.io/google_containers/hyperkube-amd64:v${K8S_VERSION} \
+    /hyperkube proxy \
+        --master=http://${MASTER_IP}:8080 \
+        --v=2
 
 
 

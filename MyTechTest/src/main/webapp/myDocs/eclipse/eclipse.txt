@@ -1,0 +1,15 @@
+1、修改Maven的JDK版本
+缘起：使用maven的时候，默认会使用1.5版本的JDK，并且也是编译成1.5的
+方法：在$MAVEN_HOME\conf\settings.xml的profiles节点中添加：
+<profile>  
+    <id>jdk-1.8</id>  
+    <activation>  
+        <activeByDefault>true</activeByDefault>  
+        <jdk>1.8</jdk>  
+    </activation>  
+    <properties>  
+        <maven.compiler.source>1.8</maven.compiler.source>  
+        <maven.compiler.target>1.8</maven.compiler.target>  
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>  
+    </properties>  
+</profile>

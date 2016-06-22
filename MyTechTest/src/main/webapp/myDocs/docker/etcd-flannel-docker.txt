@@ -70,6 +70,7 @@ SELINUX=disabled
 init 6
 
 vi /etc/hosts
+
 10.25.31.16    centos71
 10.25.31.215   centos72
 10.25.31.123   centos73
@@ -8451,7 +8452,7 @@ Description=ETCD
 [Service]
 Type=notify
 ExecStart=/usr/bin/etcd --name etcd1 \
-          --data-dir /var/lib/etcd/etcd1.etcd \
+          --data-dir /var/lib/etcd/etcd.etcd \
           --listen-peer-urls http://centos71:2380 \
           --listen-client-urls http://centos71:2379,http://127.0.0.1:2379 \
           --initial-advertise-peer-urls http://centos71:2380 \
@@ -8497,7 +8498,7 @@ Description=ETCD
 [Service]
 Type=notify
 ExecStart=/usr/bin/etcd --name etcd2 \
-          --data-dir /var/lib/etcd/etcd2.etcd \
+          --data-dir /var/lib/etcd/etcd.etcd \
           --listen-peer-urls http://centos72:2380 \
           --listen-client-urls http://centos72:2379,http://127.0.0.1:2379 \
           --initial-advertise-peer-urls http://centos72:2380 \
@@ -8540,7 +8541,7 @@ Description=ETCD
 [Service]
 Type=notify
 ExecStart=/usr/bin/etcd --name etcd3 \
-          --data-dir /var/lib/etcd/etcd3.etcd \
+          --data-dir /var/lib/etcd/etcd.etcd \
           --listen-peer-urls http://centos73:2380 \
           --listen-client-urls http://centos73:2379,http://127.0.0.1:2379 \
           --initial-advertise-peer-urls http://centos73:2380 \
@@ -8950,6 +8951,7 @@ kubectl get services | grep skydns
 #             on centos72 centos73
 # ----------------------------------------------------------
 vi /lib/systemd/system/kubelet.service
+
 # add parameters:
 --cluster-dns=172.17.40.1 --cluster-domain=yin.com
 
@@ -8986,7 +8988,7 @@ kubectl get pods busybox
 # Validate DNS works
 kubectl exec busybox -- nslookup yin.com
 
-
+# etcdctl set /skydns/config '{"dns_addr":"127.0.0.1:53","ttl":3600,"nameservers": ["172.17.40.1:53","8.8.8.8:53","8.8.4.4:53"]}'
 
 
 
