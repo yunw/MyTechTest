@@ -8697,6 +8697,7 @@ FROM busybox
 ADD simpleweb-1.0.war simpleweb-1.0.war
 CMD "tail" "-f" "/dev/null"
 
+#create simpleweb image, Dockerfile refer: Dockerfile
 docker build -t simpleweb:1.0 .
 docker tag simpleweb:1.0 10.25.31.31:5000/simpleweb:1.0
 docker push 10.25.31.31:5000/simpleweb:1.0

@@ -8,6 +8,8 @@
 # github k8s: https://github.com/kubernetes/kubernetes/
 # github skydns: https://github.com/skynetservices/skydns
 # github kube2sky: https://github.com/gravitational/kube2sky
+# install docker: https://docs.docker.com/engine/installation/linux/centos/
+# nginxplux: http://www.open-open.com/lib/view/open1454765255745.html
 
 
 # download golang: http://pan.baidu.com/s/1mgYuvpu  password: 39ji
@@ -57,20 +59,20 @@ DNS1=10.25.20.251          # added the line
 
 systemctl restart network
 
+cd  /etc/yum.repos.d/
+curl http://mirrors.163.com/.help/CentOS7-Base-163.repo -o CentOS7-Base-163.repo
+yum makecache
+
+
 yum install -y wget ntp net-tools.x86_64
 ntpdate -u cn.pool.ntp.org
 systemctl start ntpd
 systemctl enable ntpd
 date
 ntpstat
-cd  /etc/yum.repos.d/
-wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
-yum makecache
 
-
+yum --enablerepo=updates clean metadata
 yum update -y
-
-
 
 systemctl stop firewalld.service
 systemctl disable firewalld.service
@@ -86,6 +88,8 @@ vi /etc/hosts
 10.25.31.31   centos71
 10.25.31.41   centos72
 10.25.31.42   centos73
+
+64.233.162.84    gcr.io
 
 # Current Version 58.b
 # Newest Version http://go.netsh.org/link/gethosts
@@ -8451,10 +8455,10 @@ vi /etc/hosts
 #    on centos71
 # ------------------
 cd ~
-wget https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz
-tar xvf etcd-v2.3.6-linux-amd64.tar.gz 
-cd etcd-v2.3.6-linux-amd64
-mv etcd* /usr/bin
+wget https://github.com/coreos/etcd/releases/download/v2.3.7/etcd-v2.3.7-linux-amd64.tar.gz
+tar xvf etcd-v2.3.7-linux-amd64.tar.gz 
+cd etcd-v2.3.7-linux-amd64
+cp etcd* /usr/bin
 
 vi /lib/systemd/system/etcd.service
 
@@ -8487,11 +8491,8 @@ systemctl status etcd.service
 
 ss -nap | grep LISTEN | grep etcd
 
-etcdctl set /coreos.com/network/config '{"Network":"172.17.0.0/16", "SubnetMin": "172.17.1.0", "SubnetMax": "172.17.254.0"}'
+etcdctl set /coreos.com/network/config '{"Network":"172.16.0.0/16"}'
 etcdctl get /coreos.com/network/config
-
-etcdctl cluster-health
-etcdctl member list
 
 # ------------------
 #    on centos72
@@ -8575,6 +8576,7 @@ systemctl status etcd.service
 
 ss -nap | grep LISTEN | grep etcd
 
+curl -L http://127.0.0.1:2379/v2/members
 etcdctl cluster-health
 etcdctl member list
 
@@ -8620,13 +8622,14 @@ yum install -y docker
 vi /etc/sysconfig/docker
 
 INSECURE_REGISTRY='--insecure-registry 10.25.31.31:5000'
+DOCKER_NOFILE=1000000
 
 systemctl daemon-reload
 systemctl enable docker
 systemctl restart docker
 systemctl status docker
 
-/usr/bin/mk-docker-opts.sh -i 
+/usr/bin/mk-docker-opts.sh -i
 cat /run/docker_opts.env
 
 DOCKER_OPT_BIP="--bip=172.17.15.1/24"
@@ -8639,8 +8642,19 @@ vi /etc/sysconfig/docker
 OPTIONS='--selinux-enabled --bip=172.17.15.1/24 --ip-masq=true --mtu=1472'
 
 ip a s docker0
+systemctl daemon-reload
 systemctl restart docker
 ip a s docker0
+
+# test
+[root@centos72 flannel-0.5.5]# etcdctl ls /coreos.com/network/subnets
+/coreos.com/network/subnets/172.16.74.0-24
+/coreos.com/network/subnets/172.16.41.0-24
+[root@centos72 flannel-0.5.5]# etcdctl get /coreos.com/network/subnets/172.16.74.0-24
+{"PublicIP":"10.25.31.41"}
+[root@centos72 flannel-0.5.5]# etcdctl get /coreos.com/network/subnets/172.16.41.0-24
+{"PublicIP":"10.25.31.42"}
+
 
 #可以看到docker0已经获取了flannel网段的地址
 
@@ -8853,10 +8867,10 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 
-
+clear
 systemctl daemon-reload
 
-for SERVICES in kubelet kube-proxy; do
+for SERVICES in docker etcd flanneld kubelet kube-proxy; do
   systemctl restart $SERVICES
   systemctl enable  $SERVICES
   systemctl status  $SERVICES

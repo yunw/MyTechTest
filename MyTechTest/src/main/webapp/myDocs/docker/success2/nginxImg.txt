@@ -1,0 +1,32 @@
+docker run --name mynginx1 -p 30180:80 -p 31443:443 -d nginx
+
+docker ps
+
+curl http://localhost:30180
+
+docker exec -ti mynginx1 /bin/sh
+
+
+mkdir -p /var/www
+
+#copy files from container to local
+docker cp mynginx1:/usr/share/nginx/html /var/www
+docker cp mynginx1:/etc/nginx /var
+
+docker stop mynginx1
+
+docker rm mynginx1
+
+
+docker run --name mynginx2 -v /var/www/html:/usr/share/nginx/html:ro \
+  -v /var/nginx:/etc/nginx:ro -p 30280:80 -p 32443:443 -d nginx
+
+docker ps
+
+curl http://localhost:30280
+
+docker stop mynginx2
+
+docker rm mynginx2
+
+docker ps -a

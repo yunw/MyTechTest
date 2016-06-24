@@ -285,12 +285,14 @@ WantedBy=multi-user.target
 systemctl start docker.service
 systemctl daemon-reload
 systemctl start flanneld.service
+systemctl status flanneld.service
 
 #flannel启动后生成/run/flannel/subnet.env文件
 cat /run/flannel/subnet.env
 
 mk-docker-opts.sh -i
 source /run/flannel/subnet.env
+cat /run/flannel/subnet.env
 ifconfig docker0 ${FLANNEL_SUBNET}
 
 systemctl restart docker
@@ -366,7 +368,6 @@ vi /lib/systemd/system/kube-apiserver.service
 
 [Unit]
 Description=K8S API Server
-#kube-apiserver依赖etcd服务，因此加入下面两行
 After=etcd.service
 Wants=etcd.service
 
@@ -493,7 +494,10 @@ WantedBy=multi-user.target
 systemctl daemon-reload     
 systemctl start kubelet.service
 systemctl start kube-proxy.service
-
+systemctl enable kubelet.service
+systemctl enable kube-proxy.service
+systemctl status kubelet.service
+systemctl status kube-proxy.service
 
 
 2) 在10.25.23.167上执行
@@ -548,6 +552,11 @@ WantedBy=multi-user.target
 systemctl daemon-reload     
 systemctl start kubelet.service
 systemctl start kube-proxy.service
+systemctl enable kubelet.service
+systemctl enable kube-proxy.service
+systemctl status kubelet.service
+systemctl status kube-proxy.service
+
 
 #验证
 kubectl --server=10.25.23.165:8080 get nodes
@@ -562,12 +571,13 @@ kubectl create -f skydns-svc.yaml
 在10.25.23.166和10.25.23.167上修改kubelet.service
 vi /lib/systemd/system/kubelet.service
 增加下面启动项
---cluster-dns=172.16.168.168 \     
+--cluster-dns=172.16.168.168 \
 --cluster-domain=zxq.com
 
 #重启kubelet
 systemctl daemon-reload
 systemctl restart kubelet.service
+systemctl status kubelet.service
 
 #安装busybox
 kubectl create -f busybox.yaml

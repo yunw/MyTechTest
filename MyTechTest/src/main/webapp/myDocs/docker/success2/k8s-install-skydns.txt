@@ -1,0 +1,630 @@
+# --------------------------------------------------------------------------
+#    refer: 
+# nginxplus: https://www.nginx.com/blog/deploying-nginx-nginx-plus-docker/
+# node selector: https://segmentfault.com/a/1190000004470355
+# --------------------------------------------------------------------------
+
+# --------------------------------------------------------
+#         prepare      on centos71 centos72 centos73
+# --------------------------------------------------------
+
+# change ip addr:
+vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+
+TYPE=Ethernet
+BOOTPROTO=static           # dhcp --> static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=enp0s3
+UUID=39f4726c-e9c4-4ad9-ae1d-f39fec1da395
+DEVICE=enp0s3
+ONBOOT=yes                 # no --> yes
+IPADDR=10.25.31.42        # added the line
+NETMASK=255.255.255.0      # added the line
+GATEWAY=10.25.31.1         # added the line
+DNS1=10.25.20.251          # added the line
+
+systemctl restart network
+
+cd  /etc/yum.repos.d/
+curl http://mirrors.163.com/.help/CentOS7-Base-163.repo -o CentOS7-Base-163.repo
+yum makecache
+
+
+yum install -y wget ntp net-tools.x86_64
+ntpdate -u cn.pool.ntp.org
+systemctl start ntpd
+systemctl enable ntpd
+date
+ntpstat
+
+yum --enablerepo=updates clean metadata
+yum update -y
+
+systemctl stop firewalld.service
+systemctl disable firewalld.service
+
+vi /etc/selinux/config
+
+SELINUX=disabled
+
+init 6
+
+vi /etc/hosts # content refer : etc-hosts.txt
+
+
+
+# -----------------------------------------------------------------------
+#       install etcd cluster
+# -----------------------------------------------------------------------
+
+# ------------------
+#    on centos71
+# ------------------
+cd ~
+wget https://github.com/coreos/etcd/releases/download/v2.3.7/etcd-v2.3.7-linux-amd64.tar.gz
+tar xvf etcd-v2.3.7-linux-amd64.tar.gz 
+cd etcd-v2.3.7-linux-amd64
+cp etcd* /usr/bin
+
+vi /lib/systemd/system/etcd.service
+
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd1 \
+          --data-dir /var/lib/etcd/etcd.etcd \
+          --listen-peer-urls http://centos71:2380 \
+          --listen-client-urls http://centos71:2379,http://127.0.0.1:2379 \
+          --initial-advertise-peer-urls http://centos71:2380 \
+          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://centos71:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload
+systemctl enable etcd.service
+systemctl restart etcd.service
+systemctl status etcd.service
+
+ss -nap | grep LISTEN | grep etcd
+
+etcdctl set /coreos.com/network/config '{"Network":"172.16.0.0/16"}'
+etcdctl get /coreos.com/network/config
+
+
+# ------------------
+#    on centos72
+# ------------------
+cd ~
+wget https://github.com/coreos/etcd/releases/download/v2.3.7/etcd-v2.3.7-linux-amd64.tar.gz
+tar xvf etcd-v2.3.7-linux-amd64.tar.gz 
+cd etcd-v2.3.7-linux-amd64
+mv etcd* /usr/bin
+
+vi /lib/systemd/system/etcd.service
+
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd2 \
+          --data-dir /var/lib/etcd/etcd.etcd \
+          --listen-peer-urls http://centos72:2380 \
+          --listen-client-urls http://centos72:2379,http://127.0.0.1:2379 \
+          --initial-advertise-peer-urls http://centos72:2380 \
+          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://centos72:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl enable etcd.service
+systemctl restart etcd.service
+systemctl status etcd.service
+
+ss -nap | grep LISTEN | grep etcd
+
+# ------------------
+#    on centos73
+# ------------------
+cd ~
+wget https://github.com/coreos/etcd/releases/download/v2.3.7/etcd-v2.3.7-linux-amd64.tar.gz
+tar xvf etcd-v2.3.7-linux-amd64.tar.gz 
+cd etcd-v2.3.7-linux-amd64
+mv etcd* /usr/bin
+
+vi /lib/systemd/system/etcd.service
+
+[Unit]
+Description=ETCD
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/etcd --name etcd3 \
+          --data-dir /var/lib/etcd/etcd.etcd \
+          --listen-peer-urls http://centos73:2380 \
+          --listen-client-urls http://centos73:2379,http://127.0.0.1:2379 \
+          --initial-advertise-peer-urls http://centos73:2380 \
+          --initial-cluster etcd1=http://centos71:2380,etcd2=http://centos72:2380,etcd3=http://centos73:2380 \
+          --initial-cluster-state new \
+          --initial-cluster-token etcd-cluster \
+          --advertise-client-urls http://centos73:2379 \
+          --election-timeout 1000
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl enable etcd.service
+systemctl restart etcd.service
+systemctl status etcd.service
+
+ss -nap | grep LISTEN | grep etcd
+curl -L http://127.0.0.1:2379/v2/members
+etcdctl cluster-health
+etcdctl member list
+
+# ---------------------------------------------------
+#          install flannel
+# ---------------------------------------------------
+# -----------------------------------
+#    on  centos72
+# -----------------------------------
+cd ~
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://centos71:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl enable flanneld.service
+systemctl restart flanneld.service
+systemctl status flanneld.service
+
+# -----------------------------------
+#    on  centos73
+# -----------------------------------
+cd ~
+wget  https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz
+tar xvzf flannel-0.5.5-linux-amd64.tar.gz
+cd  flannel-0.5.5
+cp flanneld mk-docker-opts.sh /usr/bin/
+
+vi /lib/systemd/system/flanneld.service
+
+[Unit]
+Description=Flanneld overlay address etcd agent
+After=network.target
+Before=docker.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/flanneld -etcd-endpoints=http://centos71:2379 -etcd-prefix=/coreos.com/network
+Restart=on-failure
+
+[Install]
+RequiredBy=docker.service
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl enable flanneld.service
+systemctl restart flanneld.service
+systemctl status flanneld.service
+
+
+# -----------------------------------
+#    install docker
+# -----------------------------------
+# --------------------------------------
+#    on centos71
+# --------------------------------------
+# add yum repo
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+yum install docker-engine
+systemctl enable docker
+systemctl start docker
+systemctl status docker
+
+# test
+docker run hello-world
+
+vi /lib/systemd/system/docker.service
+
+#ExecStart=/usr/bin/docker daemon -H fd://
+ExecStart=/usr/bin/docker daemon -H fd:// --insecure-registry=10.25.31.31:5000
+
+/usr/bin/mk-docker-opts.sh -i
+cat /run/docker_opts.env
+
+
+vi /lib/systemd/system/docker.service
+
+#ExecStart=/usr/bin/docker daemon -H fd://
+ExecStart=/usr/bin/docker daemon -H fd:// --insecure-registry=10.25.31.31:5000
+
+systemctl daemon-reload
+systemctl restart docker
+systemctl status docker
+
+
+# --------------------------------------
+#    on centos72 centos73
+# --------------------------------------
+# add yum repo
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+yum install docker-engine
+systemctl enable docker
+systemctl start docker
+systemctl status docker
+
+# test
+docker run hello-world
+
+vi /lib/systemd/system/docker.service
+
+#ExecStart=/usr/bin/docker daemon -H fd://
+ExecStart=/usr/bin/docker daemon -H fd:// --insecure-registry=10.25.31.31:5000
+
+/usr/bin/mk-docker-opts.sh -i
+cat /run/docker_opts.env
+
+
+vi /lib/systemd/system/docker.service
+
+#ExecStart=/usr/bin/docker daemon -H fd://
+#ExecStart=/usr/bin/docker daemon -H fd:// --insecure-registry=10.25.31.31:5000
+ExecStart=/usr/bin/docker daemon -H fd:// --insecure-registry=10.25.31.31:5000 --bip=172.16.74.1/24 --ip-masq=true --mtu=1472
+
+ip a s docker0
+systemctl daemon-reload
+systemctl restart docker
+ip a s docker0
+
+# test
+[root@centos72 flannel-0.5.5]# etcdctl ls /coreos.com/network/subnets
+/coreos.com/network/subnets/172.16.74.0-24
+/coreos.com/network/subnets/172.16.41.0-24
+[root@centos72 flannel-0.5.5]# etcdctl get /coreos.com/network/subnets/172.16.74.0-24
+{"PublicIP":"10.25.31.41"}
+[root@centos72 flannel-0.5.5]# etcdctl get /coreos.com/network/subnets/172.16.41.0-24
+{"PublicIP":"10.25.31.42"}
+
+# -----------------------------------
+#    install k8s
+# -----------------------------------
+
+# -----------------------------------
+#            on centos71
+# -----------------------------------
+mkdir -p /paas/k8s
+cd /paas/k8s
+wget https://github.com/kubernetes/kubernetes/releases/download/v1.2.4/kubernetes.tar.gz
+tar xzf kubernetes.tar.gz
+cd kubernetes/server
+tar xzf kubernetes-server-linux-amd64.tar.gz
+cd kubernetes/server/bin/
+cp kube-apiserver kube-controller-manager kube-scheduler  kubectl /usr/bin
+
+#kube-apiserver service
+
+vi /lib/systemd/system/kube-apiserver.service
+
+[Unit]
+Description=K8S API Server
+After=etcd.service
+Wants=etcd.service
+
+[Service]
+ExecStart=/usr/bin/kube-apiserver \
+                 --logtostderr=true \
+                 --v=0   \
+                 --allow-privileged=false \
+                 --insecure-bind-address=0.0.0.0 \
+                 --insecure-port=8080 \
+                 --etcd-servers=http://centos71:2379,http://centos72:2379,http://centos73:2379 \
+                 --admission-control=NamespaceAutoProvision,LimitRanger,ResourceQuota \
+                 --service-cluster-ip-range=172.17.0.0/16
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+#kube-controller-manager service
+
+vi /lib/systemd/system/kube-controller-manager.service
+
+[Unit]
+Description=K8S Controller Manager
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://centos71:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+#kube-scheduler service
+
+vi /lib/systemd/system/kube-scheduler.service
+
+[Unit]
+Description=K8S Scheduler
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+ExecStart=/usr/bin/kube-scheduler \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://centos71:8080 
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload    
+
+for SERVICES in kube-apiserver kube-controller-manager kube-scheduler; do
+  systemctl restart $SERVICES
+  systemctl enable  $SERVICES
+  systemctl status  $SERVICES
+done
+
+kubectl cluster-info
+kubectl api-versions
+
+# -----------------------------------
+#            on centos72 centos73
+# -----------------------------------
+mkdir -p /paas/k8s
+cd /paas/k8s
+scp root@10.25.31.31:/root/kubernetes.tar.gz .
+
+tar xzf kubernetes.tar.gz
+cd kubernetes/server
+tar xzf kubernetes-server-linux-amd64.tar.gz
+cd kubernetes/server/bin/
+cp kubelet kube-proxy /usr/bin
+mkdir -p /var/lib/kubelet
+
+vi /lib/systemd/system/kubelet.service
+
+[Unit]
+Description=K8S Kubelet Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory=/var/lib/kubelet
+ExecStart=/usr/bin/kubelet \
+                 --logtostderr=true \
+                 --v=0   \
+                 --api-servers=http://centos71:8080 \
+                 --address=0.0.0.0  \
+                 --port=10250  \
+                 --allow-privileged=false 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+vi /lib/systemd/system/kube-proxy.service
+
+[Unit]
+Description=K8S Kube-Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+                 --logtostderr=true \
+                 --v=0   \
+                 --master=http://centos71:8080 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+clear
+systemctl daemon-reload
+
+for SERVICES in  kubelet kube-proxy; do
+  systemctl restart $SERVICES
+  systemctl enable  $SERVICES
+  systemctl status  $SERVICES
+done
+
+# ---------------------
+# test on centos71
+# ---------------------
+[root@centos71 ~]# kubectl get nodes
+NAME       STATUS    AGE
+centos72   Ready     9m
+centos73   Ready     5m
+
+
+# ------------------------------------
+#    install skydns
+# ------------------------------------
+vi skydns.yaml # content refer: skydns.yaml
+
+
+
+
+kubectl create -f skydns.yaml
+
+# test
+vi busybox.yaml # content refer : busybox.yaml
+
+
+
+kubectl create -f busybox.yaml
+
+[root@centos71 dns]# kubectl exec busybox -- nslookup kubernetes.default.svc.zxq002.com
+Server:    172.16.168.168
+Address 1: 172.16.168.168
+
+Name:      kubernetes.default.svc.zxq002.com
+Address 1: 172.16.0.1
+
+[root@centos71 busybox]# kubectl exec busybox -- nslookup kube-dns.kube-system.svc.zxq002.com
+Server:    172.16.168.168
+Address 1: 172.16.168.168
+
+Name:      kube-dns.kube-system.svc.zxq002.com
+Address 1: 172.16.168.168
+
+
+# -------------------------
+#  deploy applications
+# -------------------------
+
+# -------------------------------------
+#      install docker registry
+# -------------------------------------
+# ---------------------------
+#         on centos71
+# ---------------------------
+mkdir -p /paas/my_registry
+cd ~
+docker run -d -p 5000:5000 --restart=always -v /paas/my_registry:/tmp/registry registry
+
+docker pull docker.io/kz8s/skydns
+docker pull busybox
+docker pull docker.io/kubernetes/kube2sky
+docker pull gcr.io/google_containers/kube2sky:1.15
+docker pull docker.io/tomcat
+
+docker tag busybox 10.25.31.31:5000/busybox
+docker tag docker.io/kz8s/skydns 10.25.31.31:5000/skydns
+docker tag docker.io/kubernetes/kube2sky 10.25.31.31:5000/kube2sky
+docker tag gcr.io/google_containers/kube2sky:1.15 10.25.31.31:5000/kube2sky:1.15
+docker tag tomcat 10.25.31.31:5000/tomcat
+
+docker push 10.25.31.31:5000/busybox
+docker push 10.25.31.31:5000/kube2sky
+docker push 10.25.31.31:5000/skydns
+docker push 10.25.31.31:5000/kube2sky:1.15
+docker push 10.25.31.31:5000/tomcat
+
+mkdir ~/template
+vi Dockerfile
+FROM busybox
+ADD simpleweb.war simpleweb.war
+CMD "tail" "-f" "/dev/null"
+
+docker build -t simpleweb:1.0 .
+docker tag simpleweb:1.0 10.25.31.31:5000/simpleweb:1.0
+docker push 10.25.31.31:5000/simpleweb:1.0
+
+
+kubectl create -f simpleweb-svc.yaml
+kubctl create -f simpleweb-rc.yaml
+
+# -------------------------
+#   test
+# -------------------------
+
+[root@centos71 scripts]# kubectl get pods
+NAME                 READY     STATUS    RESTARTS   AGE
+busybox              1/1       Running   1          7h
+simpleweb-rc-weuc7   2/2       Running   0          22m
+[root@centos71 scripts]# kubectl exec busybox -- nslookup simpleweb-svc
+Server:    172.16.168.168
+Address 1: 172.16.168.168
+
+Name:      simpleweb-svc
+Address 1: 172.16.189.203
+[root@centos71 scripts]# kubectl describe pods/simpleweb-rc-weuc7 | grep Node
+Node:           centos72/10.25.31.41
+[root@centos71 scripts]# curl http://centos72:30005/simpleweb/
+<html>
+<head>
+    <title>simple web page</title>
+</head>
+<body>
+This is a simple web page.
+</body>
+</html>
+
+
+
+
+
+
+
+
+
