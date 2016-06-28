@@ -1,5 +1,18 @@
 yinslgo@gmail.com/yinsl123
 
+pod(rc):
+spec.containers[].ports[]：容器需要暴露的端口号列表
+spec.containers[].ports[].containerPort：容器需要监听的端口号
+spec.containers[].ports[].hostPort：容器所在主机需要监听的端口号，默认与containerPort相同
+
+service:
+spec.ports[]：service需要暴露的端口号列表
+spec.ports[].port：服务监听的端口号
+spec.ports[].targetPort：需要转发到后端pod的端口号
+spec.ports[].nodePort：节点暴露的端口号，提供对外访问能力，端口范围：30000~32767
+
+
+
 k8s网络配置方案：
 直接路由、flannel、Open vSwitch
 

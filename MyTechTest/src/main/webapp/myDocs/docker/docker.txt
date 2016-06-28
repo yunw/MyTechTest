@@ -1,5 +1,14 @@
 docker hub account：dockuserabcd/qqmail/abcd_1234
 
+镜像导入导出：
+导出：
+docker save gcr.io/google_containers/kubernetes-dashboard-amd64:v1.0.1 > dashboard.tar
+导入：
+docker load < dashboard.tar 
+查看导入镜像：
+[root@centos72 ~]# docker images | grep dashboard
+gcr.io/google_containers/kubernetes-dashboard-amd64   v1.0.1              f33198caac8e        12 weeks ago        44.09 MB
+
 概念：
 Dock Image（dock镜像）：
 就是一个只读模板。镜像可以用来创建容器。Docker 提供了一个很简单的机制来创建镜像或者更新现有的镜像，用户甚至可以直接从其他人那里下载一个已经做好的镜像来直接使用。

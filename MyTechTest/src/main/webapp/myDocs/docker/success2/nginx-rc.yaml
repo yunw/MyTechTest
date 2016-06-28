@@ -13,6 +13,6 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx
+          image: 10.25.31.31:5000/nginx:2016-06-28-001
           ports:
             - containerPort: 80

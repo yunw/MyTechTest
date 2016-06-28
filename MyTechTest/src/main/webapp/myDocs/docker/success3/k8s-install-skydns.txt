@@ -603,7 +603,7 @@ events {
 http {
 
     upstream www.simpleweb.cn {
-        server simpleweb-svc.default.svc.zxq002.com;
+        server simpleweb-svc.default.svc.zxq002.com:8080;
     }
 
     include       /etc/nginx/mime.types;
