@@ -13,6 +13,8 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: 10.25.31.31:5000/nginx:2016-06-28-008
+          image: 10.25.31.31:5000/nginx:2016-06-29-001
           ports:
             - containerPort: 80
+      #nodeSelector:
+      #    kubernetes.io/hostname: centos72

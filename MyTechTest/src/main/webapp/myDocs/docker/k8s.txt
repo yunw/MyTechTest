@@ -11,6 +11,8 @@ spec.ports[].port：服务监听的端口号
 spec.ports[].targetPort：需要转发到后端pod的端口号
 spec.ports[].nodePort：节点暴露的端口号，提供对外访问能力，端口范围：30000~32767
 
+volume of pod:
+volume是一个能被容器访问的目录（一般在/var/lib/kubelet/pods下面）
 
 
 k8s网络配置方案：
