@@ -483,6 +483,9 @@ NAME       STATUS    AGE
 centos72   Ready     9m
 centos73   Ready     5m
 
+kubectl label nodes centos72 kubernetes.io/hostname=centos72
+kubectl label nodes centos73 kubernetes.io/hostname=centos73
+
 # -----------------------------------------------
 #   install kubernetes-dashboard
 # -----------------------------------------------
