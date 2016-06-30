@@ -1,0 +1,9 @@
+ali:
+https://crp.aliyun.com/
+http://www.oschina.net/project/alibaba
+
+apache:
+http://search.maven.org/
+
+qiniu:
+http://developer.qiniu.com/resource/official.html#sdk
