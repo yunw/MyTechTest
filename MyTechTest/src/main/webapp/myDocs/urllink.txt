@@ -1,5 +1,5 @@
 ali:
-https://crp.aliyun.com/
+https://crp.aliyun.com/  yinshunlin/94202209
 http://www.oschina.net/project/alibaba
 
 apache:
@@ -7,3 +7,4 @@ http://search.maven.org/
 
 qiniu:
 http://developer.qiniu.com/resource/official.html#sdk
+

@@ -1,0 +1,67 @@
+refer: http://blog.csdn.net/inuoyan/article/details/49736251
+
+
+一、下载mysql非安装版压缩文件：mysql-5.7.13-winx64.zip
+
+二、解压到d盘：d:/db/mysql/mysql-5.7.13-winx64
+       设置MYSQL_HOME=d:/db/mysql/mysql-5.7.13-winx64
+       将%MYSQL_HOME%\bin加入path环境变量。
+
+三、配置mysql
+1、主服务器配置：
+将d:/db/mysql/mysql-5.7.13-winx64/my-default.ini重命名为：my.ini
+my.ini:
+[mysqld]
+
+ basedir = d:/db/mysql/mysql-5.7.13-winx64
+ datadir = d:/db/mysql/mysql-5.7.13-winx64/data
+ port = 3306
+ server_id = 1
+ character_set_server = utf8
+ default_password_lifetime=0 # 密码永久有效
+ explicit_defaults_for_timestamp=true
+ skip-grant-tables # 添加 skip-grant-tables 不需要密码验证，直接登录，目的为了修改root密码，修改后可以再注释掉。如果不加，首次登录用-p参数，在出来需要密码输入的地方直接回车也可以成功
+ 
+ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER
+
+初始化mysql目录
+cd d:/db/mysql/mysql-5.7.13-winx64
+d:\db\mysql\mysql-5.7.13-winx64>bin\mysqld --initialize-insecure --user=mysql
+
+创建mysql服务
+d:\db\mysql\mysql-5.7.13-winx64>bin\mysqld install mysql --defaults-file=D:/db/mysql/mysql-5.7.13-winx64/my-default.ini
+ 
+ 启动昂mysql服务
+d:\db\mysql\mysql-5.7.13-winx64>net start mysql
+ 注意：服务创建之后并非处于启动状态，所以需要上述命令来启动服务。
+ 
+  然后输入：mysql -h localhost -P 3306 -u root
+ 最后会出现：
+ mysql>
+ 提示符
+ 说明已经登录上mysql主服务了。
+测试：
+输入命令：use mysql
+输入查询语句：select host, user,authentication_string from user;
++-----------+-----------+-------------------------------------------+
+| host      | user      | authentication_string                     |
++-----------+-----------+-------------------------------------------+
+| localhost | root      |                                           |
+| localhost | mysql.sys | *THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE |
++-----------+-----------+-------------------------------------------+
+2 rows in set (0.00 sec)
+
+设置数据库密码：UPDATE user SET authentication_string=password ('root') WHERE user='root';
+退出数据库（quit），然后重新进入：mysql -h localhost -P 3306 -u root -proot
+
+ 
+ 八、测试主从服务器的配置：
+ 在主服务器建表：
+ drop table if exists t_test;
+ create table t_test(id int);
+ insert into t_test (id) values (1);
+在主服务器执行查询：
+select id from t_test;
+可以看到结果。
+
+打完收工。

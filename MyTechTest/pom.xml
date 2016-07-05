@@ -55,7 +55,7 @@
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2/</url>
 		</repository>
-		<repository>
+		<!-- <repository>
 			<id>local-central</id>
 			<url>${central.release.repo.url}</url>
 			<snapshots>
@@ -73,9 +73,16 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-		</repository>
+		</repository> -->
 	</repositories>
 	<dependencies>
+	<dependency>
+    <groupId>jdk.tools</groupId>
+    <artifactId>jdk.tools</artifactId>
+    <version>1.8</version>
+    <scope>system</scope>
+    <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
+</dependency>
 		<dependency>
 			<groupId>org.python</groupId>
 			<artifactId>jython</artifactId>
@@ -339,6 +346,26 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			<plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>default-testResources</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>testResources</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>resources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 		</plugins>
 	</build>
 </project>
