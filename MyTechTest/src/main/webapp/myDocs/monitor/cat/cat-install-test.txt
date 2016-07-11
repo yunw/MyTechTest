@@ -1,0 +1,17 @@
+1、安装git
+yum install -y git
+
+2、下载源码：
+git clone https://github.com/dianping/cat.git
+
+3、在cat目录下，构建maven项目：
+mvn clean install -DskipTests
+
+4、配置cat环境：
+mvn cat:install
+
+
+
+
+
+

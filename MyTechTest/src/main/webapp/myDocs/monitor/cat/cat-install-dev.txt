@@ -1,0 +1,54 @@
+reference：https://github.com/dianping/cat/blob/master/script/Dianping%20CAT%20%E5%AE%89%E8%A3%85%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3.md
+
+1、下载cat源码：https://github.com/dianping/cat.git
+
+安装：
+一、windows系统：
+1、准备：
+a、mysql数据库安装
+b、创建目录：/data/appdatas/cat/ 和 /data/applogs/cat，并保证当前用户对这两个目录有读写权限（windows系统这两个文件夹与项目源码在同一个磁盘中）
+
+2、在项目目录下执行：mvn clean install -DskipTests
+
+3、配置cat环境：
+mvn cat:install
+
+4、将cat-home中的war包修改为cat.war，放入tomat中运行。
+
+5、根据需要修改配置文件：
+a、/data/appdatas/cat/client.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<config mode="client" xmlns:xsi="http://www.w3.org/2001/XMLSchema" xsi:noNamespaceSchemaLocation="config.xsd">
+    <servers>
+        <!-- Local mode for development -->
+        <server ip="127.0.0.1" port="2280" http-port="8080" />
+        <!-- If under production environment, put actual server address as list. -->
+        <!-- 
+            <server ip="192.168.7.71" port="2280" /> 
+            <server ip="192.168.7.72" port="2280" /> 
+        -->
+    </servers>
+</config>
+说明：
+mode：该属性暂未使用，保持client即可
+server：运行cat.war的容器的信息。
+ip：服务器ip
+port：tcp端口
+http-port：http端口，默认8080
+
+b、/data/appdatas/cat/server.xml
+<config local-mode="false" hdfs-machine="false" job-machine="true" alert-machine="true">
+    <storage local-base-dir="/data/appdatas/cat/bucket/" max-hdfs-storage-time="15" local-report-storage-time="7" local-logivew-storage-time="7">
+        <hdfs id="logview" max-size="128M" server-uri="hdfs://10.8.40.31/user/cat" base-dir="logview"/>
+        <hdfs id="dump" max-size="128M" server-uri="hdfs://10.8.40.32/user/cat" base-dir="dump"/>
+        <hdfs id="remote" max-size="128M" server-uri="hdfs://10.8.40.33/user/cat" base-dir="remote"/>
+    </storage>
+    <console default-domain="Cat" show-cat-domain="true">
+        <remote-servers>10.8.40.26:8080,10.8.40.27:8080,10.8.40.28:8080</remote-servers>
+    </console>
+    <ldap ldapUrl="ldap://10.8.40.21:389/DC=dianpingoa,DC=com"/>
+</config>
+说明：
+
+c、/data/appdatas/cat/datasources.xml

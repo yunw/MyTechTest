@@ -1,0 +1,16 @@
+1、开放端口：
+a、查找活动域：
+[root@centos72 ~]# firewall-cmd --get-active-zones
+public
+  interfaces: enp0s3 enp0s8
+  
+b、开放活动域下的端口
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+
+c、重新加载防火墙：
+firewall-cmd --reload
+
+d、查看端口是否开放：
+[root@centos72 ~]# firewall-cmd --permanent --query-port=8080/tcp
+yes
+

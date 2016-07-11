@@ -1,0 +1,8 @@
+cd ~/downloads
+wget http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36.tar.gz
+tar zxf apache-tomcat-8.0.36.tar.gz -C /usr/local/
+
+#启动
+usr/local/apache-tomcat-8.0.36/bin/startup.sh 
+#停止
+usr/local/apache-tomcat-8.0.36/bin/shutdown.sh

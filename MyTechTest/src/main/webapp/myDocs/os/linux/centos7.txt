@@ -249,4 +249,8 @@ internal：用于内部网络，你基本上相信网络上的其他计算机不
 trusted：所有的网络连接都接受。
 
 
+virtualbox centos7添加双网卡：
+1、第一张网卡为net模式。配置固定ip，修改/etc/resolv.conf添加nameserver
+2、第二张网卡为内网模式。配置固定ip。
+
 

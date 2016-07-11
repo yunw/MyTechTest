@@ -20,3 +20,16 @@ Spring Boot所提供的配置优先级顺序比较复杂。按照优先级从高
 如果不需要这个功能，可以通过 “SpringApplication.setAddCommandLineProperties(false)” 禁用解析命令行参数。
    RandomValuePropertySource可以用来生成测试所需要的各种不同类型的随机值，从而免去了在代码中生成的麻烦。RandomValuePropertySource可以生成数字和字符串。
 数字的类型包含 int 和 long，可以限定数字的大小范围。以“random.”作为前缀的配置属性名称由 RandomValuePropertySource来生成。如代码 3 所示。
+
+
+
+添加filter：
+
+
+
+
+
+
+
+
+

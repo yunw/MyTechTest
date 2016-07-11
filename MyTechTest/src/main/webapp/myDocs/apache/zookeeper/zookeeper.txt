@@ -13,6 +13,8 @@ server.1=ip1:2888:3888
 server.2=ip2:2888:3888
 server.3=ip3:2888:3888
 
+注：在dataDir目录：/var/zookeeper/下创建文件：myid里面就是一个数字，集群中每个节点上这个数字必须唯一。
+
 tickTime ：基本事件单元，以毫秒为单位。它用来指示心跳，最小的 session 过期时间为两倍的 tickTime。
 dataDir ：存储内存中数据库快照的位置，如果不设置参数，更新事务日志将被存储到默认位置。这个目录在开始的时候需要为空。
 clientPort ：监听客户端连接的端口

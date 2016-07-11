@@ -1,0 +1,20 @@
+安装jdk：
+
+一、下载：jdk-8u91-linux-x64.tar.gz到本地，上传到/usr/local下
+tar -zxvf jdk-8u91-linux-x64.tar.gz
+
+二、环境配置
+sudo vi /etc/profile
+在文件末尾加入：
+#set java environment
+JAVA_HOME=/usr/local/jdk1.8.0_91
+CLASSPATH=.:$JAVA_HOME/lib.tools.jar
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME CLASSPATH PATH
+保存退出
+
+三、使更改的配置立即生效
+source /etc/profile
+
+四、测试：
+java -version

@@ -1,0 +1,116 @@
+参考：http://try.redis.io/
+
+1、set
+set key value
+说明：将一个value用key保存在redis中
+2、get
+get key
+说明：获取key对应的值
+3、del
+del key
+说明：删除一个key和它对应的值
+4、incr
+incr key
+说明：将key对应的值加一，这是一个原子操作
+5、expire
+expire key time
+说明：指定一个key在一个指定的时间段内存在。
+6、ttl
+ttl key
+说明：查看一个key还能存在多久，它的返回值指明他还能存在的秒数，之后就被删除。
+    -1。返回-1说明该key永不过期。
+    -2。返回-2说明该key已经不存在。
+    
+#list数据结构相关
+7、rpush
+rpush key value
+说明：将value插入到list的尾部。
+8、lpush
+lpush key value
+说明：将value插入list的头部。
+9、lrange
+lrange key index-start index-end
+说明：获取一个列表的子集，该子集从index-start开始，到index-end结束，如果index-end的值为-1，表示直到list的结尾。
+10、llen
+llen key
+说明：返回list的当前长度
+11、lpop
+lpop key
+说明：删除并返回list的第一个元素。
+12、rpop
+rpop key
+说明：删除并返回list的最后一个元素。
+
+#set数据结构相关
+13、sadd
+sadd key value
+说明：将value插入到set中
+14、srem
+srem key value
+说明：将value从set中删除
+15、sismember
+sismember key value
+说明：测试value是否是set的成员。返回1表示value是set的成员。返回0则不是
+16、smembers
+smembers key
+说明：返回该set的所有成员的list
+17、sunion
+sunion key1 key2...keyn
+说明：合并多个set，并返回合并后所有成员的list
+18、zadd
+zadd key score value
+说明：set有很多问题，因此，redis使用sorted set。sorted set给每个值一个分数（score），该分数用于对值进行排序。
+
+#hashes数据结构相关
+19、hset
+hset key field value
+说明：设置hash数据
+20、hmset
+hmset key field1 value1 field2 value2 ... fieldn valuen
+说明：一侧设置多个field
+21、hgetall
+hgetall key
+说明：获取所有hash的信息
+22、hget
+hget key field
+说明：获取field对应的值
+23、hincrby
+hincrby key field value
+对hash数据结构中数值类型的field的值进行原子操作的增加，增加值为value
+24、hdel
+hdel key field
+说明：删除hash的一个field
+25、hexists
+hexists key field
+说明：field是否存在
+26、hincrbyfloat
+hincrbyfloat key field value
+说明：给field增加一个浮点值。
+27、hkeys
+hkeys key
+说明：获取所有的field
+28、hlen
+hlen key
+说明：获取field的个数
+29、hmget
+hmget field1 ... fieldn
+说明：获取多个field对应的值
+30、hsetnx
+hsetnx key field value
+说明：当field不存在的时候插入
+31、hstrlen
+hstrlen key field
+说明：获取field对应值的长度
+32、hvals
+hvals key
+说明：获取所有的值
+33、hscan
+HSCAN key cursor [MATCH pattern] [COUNT count]
+说明：
+
+
+
+
+
+
+
