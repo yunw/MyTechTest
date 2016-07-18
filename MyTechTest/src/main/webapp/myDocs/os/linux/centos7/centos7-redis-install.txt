@@ -151,13 +151,84 @@ OK
 
 
 
+HA（High Available）：
+vi /etc/redis/26379.conf
+
+sentinel monitor mymaster1 192.168.56.71 6379 2
+sentinel down-after-milliseconds mymaster1 60000
+sentinel failover-timeout mymaster1 180000
+sentinel parallel-syncs mymaster1 1
+
+sentinel monitor mymaster2 192.168.56.72 6379 2
+sentinel down-after-milliseconds mymaster2 60000
+sentinel failover-timeout mymaster2 180000
+sentinel parallel-syncs mymaster2 1
+
+sentinel monitor mymaster3 192.168.56.73 6379 2
+sentinel down-after-milliseconds mymaster3 60000
+sentinel failover-timeout mymaster3 180000
+sentinel parallel-syncs mymaster3 1
+
+vi /etc/init.d/redis_26379
+#!/bin/sh
+#
+# Simple Redis sentinel init.d script conceived to work on Linux systems
+# as it does use of the /proc filesystem.
+
+SENTINELPORT=26379
+EXEC=/usr/local/redis/bin/redis-server
+CLIEXEC=/usr/local/redis/bin/redis-cli
+
+PIDFILE=/var/run/redis_${SENTINELPORT}.pid
+CONF="/etc/redis/${SENTINELPORT}.conf"
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+                echo "$PIDFILE exists, process is already running or crashed"
+        else
+                echo "Starting Redis sentinel..."
+                $EXEC $CONF --sentinel &
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "$PIDFILE does not exist, process is not running"
+        else
+                PID=$(cat $PIDFILE)
+                echo "Stopping ..."
+                $CLIEXEC -p $REDISPORT shutdown
+                while [ -x /proc/${PID} ]
+                do
+                    echo "Waiting for Redis sentinel to shutdown ..."
+                    sleep 1
+                done
+                echo "Redis sentinel stopped"
+        fi
+        ;;
+    *)
+        echo "Please use start or stop as first argument"
+        ;;
+esac
+
+chmod +x /etc/init.d/redis_26379
+
+vi /etc/systemd/system/redis_26379.service
+[Unit]
+Description=Redis Sentinel on port 26379
+[Service]
+Type=forking
+ExecStart=/etc/init.d/redis_26379 start
+ExecStop=/etc/init.d/redis_26379 stop
+[Install]
+WantedBy=multi-user.target
 
 
-
-
-
-
-
+systemctl enable redis_26379
+systemctl start redis_26379
+systemctl status redis_26379
 
 
 
