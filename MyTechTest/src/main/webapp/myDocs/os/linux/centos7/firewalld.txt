@@ -14,3 +14,6 @@ d、查看端口是否开放：
 [root@centos72 ~]# firewall-cmd --permanent --query-port=8080/tcp
 yes
 
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=8080/tcp

@@ -1,0 +1,163 @@
+# ----------------------------------------------------------
+# refer:
+#  http://www.linuxidc.com/Linux/2015-12/126062.htm
+#  http://blog.csdn.net/beyondlpf/article/details/51275106
+#  http://blog.csdn.net/u010522235/article/details/51606307
+# ----------------------------------------------------------
+
+firewall-cmd --zone=public --add-port=6379/tcp --permanent
+firewall-cmd --zone=public --add-port=16379/tcp --permanent
+firewall-cmd --zone=public --add-port=26379/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=6379/tcp
+firewall-cmd --permanent --query-port=16379/tcp
+firewall-cmd --permanent --query-port=26379/tcp
+
+yum install -y openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+gem update --system
+gem -v
+gem install redis  --version 3.2.1
+gem list --local
+
+cd ~/downloads
+wget http://download.redis.io/releases/redis-3.2.1.tar.gz
+
+tar zxf redis-3.2.1.tar.gz
+cd redis-3.2.1
+make MALLOC=libc
+make PREFIX=/usr/local/redis install
+
+mkdir -p /data/redis
+mkdir -p /etc/redis
+vi /etc/redis/6379.conf
+
+port 6379
+cluster-enabled yes
+cluster-config-file /etc/redis/nodes-6379.conf
+cluster-node-timeout 15000
+dir /data/redis
+cluster-require-full-coverage no
+bind 192.168.56.71
+
+#开机启动服务
+cp /root/downloads/redis-3.2.1/utils/redis_init_script /etc/init.d/redis_6379
+
+vi /etc/init.d/redis_6379
+#!/bin/sh
+#
+# Simple Redis init.d script conceived to work on Linux systems
+# as it does use of the /proc filesystem.
+
+REDISPORT=6379
+EXEC=/usr/local/redis/bin/redis-server # 修改到自己的目录
+CLIEXEC=/usr/local/redis/bin/redis-cli # 修改到自己的目录
+
+PIDFILE=/var/run/redis_${REDISPORT}.pid
+CONF="/etc/redis/${REDISPORT}.conf"
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+                echo "$PIDFILE exists, process is already running or crashed"
+        else
+                echo "Starting Redis server..."
+                $EXEC $CONF & # 添加&变为后台服务
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "$PIDFILE does not exist, process is not running"
+        else
+                PID=$(cat $PIDFILE)
+                echo "Stopping ..."
+                $CLIEXEC -p $REDISPORT shutdown
+                while [ -x /proc/${PID} ]
+                do
+                    echo "Waiting for Redis to shutdown ..."
+                    sleep 1
+                done
+                echo "Redis stopped"
+        fi
+        ;;
+    *)
+        echo "Please use start or stop as first argument"
+        ;;
+esac
+
+vi /etc/systemd/system/redis_6379.service
+[Unit]
+Description=Redis on port 6379
+[Service]
+Type=forking
+ExecStart=/etc/init.d/redis_6379 start
+ExecStop=/etc/init.d/redis_6379 stop
+[Install]
+WantedBy=multi-user.target
+
+systemctl enable redis_6379
+systemctl start redis_6379
+systemctl status redis_6379
+
+/root/downloads/redis-3.2.1/src/redis-trib.rb create 192.168.56.71:6379 192.168.56.72:6379 192.168.56.73:6379
+
+>>> Creating cluster
+>>> Performing hash slots allocation on 3 nodes...
+Using 3 masters:
+192.168.56.71:6379
+192.168.56.72:6379
+192.168.56.73:6379
+M: 92ece21560a44eae2896526e69d6cf0ea98102ff 192.168.56.71:6379
+   slots:0-5460 (5461 slots) master
+M: 37d244e0f764e6b9dabd511fb9fef9ba9fc50796 192.168.56.72:6379
+   slots:5461-10922 (5462 slots) master
+M: 4c6f58a40eb1039ad5cf9eb13b0557d4988c4aa0 192.168.56.73:6379
+   slots:10923-16383 (5461 slots) master
+Can I set the above configuration? (type 'yes' to accept): yes
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join.
+>>> Performing Cluster Check (using node 192.168.56.71:6379)
+M: 92ece21560a44eae2896526e69d6cf0ea98102ff 192.168.56.71:6379
+   slots:0-5460 (5461 slots) master
+M: 37d244e0f764e6b9dabd511fb9fef9ba9fc50796 192.168.56.72:6379
+   slots:5461-10922 (5462 slots) master
+M: 4c6f58a40eb1039ad5cf9eb13b0557d4988c4aa0 192.168.56.73:6379
+   slots:10923-16383 (5461 slots) master
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+集群创建完毕。
+
+
+
+测试：
+[root@centos71 redis]# /usr/local/redis/bin/redis-cli -p 6379 -h 192.168.56.71 cluster nodes
+92ece21560a44eae2896526e69d6cf0ea98102ff 192.168.56.71:6379 myself,master - 0 0 1 connected 0-5460
+4c6f58a40eb1039ad5cf9eb13b0557d4988c4aa0 192.168.56.73:6379 master - 0 1468807439661 3 connected 10923-16383
+37d244e0f764e6b9dabd511fb9fef9ba9fc50796 192.168.56.72:6379 master - 0 1468807438652 2 connected 5461-10922
+
+[root@centos71 redis]# /usr/local/redis/bin/redis-cli -p 6379 -h 192.168.56.71 
+192.168.56.71:6379> set a b
+(error) MOVED 15495 192.168.56.73:6379
+192.168.56.71:6379> set aa bb
+OK
+192.168.56.71:6379> get aa
+"bb"
+192.168.56.71:6379> 
+
+
+
+
+
+
+
+
+
+
+
+
+

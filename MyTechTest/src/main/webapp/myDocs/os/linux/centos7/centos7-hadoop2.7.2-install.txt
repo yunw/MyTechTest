@@ -1,0 +1,81 @@
+1、下载：
+wget http://mirror.bit.edu.cn/apache/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz
+
+2、解压：
+mkdir -p /home/hadoop
+tar zxf hadoop-2.7.2.tar.gz -C /home/hadoop/
+
+3、配置环境变量：
+vi /etc/profile
+export HADOOP_HOME=/home/hadoop/hadoop-2.7.2
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+4、配置ssh免密登录：
+[root@centos71 ~]# ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+99:f5:3b:a3:d5:39:b6:b3:80:b5:f5:29:8b:dc:48:00 root@centos71
+The key's randomart image is:
++--[ RSA 2048]----+
+|                 |
+|                 |
+|       E  .      |
+|        .+ .     |
+|        S.  o .  |
+|          .o = o.|
+|          ..B.=..|
+|          oo+=+o |
+|          .+ ooo |
++-----------------+
+
+注：上述要输入的地方直接回车。
+
+[root@centos71 ~]# cd .ssh/
+[root@centos71 .ssh]# ls
+id_rsa  id_rsa.pub  known_hosts
+[root@centos71 .ssh]# cat id_rsa.pub >> authorized_keys
+[root@centos71 .ssh]# ls
+authorized_keys  id_rsa  id_rsa.pub  known_hosts
+
+5、配置hadoop：
+cd /home/hadoop/hadoop-2.7.2/etc/hadoop/
+
+a、core-site.xml
+vi core-site.xml
+<configuration>
+   <!--HDFS路径逻辑名称-->
+   <property>
+        <name>fs.defaultFS</name>
+       <value>hdfs://hcluster</value>
+   </property>
+   <!--Hadoop存放临时文件位置-->
+   <property>
+       <name>hadoop.tmp.dir</name>
+       <value>/home/hadoop/tmp</value>
+   </property>
+   <!--使用的zookeeper集群地址-->
+   <property>
+       <name>ha.zookeeper.quorum</name>
+       <value>cenos71:2181,centos72:2181,centos73:2181</value>
+   </property>
+</configuration>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

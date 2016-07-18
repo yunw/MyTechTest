@@ -1,7 +1,7 @@
 1、pom.xml引入依赖：
 <dependency>
     <groupId>com.dianping.cat</groupId>
-    <artifactId>cat-core</artifactId>
+    <artifactId>cat-client</artifactId>
     <version>1.3.6</version>
 </dependency>
 <dependency>
@@ -10,7 +10,7 @@
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
 
-2、创建resources/ap.properties文件，内容如下：
+2、创建resources/app.properties文件，内容如下：
 app.name=web-app-demo  #应用名称
 
 3、创建resources/META-INF/cat/client.xml，内容如下：
@@ -32,4 +32,11 @@ catFor9nowProviderFilter=com.meiwei.demo.dubbo.filter.CatFor9nowProviderFilter
         <filter-name>cat-filter</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
+    
+6、log4j集成：
+<appender name="catAppender" class="com.dianping.cat.log4j.CatAppender" />
+
+7、代码（查看：com.dianping.cat.Cat）：
+Cat.logEvent("Controller", "query parameters", Event.SUCCESS, " name=" + name);    

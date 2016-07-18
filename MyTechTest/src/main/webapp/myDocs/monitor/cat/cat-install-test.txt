@@ -10,7 +10,26 @@ mvn clean install -DskipTests
 4、配置cat环境：
 mvn cat:install
 
+5、开放端口：
+firewall-cmd --zone=public --add-port=2181/tcp --permanent
+firewall-cmd --zone=public --add-port=2280/tcp --permanent
+firewall-cmd --zone=public --add-port=2281/tcp --permanent
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --zone=public --add-port=8880/tcp --permanent
+firewall-cmd --zone=public --add-port=8980/tcp --permanent
+firewall-cmd --zone=public --add-port=21910/tcp --permanent
 
+firewall-cmd --reload
+
+firewall-cmd --permanent --query-port=2181/tcp
+firewall-cmd --permanent --query-port=2280/tcp
+firewall-cmd --permanent --query-port=2281/tcp
+firewall-cmd --permanent --query-port=3306/tcp
+firewall-cmd --permanent --query-port=8080/tcp
+firewall-cmd --permanent --query-port=8880/tcp
+firewall-cmd --permanent --query-port=8980/tcp
+firewall-cmd --permanent --query-port=21910/tcp
 
 
 

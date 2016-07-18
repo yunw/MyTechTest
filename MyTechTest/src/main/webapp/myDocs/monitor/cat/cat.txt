@@ -1,0 +1,9 @@
+1、应用消息存储：
+com.dianping.cat.message.io.DefaultMessageQueue
+2、应用消息发送：
+com.dianping.cat.message.io.TcpSocketSender
+
+产品线配置：
+com.dianping.cat.consumer.config.ProductLineConfig
+
+com.dianping.cat.consumer.matrix.MatrixAnalyzer

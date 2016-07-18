@@ -1,0 +1,2 @@
+<jpa:repositories base-package="com.acme.repositories" />
+这将扫描包含在包（package）com.acme.repositories下所有的继承于JpaRepository的接口，并为该接口创建实现了SimpleJpaRepository的Sping bean

@@ -1,37 +1,24 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE log4j:configuration SYSTEM "http://toolkit.alibaba-inc.com/dtd/log4j/log4j.dtd">
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+	<appender name="catAppender" class="com.dianping.cat.log4j.CatAppender" />
+	<appender name="sample-log-console" class="org.apache.log4j.ConsoleAppender">
+		<param name="encoding" value="utf-8" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="[TELERI] %-d{yyyy-MM-dd HH:mm:ss} %p [%t] %c{1}.%M(%L) | %m%n" />
+			<param name="ConversionPattern" value="%m%n" />
 		</layout>
 	</appender>
-	<appender name="APPLOGFILE" class="org.apache.log4j.RollingFileAppender">
-		<param name="encoding" value="UTF-8" />
-		<param name="File" value="d:/log/server.log" />
-		<param name="Append" value="true" />
-		<param name="MaxFileSize" value="3000KB" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="[EDU] %-d{yyyy-MM-dd HH:mm:ss} %-5p %-15c{1}: %m%n" />
-		</layout>
-	</appender>
-
-	<!-- <appender name="StreamAppender" class="org.apache.samza.logging.log4j.StreamAppender">
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%X{containerName} %X{jobName} %X{jobId} %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n" />
-		</layout>
-	</appender> -->
-
-	<!-- <logger name="com.saic" additivity="false"> <priority value="info" /> <appender-ref ref="CONSOLE" /> </logger> <logger 
-		name="org.springframework" additivity="false"> <priority value="info" /> <appender-ref ref="CONSOLE" /> </logger> <logger 
-		name="org.zxq" additivity="false"> <priority value="info" /> <appender-ref ref="CONSOLE" /> </logger> <logger name="org.apache.zookeeper" 
-		additivity="false"> <priority value="info" /> <appender-ref ref="CONSOLE" /> </logger> -->
-
+	<logger name="com.meiwei.demo" additivity="false">
+		<level value="debug" />
+		<appender-ref ref="catAppender" />
+	</logger>
+	<logger name="com.meiwei" additivity="false">
+		<level value="debug" />
+		<appender-ref ref="sample-log-console" />
+	</logger>
 	<root>
-		<level value="error" />
-		<appender-ref ref="CONSOLE" />
-		<appender-ref ref="APPLOGFILE" />
-		<!-- <appender-ref ref="StreamAppender" /> -->
+		<level value="debug" />
+		<appender-ref ref="catAppender" />
+		<appender-ref ref="sample-log-console" />
 	</root>
-
 </log4j:configuration>

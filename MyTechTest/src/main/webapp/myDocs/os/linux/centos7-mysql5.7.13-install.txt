@@ -20,6 +20,8 @@ wget http://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.13-linux-glibc2.5-x8
  
  4、解压TAR包，更改所属的组和用户
 [root@centos71 downloads]# tar xf mysql-5.7.13-linux-glibc2.5-x86_64.tar -C /usr/local/
+[root@centos72 downloads]# cd /usr/local/
+[root@centos72 local]# tar zxf mysql-5.7.13-linux-glibc2.5-x86_64.tar.gz
 [root@centos71 local]# ln -s mysql-5.7.13-linux-glibc2.5-x86_64 mysql
 
 5、安装和初始化数据库
@@ -35,6 +37,9 @@ bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/l
 2016-07-11T05:37:24.493264Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: 8bbb8280-4729-11e6-898d-080027c0b35e.
 2016-07-11T05:37:24.534679Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
 2016-07-11T05:37:24.538411Z 1 [Note] A temporary password is generated for root@localhost: j<1q!qgq8u<C
+
+ A temporary password is generated for root@localhost: q*SuFFeG+3xe
+
 
 6、修改配置：
 cp /usr/local/mysql/support-files/my-default.cnf /etc/my.cnf
