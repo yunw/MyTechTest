@@ -1,0 +1,24 @@
+firewall-cmd --zone=public --add-port=1883/tcp --permanent
+firewall-cmd --zone=public --add-port=5672/tcp --permanent
+firewall-cmd --zone=public --add-port=8161/tcp --permanent
+firewall-cmd --zone=public --add-port=61613/tcp --permanent
+firewall-cmd --zone=public --add-port=61614/tcp --permanent
+firewall-cmd --zone=public --add-port=61616/tcp --permanent
+firewall-cmd --zone=public --add-port=61617/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=1883/tcp
+firewall-cmd --permanent --query-port=5672/tcp
+firewall-cmd --permanent --query-port=8161/tcp
+firewall-cmd --permanent --query-port=61613/tcp
+firewall-cmd --permanent --query-port=61614/tcp
+firewall-cmd --permanent --query-port=61616/tcp
+firewall-cmd --permanent --query-port=61617/tcp
+
+wget https://archive.apache.org/dist/activemq/5.13.0/apache-activemq-5.13.0-bin.tar.gz
+tar zxf apache-activemq-5.13.0-bin.tar.gz -C /usr/local/
+cd /usr/local/apache-activemq-5.13.0
+bin/activemq start
+
+测试：
+http://192.168.56.71:8161/admin/
+user/password: admin/admin

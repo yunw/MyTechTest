@@ -130,3 +130,29 @@ create /cfg/properties a=b
 
 zookeeper:
 ZooKeeper是按照CP原则构建的，也就是说它能保证每个节点的数据保持一致;一个Service发现服务应该从一开始就被设计成高可用的才行！
+
+
+centos7 zookeeper service:
+vi /etc/systemd/system/zookeeper.service
+[Unit]
+Description=Zookeeper service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/jdk1.7.0_79/bin/java \
+-Dzookeeper.log.dir=/usr/local/zookeeper-3.4.8/logs/zookeeper.log \
+-Dzookeeper.root.logger=INFO,CONSOLE \
+-cp /usr/local/zookeeper-3.4.8/zookeeper-3.4.8.jar:/usr/local/zookeeper-3.4.8/lib/*:/usr/local/zookeeper-3.4.8/src/java/lib/*.jar:/usr/local/zookeeper-3.4.8/conf: \
+-Dcom.sun.management.jmxremote \
+-Dcom.sun.management.jmxremote.local.only=false \
+org.apache.zookeeper.server.quorum.QuorumPeerMain \
+/usr/local/zookeeper-3.4.8/conf/zoo.cfg
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl enable zookeeper
+systemctl start zookeeper
+systemctl status zookeeper
+
+

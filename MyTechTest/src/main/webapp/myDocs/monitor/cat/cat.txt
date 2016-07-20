@@ -7,3 +7,5 @@ com.dianping.cat.message.io.TcpSocketSender
 com.dianping.cat.consumer.config.ProductLineConfig
 
 com.dianping.cat.consumer.matrix.MatrixAnalyzer
+
+com.dianping.cat.consumer.storage.StorageAnalyzer

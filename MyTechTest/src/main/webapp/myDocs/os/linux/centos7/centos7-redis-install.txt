@@ -37,7 +37,7 @@ cluster-config-file /etc/redis/nodes-6379.conf
 cluster-node-timeout 15000
 dir /data/redis
 cluster-require-full-coverage no
-bind 192.168.56.71
+#bind 192.168.56.71
 
 #开机启动服务
 cp /root/downloads/redis-3.2.1/utils/redis_init_script /etc/init.d/redis_6379
