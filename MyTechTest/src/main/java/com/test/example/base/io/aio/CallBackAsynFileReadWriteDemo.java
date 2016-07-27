@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class CallBackAsynFileReadWriteDemo {
 
 	public static void main(String[] args) throws InterruptedException, IOException {
-		Path file = Paths.get("D:/test/test1.txt");
+		Path file = Paths.get("D:/test/test.txt");
 		int pos = 0;
 		ByteBuffer buffer = ByteBuffer.allocate(1000);
 		MyCompletionHandler handler = new MyCompletionHandler(pos, buffer);

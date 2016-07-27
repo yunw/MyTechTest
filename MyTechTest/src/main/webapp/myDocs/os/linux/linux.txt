@@ -3,6 +3,22 @@ NFS(Network File System)：网络文件系统
 CDN(Content Delivery Network):内容分发网络
 MMU(memory management unit)：内存管理单元，它负责虚拟地址到物理地址的映射，并提供硬件机制的内存条件检查。
 
+transparent huge page（THP）透明巨页：
+内存管理的最小单元叫page。一个page的大小是4096bytes。
+简单来说， Huge Pages就是大小为2M到1GB的内存page，主要用于管理数千兆的内存，比如1GB的page对于1TB的内存来说是相对比较合适的。
+THP（Transparent Huge Pages）是一个使管理Huge Pages自动化的抽象层。
+目前需要注意的是，由于实现方式问题，THP会造成内存锁影响性能，尤其是在程序不是专门为大内内存页开发的时候，简单介绍如下：
+操作系统后台有一个叫做khugepaged的进程，它会一直扫描所有进程占用的内存，在可能的情况下会把4kpage交换为Huge Pages，在这个过程中，对于操作的内存的各种分配活动都需要各种内存锁，直接影响程序的内存访问性能，
+并且，这个过程对于应用是透明的，在应用层面不可控制,对于专门为4k page优化的程序来说，可能会造成随机的性能下降现象。
+centos7默认使用thp：
+实时修改配置的方法：
+[root@centos71 transparent_hugepage]# cat  /sys/kernel/mm/transparent_hugepage/enabled
+[always] madvise never
+[root@centos71 transparent_hugepage]# echo never > /sys/kernel/mm/transparent_hugepage/enabled
+[root@centos71 transparent_hugepage]# cat  /sys/kernel/mm/transparent_hugepage/enabled
+always madvise [never]
+
+
 hosts文件的位置：
 /etc/hosts
 

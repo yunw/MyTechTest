@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 public class futureAsynFileReadWriteDemo {
 
 	public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
-		futureDemo("D:/test/test1.txt");
+		futureDemo("D:/test/test.txt");
 	}
 
 	private static void futureDemo(String path) throws InterruptedException, ExecutionException, IOException {
@@ -45,7 +45,6 @@ public class futureAsynFileReadWriteDemo {
 				offset += result.get();
 				byteBuffer.position(0);
 			}
-			;
 		}
 	}
 

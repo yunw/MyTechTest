@@ -1,0 +1,6 @@
+github: https://github.com/DeemOpen/zkui
+
+Error :KeeperErrorCode = ConnectionLoss for /
+解决方案：
+com.deem.zkui.utils.ZooKeeperUtil.createZKConnection(String url, Integer zkSessionTimeout)方法获取zk state的
+时间太短，可以加长这个时间，或者直接无限循环知道zk可用为止。

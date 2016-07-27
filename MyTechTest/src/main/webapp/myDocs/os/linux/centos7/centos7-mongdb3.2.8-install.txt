@@ -1,0 +1,192 @@
+firewall-cmd --zone=public --add-port=27017/tcp --permanent
+firewall-cmd --zone=public --add-port=37017/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=27017/tcp
+firewall-cmd --permanent --query-port=37017/tcp
+
+wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.2.8.tgz
+
+tar zxf mongodb-linux-x86_64-3.2.8.tgz
+mkdir -p /usr/local/mongodb
+cp -R -n mongodb-linux-x86_64-3.2.8 /usr/local/mongodb
+
+vi /etc/profile
+export MONGODB_HOME=/usr/local/mongodb
+export PATH=$MONGODB_HOME/bin:$PATH
+
+source /etc/profile
+
+mkdir -p /data/db
+mkdir -p /data/configdb
+mkdir -p /var/log/mongodb
+
+#run
+mongod
+or
+mongod --dbpath /data/db
+
+集群：
+node1
+192.168.56.71
+config server1(configReplSet 37017) mongos1( 27017) shard1(47017)
+node2
+192.168.56.72
+config server2(configReplSet 37017) mongos2(27017) shard2(47017)
+node3
+192.168.56.73
+config server3(configReplSet 37017) shard3(47017)
+
+firewall-cmd --zone=public --add-port=27017/tcp --permanent
+firewall-cmd --zone=public --add-port=37017/tcp --permanent
+firewall-cmd --zone=public --add-port=47017/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=27017/tcp
+firewall-cmd --permanent --query-port=37017/tcp
+firewall-cmd --permanent --query-port=47017/tcp
+
+mkdir -p /data/cfgdb
+mkdir -p /data/sharddb
+mkdir -p /data/configdb
+mkdir -p /var/log/mongodb
+
+
+一、创建配置服务（config server replica set）：
+1、三个节点上执行：
+vi /etc/mongod-cfg.conf
+sharding:
+  clusterRole: configsvr
+replication:
+  replSetName: configReplSet
+net:
+  port: 37017
+storage:
+  dbPath: /data/cfgdb
+  engine: wiredTiger
+processManagement:
+  fork: true
+systemLog:
+   destination: file
+   path: "/var/log/mongodb/mongod-cfg.log"
+   logAppend: true
+
+mongod --config /etc/mongod-cfg.conf
+
+2、连接到某一台config server
+mongo --host 192.168.56.71 --port 37017
+
+初始化config server
+rs.initiate(
+  {
+    _id: "configReplSet",
+    configsvr: true,
+    members: [
+      { _id : 0, host : "192.168.56.71:37017" },
+      { _id : 1, host : "192.168.56.72:37017" },
+      { _id : 2, host : "192.168.56.73:37017" }
+    ]
+  }
+);
+
+二、创建Replica Set：
+1、三个节点上执行：
+vi /etc/mongod-rs.conf
+sharding:
+  clusterRole: shardsvr
+replication:
+  replSetName: shardReplSet
+net:
+  port: 47017
+storage:
+  dbPath: /data/sharddb
+  engine: wiredTiger
+processManagement:
+  fork: true
+systemLog:
+   destination: file
+   path: "/var/log/mongodb/mongod-rs.log"
+   logAppend: true
+
+mongod --config /etc/mongod-rs.conf
+
+2、连接到某一台replica Set server
+mongo --host 192.168.56.71 --port 47017
+
+初始化replica Set：
+
+rs.initiate(
+  {
+    _id : "shardReplSet",
+    members: [
+      { _id : 0, host : "192.168.56.71:47017" },
+      { _id : 1, host : "192.168.56.72:47017" },
+      { _id : 2, host : "192.168.56.73:47017" }
+    ]
+  }
+);
+
+查看主节点,持续调用：
+rs.status()
+
+三、创建mongo route：
+1、两个节点上执行：
+vi /etc/mongod-route.conf
+sharding:
+  configDB: configReplSet/192.168.56.71:37017,192.168.56.72:37017,192.168.56.71:37017
+net:
+  port: 27017
+processManagement:
+  fork: true
+systemLog:
+   destination: file
+   path: "/var/log/mongodb/mongod-route.log"
+   logAppend: true
+
+mongos --config /etc/mongod-route.conf
+
+2、连接一个mongo到mongos上并将replica set加入集群：
+mongo --port 27017
+执行：
+sh.addShard("shardReplSet/192.168.56.71:47017,192.168.56.72:47017,192.168.56.73:47017")
+
+集群创建完毕。
+
+测试与使用：
+1、使数据库能sharding
+mongo --port 27017
+sh.enableSharding("testshards")
+2、shard a collection
+sh.shardCollection("testshards.test", { "_id": "hashed" });
+3、插入数据：
+use testshards
+show collections
+db.test.insert({"name":"testshrads1","msg":"ok"});
+db.test.insert({"name":"testshrads2","msg":"ok"});
+db.test.insert({"name":"testshrads3","msg":"ok"});
+db.test.insert({"name":"testshrads4","msg":"ok"});
+db.test.insert({"name":"testshrads5","msg":"ok"});
+db.test.insert({"name":"testshrads6","msg":"ok"});
+db.test.insert({"name":"testshrads7","msg":"ok"});
+db.test.insert({"name":"testshrads8","msg":"ok"});
+db.test.insert({"name":"testshrads9","msg":"ok"});
+
+4、查看数据：
+db.test.find()
+
+5、测试数据分片：
+连接到某个replica Set上：
+mongo --port 47017
+shardReplSet:SECONDARY> db.getMongo().setSlaveOk();
+
+6、添加不分片collection：
+mongo --port 27017
+use testshards
+db.createCollection("testshards.notest")
+db.notest.insert({"name":"notest1","msg":"ok"});
+db.notest.insert({"name":"notest2","msg":"ok"});
+db.notest.insert({"name":"notest3","msg":"ok"});
+db.notest.insert({"name":"notest4","msg":"ok"});
+db.notest.insert({"name":"notest5","msg":"ok"});
+
+mongo --port 47017
+use testshards
+db.notest.find()

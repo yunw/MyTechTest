@@ -1,0 +1,10 @@
+创建目录：
+mkdir -p /data/appdatas/cat
+mkdir -p /data/applogs/cat
+
+
+
+将cat.war
+拷贝到tomcat下
+
+
