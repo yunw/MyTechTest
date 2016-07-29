@@ -77,6 +77,7 @@ show index in table_name;
 #查看mysql的系统变量
 show variables;
 show variables like 'autocommit%';
+show global variables  like '%lower_case_table_names%';
 
 #查看slave状态，\G的作用是格式化输出
 show slave status \G;

@@ -5,6 +5,16 @@ youdao:yin_slin@163.com/
 10.0.21.84 d#teSZ*iYLEx0ubja>q9
 10.0.21.71 91Mwbyd!
 
+
+Field h = point.getTarget().getClass().getSuperclass().getDeclaredField("h");
+        h.setAccessible(true);
+        Object oh = h.get(point.getTarget());
+        Field sql = oh.getClass().getDeclaredField("sqlSession");
+        sql.setAccessible(true);
+        SqlSessionTemplate sessionTemplate = (SqlSessionTemplate) sql.get(oh);
+        
+        
+
 zk缺陷
 kafka 消费者
 jvm8默认gc

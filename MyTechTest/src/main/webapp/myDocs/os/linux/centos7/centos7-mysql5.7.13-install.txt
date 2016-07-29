@@ -38,7 +38,9 @@ bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/l
 2016-07-11T05:37:24.534679Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
 2016-07-11T05:37:24.538411Z 1 [Note] A temporary password is generated for root@localhost: j<1q!qgq8u<C
 
- A temporary password is generated for root@localhost: q*SuFFeG+3xe
+ A temporary password is generated for root@localhost: 0tg(asgxf?Ae
+ 2016-07-27T07:10:29.406374Z 1 [Note] A temporary password is generated for root@localhost: 8Vh.<G0#d?=J
+ 
 
 
 6、修改配置：
@@ -52,9 +54,19 @@ vi /etc/my.cnf
  explicit_defaults_for_timestamp=true
  server_id = 1
  socket=/var/lib/mysql/mysql.sock
+ slow_query_log = 1  #1表示开启慢查询日志，0表示关闭
+ long_query_time = 1 #慢查询日志阈值，默认10秒
+ log_output = 'FILE' #FILE表示存入文件，默认值为FILE。TABLE表示存入数据库（写入msql.slow_log表中）。'FILE,TABLE'表示既写入文件也写入数据库
+ slow_query_log_file=/tmp/mysql_slow.log #慢查询日志文件
+ log_queries_not_using_indexes = 1 #未使用索引的查询也被记入慢查询日志（可选项）。
+ lower_case_table_names=1 #忽略表名大小写
  
  sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  
+ 注：这些设置可以在数据库中查询：
+ show variables  like '%lower_case_table_names%';
+或者
+ show global variables  like '%lower_case_table_names%';
 
 vi /etc/profile
 export MYSQL_HOME=/usr/local/mysql
@@ -66,6 +78,8 @@ chkconfig --add mysql
 chkconfig --level 2345 mysql on 
 
 8、运行mysql
+systemctl start mysql
+或者
 service mysql start
 
 9、客户端连接：
@@ -79,12 +93,7 @@ ln -s /var/lib/mysql/mysql.sock /tmp/mysql.sock
 10、修改密码：
 mysql>SET PASSWORD = PASSWORD('root');
  
-11、退出mysql，用新密码重连：
-mysql>quit
-
-/usr/local/mysql/bin/mysql -u root  -proot
-
-12、配置允许远程登录：
+11、配置允许远程登录：
 mysql> select Host, User from user;
 +-----------+-----------+
 | Host      | User      |
@@ -94,23 +103,28 @@ mysql> select Host, User from user;
 +-----------+-----------+
 2 rows in set (0.00 sec)
 
-mysql> update user set Host='%' where user ='root';
-Query OK, 1 row affected (0.00 sec)
-Rows matched: 1  Changed: 1  Warnings: 0
+#该创建的root账号只是从外部访问的账号，与内部linux访问该mysql时所用root不同，内部linux访问该mysql的root账号也不是linux的系统root账号
+mysql> grant all on *.* to 'root'@'%' identified by 'root';
+mysql> flush privileges;
+或者
+mysql> update user set host ='%' where user = 'root';
 
-mysql> select Host, User from user;
-+-----------+-----------+
-| Host      | User      |
-+-----------+-----------+
-| %         | root      |
-| localhost | mysql.sys |
-+-----------+-----------+
+mysql> select host, user from user;
++-------------+-----------+
+| host        | user      |
++-------------+-----------+
+| %           | root      |
+| localhost   | mysql.sys |
++-------------+-----------+
 2 rows in set (0.00 sec)
 
 mysql> quit
 Bye
 
- 
+12、开启防火墙：
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=3306/tcp 
  
  
  

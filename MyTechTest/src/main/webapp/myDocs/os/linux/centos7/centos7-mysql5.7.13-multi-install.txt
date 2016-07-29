@@ -1,0 +1,152 @@
+1、下载：
+wget http://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.13-linux-glibc2.5-x86_64.tar
+
+2、检查库文件是否存在，如有则删除：
+[root@centos71 downloads]# rpm -qa | grep mysql
+ mysql-libs-5.1.52-1.el6_0.1.x86_64
+
+[root@centos71 downloads]# rpm -e mysql-libs-5.1.52-1.el6_0.1.x86_64 --nodeps
+[root@centos71 downloads]# 
+ 
+ 3、检查mysql组和用户是否存在，如无创建
+[root@centos71 downloads]# cat /etc/group | grep mysql
+ mysql:x:490:
+[root@centos71 downloads]# cat /etc/passwd | grep mysql
+ mysql:x:496:490::/home/mysql:/bin/bash
+ 以上为默认存在的情况，如无，执行添加命令：
+[root@centos71 downloads]# groupadd mysql
+[root@centos71 downloads]# useradd -r -g mysql mysql
+ //useradd -r参数表示mysql用户是系统用户，不可用于登录系统。
+ 
+ 4、解压TAR包，更改所属的组和用户
+[root@centos71 downloads]# tar xf mysql-5.7.13-linux-glibc2.5-x86_64.tar -C /usr/local/
+[root@centos72 downloads]# cd /usr/local/
+[root@centos72 local]# tar zxf mysql-5.7.13-linux-glibc2.5-x86_64.tar.gz
+[root@centos71 local]# ln -s mysql-5.7.13-linux-glibc2.5-x86_64 mysql
+
+mkdir -p /opt/mysql/data3306
+chmod 770 /opt/mysql/data3306
+mkdir -p /opt/mysql/data3307
+chmod 770 /opt/mysql/data3307
+chown -R mysql.mysql /opt/mysql/data3306
+chown -R mysql.mysql /opt/mysql/data3307
+chown -R mysql.mysql /opt/mysql
+cd mysql
+chown -R mysql .
+chgrp -R mysql . 
+
+vi /etc/profile
+export MYSQL_HOME=/usr/local/mysql
+export PATH=$MYSQL_HOME/bin:$PATH
+
+5、安装和初始化数据库
+mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/opt/mysql/data3306
+[Note] A temporary password is generated for root@localhost: Ebl9olfqpw_;
+mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/opt/mysql/data3307
+[Note] A temporary password is generated for root@localhost: RyYpfba&;2%,
+
+6、修改配置：
+vi /etc/my.cnf
+[mysqld_multi]
+mysqld=/usr/local/mysql/bin/mysqld_safe 
+mysqladmin=/usr/local/mysql/bin/mysqladmin
+user=root
+password=root
+
+[mysqld3306]
+ basedir = /usr/local/mysql
+ datadir = /opt/mysql/data3306
+ pid-file =/opt/mysql/data3306/mysqld3306.pid
+ log-error=/opt/mysql/data3306/mysqld3306.err
+ port = 3306
+ character_set_server = utf8
+ explicit_defaults_for_timestamp=true
+ server_id = 3306
+ socket=/tmp/mysql3306.sock
+ slow_query_log = 1
+ long_query_time = 1
+ log_output = 'FILE'
+ slow_query_log_file=/tmp/mysql_slow3306.log
+ log_queries_not_using_indexes = 1
+ lower_case_table_names=1
+
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+[mysqld3307]
+ basedir = /usr/local/mysql
+ datadir = /opt/mysql/data3307
+ pid-file =/opt/mysql/data3307/mysqld3307.pid
+ log-error=/opt/mysql/data3307/mysqld3307.err
+ port = 3307
+ character_set_server = utf8
+ explicit_defaults_for_timestamp=true
+ server_id = 3307
+ socket=/tmp/mysql3307.sock
+ slow_query_log = 1
+ long_query_time = 1
+ log_output = 'FILE'
+ slow_query_log_file=/tmp/mysql_slow3307.log
+ log_queries_not_using_indexes = 1
+ lower_case_table_names=1
+
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+
+
+
+7、启动mysql实例：
+mysqld_multi --defaults-file=/etc/my.cnf start 3306   #启动第一个实例，配置文件由my.cnf中的mysqld1设定
+mysqld_multi --defaults-file=/etc/my.cnf stop 3306    
+mysqld_multi --defaults-file=/etc/my.cnf start 3306-3307 
+mysqld_multi --defaults-file=/etc/my.cnf start 3306,3307 
+
+9、第一次客户端连接：
+mysql -u root  -S /tmp/mysql3306.sock -p
+输入初始化密码：Ebl9olfqpw_;
+mysql -u root  -S /tmp/mysql3307.sock -p
+输入初始化密码：RyYpfba&;2%,
+
+以后连接：
+mysql -u root  -S /tmp/mysql3306.sock -proot
+
+10、修改密码：
+mysql>SET PASSWORD = PASSWORD('root');
+ 
+11、配置允许远程登录：
+mysql> use mysql
+mysql> select Host, User from user;
++-----------+-----------+
+| Host      | User      |
++-----------+-----------+
+| localhost | mysql.sys |
+| localhost | root      |
++-----------+-----------+
+2 rows in set (0.00 sec)
+
+#该创建的root账号只是从外部访问的账号，与内部linux访问该mysql时所用root不同，内部linux访问该mysql的root账号也不是linux的系统root账号
+mysql> GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+mysql> flush privileges;
+或者
+mysql> update user set host ='%' where user = 'root';
+
+mysql> select host, user from user;
++-------------+-----------+
+| host        | user      |
++-------------+-----------+
+| %           | root      |
+| localhost   | mysql.sys |
++-------------+-----------+
+2 rows in set (0.00 sec)
+
+mysql> quit
+Bye
+
+12、开启防火墙：
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
+firewall-cmd --zone=public --add-port=3307/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=3306/tcp
+firewall-cmd --permanent --query-port=3307/tcp
+ 
+ 
+ 
