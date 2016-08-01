@@ -35,10 +35,14 @@ mkdir -p /opt/mysql/data3306
 chmod 770 /opt/mysql/data3306
 mkdir -p /opt/mysql/data3307
 chmod 770 /opt/mysql/data3307
+mkdir -p /opt/mysql/logbin
+chmod 770 /opt/mysql/logbin
 chown -R mysql.mysql /opt/mysql/data3306
 chown -R mysql.mysql /opt/mysql/data3307
 chown -R mysql.mysql /opt/mysql
-cd mysql
+chown -R mysql.mysql /opt/mysql/logbin
+
+cd /usr/local/mysql
 chown -R mysql .
 chgrp -R mysql . 
 
@@ -61,6 +65,7 @@ mysqladmin=/usr/local/mysql/bin/mysqladmin
 [mysqld3306]
  basedir = /usr/local/mysql
  datadir = /opt/mysql/data3306
+ log_bin = /opt/mysq/logbin/mysql-bin3306
  pid-file =/opt/mysql/data3306/mysqld3306.pid
  log-error=/opt/mysql/data3306/mysqld3306.err
  port = 3306
@@ -74,6 +79,9 @@ mysqladmin=/usr/local/mysql/bin/mysqladmin
  slow_query_log_file=/tmp/mysql_slow3306.log
  log_queries_not_using_indexes = 1
  lower_case_table_names=1
+ binlog_cache_size = 1M
+ binlog_format=mixed
+ expire_logs_days=7
 
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
@@ -93,17 +101,19 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  slow_query_log_file=/tmp/mysql_slow3307.log
  log_queries_not_using_indexes = 1
  lower_case_table_names=1
+ binlog_cache_size = 1M
+ binlog_format=mixed
+ expire_logs_days=7
 
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
-
-
-
 8、启动mysql实例：
-mysqld_multi --defaults-file=/etc/my.cnf start 3306   #启动第一个实例，配置文件由my.cnf中的mysqld1设定
-mysqld_multi --defaults-file=/etc/my.cnf stop 3306  --user=root --password=root  
+mysqld_multi --defaults-file=/etc/my.cnf start 3306   #启动第一个实例，配置文件由my.cnf中的mysqld1设定  
 mysqld_multi --defaults-file=/etc/my.cnf start 3306-3307 
 mysqld_multi --defaults-file=/etc/my.cnf start 3306,3307 
+mysqld_multi --defaults-file=/etc/my.cnf stop 3306  --user=root --password=root
+mysqld_multi --defaults-file=/etc/my.cnf stop 3306,3307  --user=root --password=root
+mysqld_multi --defaults-file=/etc/my.cnf stop 3306-3307  --user=root --password=root
 
 9、第一次客户端连接：
 mysql -u root  -S /tmp/mysql3306.sock -p
@@ -146,6 +156,46 @@ mysql> select host, user from user;
 mysql> quit
 Bye
 
+12、主从复制：
+m1 10.0.21.67:3306
+s1 10.0.21.68:3307
+
+m2 10.0.21.68:3306
+s2 10.0.21.84:3307
+
+m3 10.0.21.84:3306
+s3 10.0.21.67:3307
+
+a、在主服务器上创建复制账号：
+mysql>CREATE USER 'repl'@'%' IDENTIFIED BY 'replPass';
+mysql>GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+mysql> flush privileges;
+
+b、查看主服务器状态：
+mysql>SHOW MASTER STATUS;
++-----------------------+----------+--------------+------------------+-------------------+
+| File                  | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-----------------------+----------+--------------+------------------+-------------------+
+| mysql-bin-3306.000001 |      762 |              |                  |                   |
++-----------------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+
+
+c、从服务器上执行复制操作：
+mysql>CHANGE MASTER TO
+ MASTER_HOST='10.0.21.68',
+ MASTER_PORT=3306,
+ MASTER_USER='repl',
+ MASTER_PASSWORD='replPass',
+ MASTER_DELAY = 0,
+ MASTER_LOG_FILE='mysql-bin-3306.000001',
+ MASTER_LOG_POS=762;
+ 
+d、启动从服务器复制功能：
+mysql>start slave;
+
+e、查看从库状态：
+mysql> show slave satus\G;
 
  
  

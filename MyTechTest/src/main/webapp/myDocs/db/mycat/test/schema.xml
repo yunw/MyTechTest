@@ -2,27 +2,44 @@
 <!DOCTYPE mycat:schema SYSTEM "schema.dtd">
 <mycat:schema xmlns:mycat="http://org.opencloudb/">
 	<schema name="mycattest" checkSQLschema="false" sqlMaxLimit="100">
-		<table name="customer" primaryKey="id" dataNode="dn1,dn2"
+		<table name="customer" primaryKey="id" dataNode="dn1,dn2,dn3"
 			rule="sharding-by-long">
 		</table>
 	</schema>
-	<dataNode name="dn1" dataHost="localhost1" database="db1" />
-	<dataNode name="dn2" dataHost="localhost2" database="db2" />
+	<dataNode name="dn1" dataHost="localhost1" database="test" />
+	<dataNode name="dn2" dataHost="localhost2" database="test" />
+	<dataNode name="dn3" dataHost="localhost3" database="test" />
 	<dataHost name="localhost1" maxCon="1000" minCon="10" balance="0"
 		writeType="0" dbType="mysql" dbDriver="native" switchType="1"
 		slaveThreshold="100">
 		<heartbeat>select user()</heartbeat>
-		<writeHost host="hostM1" url="10.0.21.68:3306" user="root"
+		<writeHost host="hostM1" url="10.0.21.67:3306" user="root"
 			password="root">
 		</writeHost>
-        </writeHost>
+		<readHost host="hostS1" url="10.0.21.68:3307" user="root"
+            password="root">
+        </readHost>
 	</dataHost>
 	<dataHost name="localhost2" maxCon="1000" minCon="10" balance="0"
         writeType="0" dbType="mysql" dbDriver="native" switchType="1"
         slaveThreshold="100">
         <heartbeat>select user()</heartbeat>
-        <writeHost host="hostS1" url="10.0.21.84:3306" user="root"
+        <writeHost host="hostM1" url="10.0.21.68:3306" user="root"
             password="root">
         </writeHost>
+        <readHost host="hostS1" url="10.0.21.84:3307" user="root"
+            password="root">
+        </readHost>
+    </dataHost>
+    <dataHost name="localhost3" maxCon="1000" minCon="10" balance="0"
+        writeType="0" dbType="mysql" dbDriver="native" switchType="1"
+        slaveThreshold="100">
+        <heartbeat>select user()</heartbeat>
+        <writeHost host="hostM1" url="10.0.21.84:3306" user="root"
+            password="root">
+        </writeHost>
+        <readHost host="hostS1" url="10.0.21.67:3307" user="root"
+            password="root">
+        </readHost>
     </dataHost>
 </mycat:schema>
