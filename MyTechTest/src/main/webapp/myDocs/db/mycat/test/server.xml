@@ -4,9 +4,15 @@
 	<system>
 		<property name="defaultSqlParser">druidparser</property>
 		<property name="charset">utf8</property>
+		<property name="serverPort">8066</property>
+		<property name="managerPort">9066</property>
+		<property name="bindIp">0.0.0.0</property>
+		<!-- 0:native file(default, only for test) 1:database 2:timestamp sequence -->
+		<property name="sequnceHandlerType">0</property>
 	</system>
+	<!-- login to mycat -->
 	<user name="root">
 		<property name="password">root</property>
-		<property name="schemas">mycattest</property>
+		<property name="schemas">test</property>
 	</user>
 </mycat:server>

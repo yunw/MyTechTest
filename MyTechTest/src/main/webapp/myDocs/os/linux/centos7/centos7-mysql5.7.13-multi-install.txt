@@ -1,8 +1,8 @@
 1、开启防火墙：
 firewall-cmd --zone=public --add-port=3306/tcp --permanent
-firewall-cmd --zone=public --add-port=3307/tcp --permanent
+firewall-cmd --zone=public --add-port=3040/tcp --permanent
 firewall-cmd --reload
-firewall-cmd --permanent --query-port=3306/tcp
+firewall-cmd --permanent --query-port=3040/tcp
 firewall-cmd --permanent --query-port=3307/tcp
  
 2、下载：
@@ -108,10 +108,12 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 8、启动mysql实例：
-mysqld_multi --defaults-file=/etc/my.cnf start 3306   #启动第一个实例，配置文件由my.cnf中的mysqld1设定  
+mysqld_multi --defaults-file=/etc/my.cnf start 3306   #启动第一个实例，配置文件由my.cnf中的mysqld1设定
+mysqld_multi --defaults-file=/etc/my.cnf start 3307  
 mysqld_multi --defaults-file=/etc/my.cnf start 3306-3307 
 mysqld_multi --defaults-file=/etc/my.cnf start 3306,3307 
 mysqld_multi --defaults-file=/etc/my.cnf stop 3306  --user=root --password=root
+mysqld_multi --defaults-file=/etc/my.cnf stop 3307  --user=root --password=root
 mysqld_multi --defaults-file=/etc/my.cnf stop 3306,3307  --user=root --password=root
 mysqld_multi --defaults-file=/etc/my.cnf stop 3306-3307  --user=root --password=root
 

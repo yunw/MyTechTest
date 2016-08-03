@@ -1,7 +1,17 @@
+
+m1 10.0.21.67:3306
+s1 10.0.21.68:3307
+
+m2 10.0.21.68:3306
+s2 10.0.21.84:3307
+
+m3 10.0.21.84:3306
+s3 10.0.21.67:3307
+
 <?xml version="1.0"?>
 <!DOCTYPE mycat:schema SYSTEM "schema.dtd">
 <mycat:schema xmlns:mycat="http://org.opencloudb/">
-	<schema name="mycattest" checkSQLschema="false" sqlMaxLimit="100">
+	<schema name="test" checkSQLschema="false" sqlMaxLimit="100">
 		<table name="customer" primaryKey="id" dataNode="dn1,dn2,dn3"
 			rule="sharding-by-long">
 		</table>
@@ -15,31 +25,31 @@
 		<heartbeat>select user()</heartbeat>
 		<writeHost host="hostM1" url="10.0.21.67:3306" user="root"
 			password="root">
+			<readHost host="hostS1" url="10.0.21.68:3307" user="root"
+				password="root">
+			</readHost>
 		</writeHost>
-		<readHost host="hostS1" url="10.0.21.68:3307" user="root"
-            password="root">
-        </readHost>
 	</dataHost>
 	<dataHost name="localhost2" maxCon="1000" minCon="10" balance="0"
-        writeType="0" dbType="mysql" dbDriver="native" switchType="1"
-        slaveThreshold="100">
-        <heartbeat>select user()</heartbeat>
-        <writeHost host="hostM1" url="10.0.21.68:3306" user="root"
-            password="root">
-        </writeHost>
-        <readHost host="hostS1" url="10.0.21.84:3307" user="root"
-            password="root">
-        </readHost>
-    </dataHost>
-    <dataHost name="localhost3" maxCon="1000" minCon="10" balance="0"
-        writeType="0" dbType="mysql" dbDriver="native" switchType="1"
-        slaveThreshold="100">
-        <heartbeat>select user()</heartbeat>
-        <writeHost host="hostM1" url="10.0.21.84:3306" user="root"
-            password="root">
-        </writeHost>
-        <readHost host="hostS1" url="10.0.21.67:3307" user="root"
-            password="root">
-        </readHost>
-    </dataHost>
+		writeType="0" dbType="mysql" dbDriver="native" switchType="1"
+		slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="hostM1" url="10.0.21.68:3306" user="root"
+			password="root">
+			<readHost host="hostS1" url="10.0.21.84:3307" user="root"
+				password="root">
+			</readHost>
+		</writeHost>
+	</dataHost>
+	<dataHost name="localhost3" maxCon="1000" minCon="10" balance="0"
+		writeType="0" dbType="mysql" dbDriver="native" switchType="1"
+		slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="hostM1" url="10.0.21.84:3306" user="root"
+			password="root">
+			<readHost host="hostS1" url="10.0.21.67:3307" user="root"
+				password="root">
+			</readHost>
+		</writeHost>
+	</dataHost>
 </mycat:schema>

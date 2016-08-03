@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mycat:rule SYSTEM "rule.dtd">
+
+<mycat:rule xmlns:mycat="http://org.opencloudb/">
+	<tableRule name="sharding-by-long">
+		<rule>
+			<columns>id</columns>
+			<algorithm>sharding-by-long</algorithm>
+		</rule>
+	</tableRule>
+
+	<function name="sharding-by-long" class="org.opencloudb.route.function.PartitionByLong">
+		<property name="partitionCount">2,1</property>
+		<property name="partitionLength">256,512</property>
+	</function>
+
+</mycat:rule>

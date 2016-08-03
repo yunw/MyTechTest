@@ -14,3 +14,64 @@ What's your name? yin.
 
 git clone --depth=14 https://github.com/angular/angular-phonecat.git
 --depth=14 #只下载最近的14个提交结果，该选项可让下载更快更小。
+
+github sshkey:
+1.From the Terminal or Git Bash, run ssh-keygen
+2.Confirm the default path .ssh/id_rsa
+3.Enter a passphrase (recommended) or leave it blank.
+Remember this passphrase, as you will need it to unlock the key whenever you use it.
+4.Open ~/.ssh/id_rsa.pub and copy & paste the contents into
+the box below, then click on "Add".
+Note that id_rsa.pub is your public key and can be shared,
+while id_rsa is your private key and should be kept secret.
+
+
+关于checkout：
+例如：
+git clone git://gitorious.org/android-eeepc/mesa.git
+进入目录如果只发现一个.git，那么需要checkout：
+先查看分支
+git branch -r
+
+origin/android
+origin/mesa-es
+origin/mesa-es-dri
+然后checkout：
+git checkout origin/android
+再看目录，就发现有代码了。
+
+clone branch:
+git clone <remote_repo> -b <branch>
+例如：git clone ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git -b dev_cat
+
+提交到本地：
+git add modifiedfile   #将工作区的修改添加到缓存区
+git commit -m "your message"  #将缓存区的所有修改提交到当前分支
+
+提交到远程分支：
+git push origin <local_branch_name>:<remote_branch_name>
+例如：git push origin dev_cat:dev_cat
+
+删除远程分支：
+git push --delete origin branchname
+例如：git push --delete origin dev_cat
+删除本地分支：
+git branch -d <本地分支名称>
+切换到一个新的分支：
+git checkout <新分支名称> 
+在本地创建新分支：
+git branch <新分支名称>
+
+git push origin <本地分支名称>:<远程分支名称>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -5,6 +5,14 @@ youdao:yin_slin@163.com/
 10.0.21.84 d#teSZ*iYLEx0ubja>q9
 10.0.21.71 91Mwbyd!
 
+ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git
+http://git.9now.net:10080/yangjunming/mwee_paidui_soa.git
+
+http://localhost:3042/services/base/ping
+
+ java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
+
 
 Field h = point.getTarget().getClass().getSuperclass().getDeclaredField("h");
         h.setAccessible(true);

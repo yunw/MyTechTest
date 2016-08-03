@@ -1,0 +1,12 @@
+1、下载：gradle-2.14.1-bin.zip
+
+2、解压：
+unzip gradle-2.14.1-bin.zip
+
+3、配置：
+vi /etc/profile
+export GRADLE_HOME=/usr/local/gradle-2.14.1
+export PATH=$GRADLE_HOME/bin:$PATH
+
+4、验证：
+gradle -v
