@@ -62,7 +62,17 @@ git checkout <新分支名称>
 在本地创建新分支：
 git branch <新分支名称>
 
+创建远程分支
 git push origin <本地分支名称>:<远程分支名称>
+
+更新代码到本地：
+git pull origin dev_cat
+
+
+
+
+
+
 
 
 

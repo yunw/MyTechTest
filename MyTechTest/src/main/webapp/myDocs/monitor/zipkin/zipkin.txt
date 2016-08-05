@@ -1,0 +1,22 @@
+firewall-cmd --zone=public --add-port=9411/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=9411/tcp
+
+wget -O zipkin.jar 'https://search.maven.org/remote_content?g=io.zipkin.java&a=zipkin-server&v=LATEST&c=exec'
+java -jar zipkin.jar
+
+
+logback.xml
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoder 默认配置为PatternLayoutEncoder -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

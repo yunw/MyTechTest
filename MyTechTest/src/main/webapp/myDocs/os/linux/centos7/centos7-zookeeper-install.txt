@@ -1,0 +1,47 @@
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.4.8/zookeeper-3.4.8.tar.gz
+
+tar zookeeper-3.4.8.tar.gz -C /usr/local
+mkdir -p /opt/zookeeper
+
+cd /usr/local/zookeeper-3.4.8/conf
+
+vi zoo.cfg
+syncLimit=2
+maxClientCnxns=600
+server.1=10.0.21.67:2888:3888
+server.2=10.0.21.68:2888:3888
+server.3=10.0.21.84:2888:3888
+
+vi /opt/zookeeper/myid
+1        #标识该zk server，与zoo.cfg的值对应
+
+vi /etc/systemd/system/zookeeper.service
+[Unit]
+Description=Zookeeper service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/jdk1.8.0_91/bin/java \
+-Dzookeeper.log.dir=/usr/local/zookeeper-3.4.8/logs/zookeeper.log \
+-Dzookeeper.root.logger=INFO,CONSOLE \
+-cp /usr/local/zookeeper-3.4.8/zookeeper-3.4.8.jar:/usr/local/zookeeper-3.4.8/lib/*:/usr/local/zookeeper-3.4.8/src/java/lib/*.jar:/usr/local/zookeeper-3.4.8/conf: \
+-Dcom.sun.management.jmxremote \
+-Dcom.sun.management.jmxremote.local.only=false \
+org.apache.zookeeper.server.quorum.QuorumPeerMain \
+/usr/local/zookeeper-3.4.8/conf/zoo.cfg
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl enable zookeeper
+systemctl start zookeeper
+systemctl status zookeeper
+
+zkCli.sh -server 127.0.0.1:2181
+
+
+
+
+
+

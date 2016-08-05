@@ -1,0 +1,66 @@
+firewall-cmd --zone=public --add-port=2181/tcp --permanent
+firewall-cmd --zone=public --add-port=16010/tcp --permanent
+firewall-cmd --zone=public --add-port=16020/tcp --permanent
+firewall-cmd --zone=public --add-port=16030/tcp --permanent
+firewall-cmd --zone=public --add-port=28080/tcp --permanent
+firewall-cmd --zone=public --add-port=28081/tcp --permanent
+firewall-cmd --zone=public --add-port=28082/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=2181/tcp
+firewall-cmd --permanent --query-port=16010/tcp
+firewall-cmd --permanent --query-port=16020/tcp
+firewall-cmd --permanent --query-port=16030/tcp
+firewall-cmd --permanent --query-port=28080/tcp
+firewall-cmd --permanent --query-port=28081/tcp
+firewall-cmd --permanent --query-port=28082/tcp
+
+vi /etc/profile
+export JAVA_8_HOME=/usr/local/jdk1.8.0_91
+export JAVA_7_HOME=/usr/local/jdk1.7.0_79
+export JAVA_6_HOME=/usr/local/jdk1.6.0_45
+
+git clone https://github.com/naver/pinpoint.git
+
+cd pinpoint
+
+mvn install -Dmaven.test.skip=true
+
+quickstart/bin/start-hbase.sh
+
+quickstart/bin/init-hbase.sh
+
+quickstart/bin/start-collector.sh
+
+quickstart/bin/start-web.sh
+
+quickstart/bin/start-testapp.sh
+
+
+http://localhost:28080 # webui
+
+http://localhost:28081 # testApp
+
+quickstart/bin/stop-hbase.sh
+
+quickstart/bin/stop-collector.sh
+
+quickstart/bin/stop-web.sh
+
+quickstart/bin/stop-testapp.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

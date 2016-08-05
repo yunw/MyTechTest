@@ -10,8 +10,41 @@ http://git.9now.net:10080/yangjunming/mwee_paidui_soa.git
 
 http://localhost:3042/services/base/ping
 
- java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+firewall-cmd --zone=public --add-port=3040/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=3040/tcp
 
+cd /data/service/paidui_service
+
+cd /data/service/paidui_service/service-shop/lib
+java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
+curl http://localhost:3040/services/shop/ping
+
+http://10.0.21.68:3040/services/shop/fail
+
+http://114.80.88.52:9001/nexus/#nexus-config admin/91Mwbyd!
+
+
+
+
+
+http://10.0.21.68:3040/services/shop/fail
+
+Content Type: application/json;charset=utf-8
+{
+"shopId":1,
+"msg":1,
+"snId":1
+}
+
+
+http://10.0.21.68:3040/services/shop/detail
+Content Type: application/json;charset=utf-8
+{
+"shopId":1,
+"queueId":1
+}
 
 
 Field h = point.getTarget().getClass().getSuperclass().getDeclaredField("h");
