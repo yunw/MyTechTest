@@ -1,1 +1,95 @@
-wget http://mirror.bit.edu.cn/apache/hbase/1.2.2/hbase-1.2.2-bin.tar.gz
+wget http://mirrors.hust.edu.cn/apache/hbase/hbase-1.0.3/hbase-1.0.3-bin.tar.gz
+
+tar zxf hbase-1.0.3-bin.tar.gz -C /usr/local
+ln -s hbase-1.0.3-bin.tar.gz hbase
+vi /etc/profile
+export PATH=/usr/local/hbase/bin:$PATH
+
+vi hbase-site.xml
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>master,node1,node2</value>
+    <description>The directory shared by RegionServers.
+    </description>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/export/zookeeper</value>
+    <description>Property from ZooKeeper config zoo.cfg.
+    The directory where the snapshot is stored.
+    </description>
+  </property>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://master:9000/hbase</value><!-- hadoop: fs.defaultFS -->
+    <description>The directory shared by RegionServers.
+    </description>
+  </property>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+    <description>The mode the cluster will be in. Possible values are
+      false: standalone and pseudo-distributed setups with managed ZooKeeper
+      true: fully-distributed with unmanaged ZooKeeper Quorum (see hbase-env.sh)
+    </description>
+  </property>
+</configuration>
+
+vi regionservers
+node1
+node2
+
+vi hbase-env.sh
+export JAVA_HOME=/usr/local/jdk1.8.0_91
+export HBASE_HEAPSIZE=1G
+
+chown -R hadoop.hadoop /usr/local/hbase-1.0.3
+chown -R hadoop.hadoop /usr/local/hbase
+
+start-hbase.sh
+[hadoop@master conf]$ jps
+8626 HMaster
+2261 NameNode
+2533 ResourceManager
+2853 NodeManager
+3005 JobHistoryServer
+8845 Jps
+
+[root@node1 conf]# jps
+3269 DataNode
+3446 NodeManager
+5274 Jps
+3371 SecondaryNameNode
+5118 HRegionServer
+
+[root@node2 conf]# jps
+4002 DataNode
+6947 Jps
+6725 HRegionServer
+860 QuorumPeerMain
+4111 NodeManager
+
+stop-hbase.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
