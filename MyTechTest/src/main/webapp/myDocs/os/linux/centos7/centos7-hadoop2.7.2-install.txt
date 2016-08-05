@@ -1,69 +1,299 @@
-1、下载：
-wget http://mirror.bit.edu.cn/apache/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz
+10.0.21.67 master
+10.0.21.68 node1
+10.0.21.84 node2
 
-2、解压：
-mkdir -p /home/hadoop
-tar zxf hadoop-2.7.2.tar.gz -C /home/hadoop/
+在10.0.21.67上执行：
+echo "master" > /etc/hostname
+
+在10.0.21.68上执行：
+echo "node1" > /etc/hostname
+
+在10.0.21.84上执行：
+echo "node2" > /etc/hostname
+
+三台机器上执行：
+echo "10.0.21.67 master" >> /etc/hosts
+echo "10.0.21.68 node1" >> /etc/hosts
+echo "10.0.21.84 node2" >> /etc/hosts
+
+关闭防火墙：
+systemctl stop firewalld
+systemctl disable firewalld
+
+互ping：
+ping master -c 4
+ping node1 -c 4
+ping node2 -c 4
+
+master，node1，node2上创建hadoop用户
+cat /etc/group | grep hadoop
+
+cat /etc/passwd | grep hadoop
+
+id hadoop
+
+useradd hadoop
+passwd  hadoop  #输入密码：hadoop
+
+赋予hadoop用户root权限：
+visudo
+## Allow root to run any commands anywhere
+root    ALL=(ALL)     ALL
+tommy   ALL=(ALL)     ALL    #添加这一行就会有root权限
+
+
+4、配置针对hadoop用户的ssh免密登录(在三台机器上都执行)：
+参考：centos7-nopasslogin.txt
 
 3、配置环境变量：
 vi /etc/profile
-export HADOOP_HOME=/home/hadoop/hadoop-2.7.2
+export HADOOP_HOME=/usr/local/hadoop
 export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
 
-4、配置ssh免密登录：
-[root@centos71 ~]# ssh-keygen -t rsa
-Generating public/private rsa key pair.
-Enter file in which to save the key (/root/.ssh/id_rsa): 
-Enter passphrase (empty for no passphrase): 
-Enter same passphrase again: 
-Your identification has been saved in /root/.ssh/id_rsa.
-Your public key has been saved in /root/.ssh/id_rsa.pub.
-The key fingerprint is:
-99:f5:3b:a3:d5:39:b6:b3:80:b5:f5:29:8b:dc:48:00 root@centos71
-The key's randomart image is:
-+--[ RSA 2048]----+
-|                 |
-|                 |
-|       E  .      |
-|        .+ .     |
-|        S.  o .  |
-|          .o = o.|
-|          ..B.=..|
-|          oo+=+o |
-|          .+ ooo |
-+-----------------+
+mkdir -p /data/hadoop/
+chown -R hadoop:hadoop  /data/hadoop/
+mkdir -p /data/hadoop/tmp/
+chown -R hadoop:hadoop /data/hadoop/tmp/
+mkdir -p /data/hadoop/hdfs/
+chown -R hadoop:hadoop /data/hadoop/hdfs
+mkdir -p /data/hadoop/hdfs/data
+chown -R hadoop:hadoop /data/hadoop/hdfs/data
+mkdir -p /data/hadoop/hdfs/name
+chown -R hadoop:hadoop /data/hadoop/hdfs/name
+mkdir -p /data/hadoop/hdfs/namesecondary
+chown -R hadoop:hadoop /data/hadoop/hdfs/namesecondary
 
-注：上述要输入的地方直接回车。
+1、下载：
+su - hadoop
+wget http://mirror.bit.edu.cn/apache/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz
 
-[root@centos71 ~]# cd .ssh/
-[root@centos71 .ssh]# ls
-id_rsa  id_rsa.pub  known_hosts
-[root@centos71 .ssh]# cat id_rsa.pub >> authorized_keys
-[root@centos71 .ssh]# ls
-authorized_keys  id_rsa  id_rsa.pub  known_hosts
+2、解压：
+tar zxf hadoop-2.7.2.tar.gz -C /usr/local/
+
+ln -s hadoop-2.7.2 hadoop
+
 
 5、配置hadoop：
 cd /home/hadoop/hadoop-2.7.2/etc/hadoop/
 
-a、core-site.xml
+a、hadoop-env.sh
+#export JAVA_HOME=${JAVA_HOME}              #注释这一行
+export JAVA_HOME=/usr/local/jdk1.8.0_91     #添加这一行
+export HADOOP_HEAPSIZE=128 # 默认1000M，改为128M
+
+b、core-site.xml
 vi core-site.xml
 <configuration>
    <!--HDFS路径逻辑名称-->
    <property>
         <name>fs.defaultFS</name>
-       <value>hdfs://hcluster</value>
+       <value>hdfs://master:9000</value>
    </property>
    <!--Hadoop存放临时文件位置-->
+   <!-- Hadoop的默认临时路径，这个最好配置，如果在新增节点或者其他情况下莫名其妙的DataNode启动不了，就删除此文件中的tmp目录即可。
+   不过如果删除了NameNode机器的此目录，那么就需要重新执行NameNode格式化的命令。/data/hadoop/tmp这里给的路径不需要创建会自动生成.-->
    <property>
        <name>hadoop.tmp.dir</name>
-       <value>/home/hadoop/tmp</value>
+       <value>/data/hadoop/tmp</value>
    </property>
    <!--使用的zookeeper集群地址-->
-   <property>
+   <!--<property>
        <name>ha.zookeeper.quorum</name>
-       <value>cenos71:2181,centos72:2181,centos73:2181</value>
-   </property>
+       <value>master:2181,node1:2181,node2:2181</value>
+   </property>-->
+   <!-- editlog每隔30分钟触发一次合并，默认为60分钟 -->
+   <property>
+      <name>dfs.namenode.checkpoint.period</name>
+<value>1800</value>
+</property>
 </configuration>
+
+c、hdfs-site.xml
+vi hdfs-site.xml
+
+<configuration>
+ <!--HDFS namenode数据镜象目录-->
+<property>
+<name>dfs.namenode.name.dir</name>
+<value>/data/hadoop/hdfs/name</value>
+<description>  </description>
+</property>
+ <!-- HDFS datanode数据镜象存储路径,可以配置多个不同的分区和磁盘中,使用,号分隔 -->
+<property>
+<name>dfs.datanode.data.dir</name>
+<value>/data/hadoop/hdfs/data</value>
+<description> </description>
+</property>
+ <!---HDFS Web查看主机和端口-->
+<property>
+<name>dfs.namenode.http-address</name>
+<value>master:50070</value>
+</property>
+ <!--辅控HDFS web查看主机和端口-->
+<property>
+<name>dfs.namenode.secondary.http-address</name>
+<value>node1:50090</value>
+</property>
+ 
+<property>
+<name>dfs.webhdfs.enabled</name>
+<value>true</value>
+</property>
+ <!--HDFS数据保存份数，通常是3-->
+<property>
+<name>dfs.replication</name>
+<value>3</value>
+</property>
+ <!-- datanode 写磁盘会预留 1G空间 给其他程序使用,而非写满,单位 bytes-->
+<property>
+<name>dfs.datanode.du.reserved</name>
+<value>1073741824</value>
+</property>
+ <!--HDFS数据块大小，当前设置为128M/Blocka-->
+<property>
+<name>dfs.block.size</name>
+<value>134217728</value>
+</property>
+ <!-- HDFS 关闭文件权限 -->
+<property>
+<name>dfs.permissions.enabled</name>
+<value>false</value>
+</property>
+ 
+</configuration>
+
+d、mapred-site.xml
+cp mapred-site.xml.template mapred-site.xml
+vi mapred-site.xml
+<configuration>
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+<property>
+<name>mapreduce.jobtracker.http.address</name>
+<value>master:50030</value>
+</property>
+<property>
+<name>mapred.job.tracker</name>
+<value>http://master:9001</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.address</name>
+<value>master:10020</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.webapp.address</name>
+<value>master:19888</value>
+</property>
+</configuration>
+
+
+e、yarn-site.xml 
+vi yarn-site.xml 
+<configuration>
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+<property>
+<name>yarn.resourcemanager.address</name>
+<value>master:8032</value>
+</property>
+<property>
+<name>yarn.resourcemanager.scheduler.address</name>
+<value>master:8030</value>
+</property>
+<property>
+<name>yarn.resourcemanager.resource-tracker.address</name>
+<value>master:8031</value>
+</property>
+<property>
+<name>yarn.resourcemanager.admin.address</name>
+<value>master:8033</value>
+</property>
+<property>
+<name>yarn.resourcemanager.webapp.address</name>
+<value>master:8088</value>
+</property>
+</configuration>
+
+至此，单机版hadoop安装完成，测试：
+格式化（只执行一次）：
+hdfs namenode -format <cluster-name>
+
+hadoop-daemon.sh start namenode
+chmod go-w /data/hadoop/hdfs/data/
+hadoop-daemon.sh start datanode
+
+yarn-daemon.sh start resourcemanager
+
+yarn-daemon.sh start nodemanager
+
+yarn-daemon.sh start proxyserver
+
+mr-jobhistory-daemon.sh start historyserver
+
+[hadoop@master bin]$ jps
+2320 DataNode
+2802 Jps
+2489 NodeManager
+2553 JobHistoryServer
+2219 NameNode
+2431 ResourceManager
+上面5个进程都启动正常，说明单机版hadoop安装成功。
+
+集群安装：
+stop-all.sh
+
+scp -r /usr/local/hadoop-2.7.2 node1:/usr/local
+
+scp -r /usr/local/hadoop-2.7.2 node2:/usr/local
+
+master节点上修改：
+vi /usr/local/hadoop/etc/hadoop/slaves
+删除localhost
+添加：
+node1
+node2
+
+开启集群：
+在master上执行：
+start-all.sh
+yarn-daemon.sh start nodemanager
+mr-jobhistory-daemon.sh start historyserver
+在各节点上执行jps：
+[hadoop@master logs]$ jps
+2261 NameNode
+2533 ResourceManager
+2853 NodeManager
+3005 JobHistoryServer
+3085 Jps
+
+[hadoop@node1 logs]$ jps
+3269 DataNode
+3446 NodeManager
+3546 Jps
+3371 SecondaryNameNode
+
+[hadoop@node2 logs]$ jps
+4002 DataNode
+4231 Jps
+4111 NodeManager
+说明hadoop集群成功部署。
+
+关闭集群：
+hadoop-daemon.sh  stop namenode
+hadoop-daemon.sh  stop datanode
+stop-dfs.sh
+yarn-daemon.sh stop resourcemanager
+yarn-daemons.sh stop nodemanager
+stop-yarn.sh
+yarn-daemon.sh stop proxyserver
+mr-jobhistory-daemon.sh stop historyserver
+
+
+
 
 
 
