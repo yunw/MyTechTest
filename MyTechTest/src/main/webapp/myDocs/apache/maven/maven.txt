@@ -130,3 +130,7 @@ maven远程热部署（tomcat8）：
 
 4、执行maven命令：
 mvn tomcat:redeploy
+
+
+从失败地方开始：
+mvn <命令> -rf :<projectName>

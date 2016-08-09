@@ -1,2 +1,188 @@
 全局sequence：
-1、本地文件方式：
+
+一、本地文件方式：
+conf/sequence_conf.properties
+GLOBAL_SEQ.HISIDS=
+GLOBAL_SEQ.MINID=1001
+GLOBAL_SEQ.MAXID=1000000000
+GLOBAL_SEQ.CURID=1000
+注：hisids表示已经使用过的历史分段
+minid表示最小id值
+maxid表示最大id值
+curid表示当前id值
+
+对应的server.xml文件的配置：
+<system><property name="sequnceHandlerType">0</property></system>
+sequnceHandlerType为0，表示本地文件方式。
+示例：
+insert into table1(id,name) values(next value for MYCATSEQ_GLOBAL,‘test’);
+缺点：mycat重新发布后，配置文件中的sequence会恢复到初值。
+优点：本地加载，速度较快。
+
+二、数据库方式：
+server.xml的配置：
+<system><property name="sequnceHandlerType">1</property></system>
+sequnceHandlerType为1表示数据库方式
+
+数据库配置：
+1、创建：MYCAT_SEQUENCE表
+DROP TABLE IF EXISTS MYCAT_SEQUENCE;
+CREATE TABLE MYCAT_SEQUENCE (
+name VARCHAR(50) NOT NULL,
+current_value INT NOT NULL,
+increment INT NOT NULL DEFAULT 100, 
+PRIMARY KEY(name)) ENGINE=InnoDB;
+注：name：sequence名称
+   current_value：当前sequence值
+   increment：步长，mycat用完increment个sequence之后，再去数据库取increment个sequence。如果取完后mycat宕机，没用掉的value不重用。
+          步长选择：步长选择多大，取决与你数据插入的TPS，假如是每秒1000个，则步长为1000×60=6万，不是很大，即60秒会重新从数据库读取下一批次的序列号值。
+   
+插入一条sequence：
+INSERT INTO MYCAT_SEQUENCE(name,current_value,increment) VALUES ('GLOBAL', 100000, 100);
+
+2、创建相关function
+A、获取当前sequence值（当前值和增量）
+DROP FUNCTION IF EXISTS mycat_seq_currval;
+DELIMITER
+CREATE FUNCTION mycat_seq_currval(seq_name VARCHAR(50)) RETURNS varchar(64) CHARSET
+utf-8
+DETERMINISTIC
+BEGIN
+DECLARE retval VARCHAR(64);
+SET retval="-999999999,null";
+SELECT concat(CAST(current_value AS CHAR),",",CAST(increment AS CHAR)) INTO retval FROM
+MYCAT_SEQUENCE WHERE name = seq_name;
+RETURN retval;
+END
+DELIMITER;
+B、设置sequence值：
+DROP FUNCTION IF EXISTS mycat_seq_setval;
+DELIMITER
+CREATE FUNCTION mycat_seq_setval(seq_name VARCHAR(50),value INTEGER) RETURNS varchar(64)
+CHARSET utf-8
+DETERMINISTIC
+BEGIN
+UPDATE MYCAT_SEQUENCE
+SET current_value = value
+WHERE name = seq_name;
+RETURN mycat_seq_currval(seq_name);
+END
+DELIMITER;
+C、获取下一个sequence值：
+DROP FUNCTION IF EXISTS mycat_seq_nextval;
+DELIMITER
+CREATE FUNCTION mycat_seq_nextval(seq_name VARCHAR(50)) RETURNS varchar(64) CHARSET
+utf-8
+DETERMINISTIC
+BEGIN
+UPDATE MYCAT_SEQUENCE
+SET current_value = current_value + increment WHERE name = seq_name;
+RETURN mycat_seq_currval(seq_name);
+END
+DELIMITER;
+备注：MYCAT_SEQUENCE和三个function必须在一个节点上，并且直接在数据库上执行。
+如果执行的时候报错：you might want to use the less safe log_bin_trust_function_creators variable
+请在/etc/my.cnf下添加： log_bin_trust_function_creators=1
+重新执行
+3、sequence_db_conf.properties相关配置，指定sequence相关配置在哪个节点上：
+GLOBAL=dn1
+
+三、本地时间戳方式：
+ID=64位二进制
+
+42位时间：毫秒
+5位机器ID
+5位业务编码
+12位重复累加
+换算成10进制18位的long类型。每毫秒可并发12位二进制的累加。
+配置：
+server.xml
+<property name="sequnceHandlerType">2</property>
+
+sequence_time_conf.properties
+WORKID=0-31
+DATAACENTERID=0-31
+注：每个mycat节点下这两个参数两两组合组成唯一标识。总共支持32 * 32 = 1024种组合。
+
+四、自增主键：
+前提：mysql表也必须定义自增主键：
+配置：
+A、mysql定义自增主键：
+CREATE TABLE table1(
+id_ INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+name_ INT(10) UNSIGNED NOT NULL,
+PRIMARY KEY (id_)
+) ENGINE=MYISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+
+B、mycat定义自增主键：
+schema.xml：
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://org.opencloudb/">
+    <schema name="test" checkSQLschema="false" sqlMaxLimit="100">
+        <table name="table1" primaryKey="id" autoIncrement="true" dataNode="dn1,dn2,dn3"
+            rule="sharding-by-long">
+        </table>
+        <table name="mycat_sequence" primaryKey="name" dataNode="dn1"/>
+    </schema>
+    <dataNode name="dn1" dataHost="localhost1" database="test" />
+    <dataNode name="dn2" dataHost="localhost2" database="test" />
+    <dataNode name="dn3" dataHost="localhost3" database="test" />
+    <dataHost name="localhost1" maxCon="1000" minCon="10" balance="0"
+        writeType="0" dbType="mysql" dbDriver="native" switchType="1"
+        slaveThreshold="100">
+        <heartbeat>select user()</heartbeat>
+        <writeHost host="hostM1" url="10.0.21.67:3306" user="root"
+            password="root">
+            <readHost host="hostS1" url="10.0.21.68:3307" user="root"
+                password="root">
+            </readHost>
+        </writeHost>
+    </dataHost>
+    <dataHost name="localhost2" maxCon="1000" minCon="10" balance="0"
+        writeType="0" dbType="mysql" dbDriver="native" switchType="1"
+        slaveThreshold="100">
+        <heartbeat>select user()</heartbeat>
+        <writeHost host="hostM1" url="10.0.21.68:3306" user="root"
+            password="root">
+            <readHost host="hostS1" url="10.0.21.84:3307" user="root"
+                password="root">
+            </readHost>
+        </writeHost>
+    </dataHost>
+    <dataHost name="localhost3" maxCon="1000" minCon="10" balance="0"
+        writeType="0" dbType="mysql" dbDriver="native" switchType="1"
+        slaveThreshold="100">
+        <heartbeat>select user()</heartbeat>
+        <writeHost host="hostM1" url="10.0.21.84:3306" user="root"
+            password="root">
+            <readHost host="hostS1" url="10.0.21.67:3307" user="root"
+                password="root">
+            </readHost>
+        </writeHost>
+    </dataHost>
+</mycat:schema>
+
+C、 sequence_db_conf.properties增加相应设置：
+TABLE1=dn1
+
+D、在数据库表mycat_sequence中增加table1表的sequence记录
+INSERT INTO MYCAT_SEQUENCE(name,current_value,increment) VALUES ('TABLE1', 100000, 100);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

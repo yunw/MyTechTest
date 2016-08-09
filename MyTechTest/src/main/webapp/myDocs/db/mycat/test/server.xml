@@ -8,7 +8,7 @@
 		<property name="managerPort">9066</property>
 		<property name="bindIp">0.0.0.0</property>
 		<!-- 0:native file(default, only for test) 1:database 2:timestamp sequence -->
-		<property name="sequnceHandlerType">0</property>
+		<property name="sequnceHandlerType">1</property>
 	</system>
 	<!-- login to mycat -->
 	<user name="root">

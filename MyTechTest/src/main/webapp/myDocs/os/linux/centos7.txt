@@ -1,3 +1,6 @@
+查看端口占用：
+netstat -apn | grep port
+
 centos7不再使用ifconfig而是使用ip addr查看ip地址
 
 virtualBox上安装centos7网络配置(采用桥接网卡)：

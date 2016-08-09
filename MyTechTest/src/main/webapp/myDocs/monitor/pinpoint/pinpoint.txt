@@ -1,0 +1,69 @@
+1、安装hadoop集群
+
+2、安装zookeeper集群
+
+3、安装hbase集群
+
+4、创建hbase schema：
+
+su - hadoop
+/usr/local/hbase/bin/hbase shell /home/hadoop/scripts/hbase-create.hbase
+
+5、下载pinpoint：
+wget https://github.com/naver/pinpoint/releases/download/1.5.2/pinpoint-agent-1.5.2.tar.gz
+wget https://github.com/naver/pinpoint/releases/download/1.5.2/pinpoint-collector-1.5.2.war
+wget https://github.com/naver/pinpoint/releases/download/1.5.2/pinpoint-web-1.5.2.war
+
+也可以下载源码手动编译：
+wget https://github.com/naver/pinpoint/archive/1.5.2.tar.gz
+
+6、Pinpoint Collector
+cp $PINPOINT_PATH/collector/target/pinpoint-collector-$VERSION.war $TOMCAT_HOME/webapps
+配置：
+a、pinpoint-collector.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.6.0-SNAPSHOT/WEB-INF/classes/pinpoint-collector.properties)
+collector.tcpListenPort=9994     # agent's profiler.collector.tcp.port - default: 9994
+collector.udpStatListenPort=9995 # agent's profiler.collector.stat.port - default: 9995
+collector.udpSpanListenPort=9996 # agent's profiler.collector.span.port - default: 9996
+b、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.6.0-SNAPSHOT/WEB-INF/classes/hbase.properties)
+hbase.client.host=localhost # default: localhost
+hbase.client.port=2181      # default: 2181
+
+7、Pinpoint Web(必须配置为ROOT应用，将文件夹pinpoint-web-$VERSION中的内容拷贝到ROOT下)
+cp $PINPOINT_PATH/web/target/pinpoint-web-$VERSION.war $TOMCAT_HOME/webapps/ROOT
+配置：
+a、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-web-1.6.0-SNAPSHOT/WEB-INF/classes/hbase.properties)
+hbase.client.host=localhost # default: localhost
+hbase.client.port=2181      # default: 2181
+
+8、Pinpoint Agent
+$AGENT_PATH=/root/downloads/pinpoint-agent-1.5.2
+配置文件：
+$AGENT_PATH/pinpoint.config
+profiler.collector.ip (default: 127.0.0.1)
+profiler.collector.tcp.port (collector's collector.tcpListenPort - default: 9994)
+profiler.collector.stat.port (collector's collector.udpStatListenPort - default: 9995)
+profiler.collector.span.port (collector's collector.udpSpanListenPort - default: 9996)
+
+配置应用：
+A、运行java应用的时候
+a、添加jvm args：
+-javaagent:$AGENT_PATH/pinpoint-bootstrap-$VERSION.jar
+b、命令行参数：
+-Dpinpoint.agentId             # 应用实例的唯一标识符，必须全局唯一，最大长度24位：可以用ip + appName+ sequence的方式保证全局唯一
+-Dpinpoint.applicationName     # 一组提供相同服务的应用的标识符
+例如：
+java -jar -javaagent:/root/downloads/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002167-ppt-001" -Dpinpoint.applicationName="PinPointTest" PinPointTest.jar
+
+B、运行web应用的时候：
+CATALINA_OPTS="$CATALINA_OPTS -javaagent:$AGENT_PATH/pinpoint-bootstrap-$VERSION.jar"
+CATALINA_OPTS="$CATALINA_OPTS -Dpinpoint.agentId=$AGENT_ID"
+CATALINA_OPTS="$CATALINA_OPTS -Dpinpoint.applicationName=$APPLICATION_NAME"
+
+
+
+
+
+
+
+
+

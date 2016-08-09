@@ -5,8 +5,7 @@ youdao:yin_slin@163.com/
 10.0.21.84 d#teSZ*iYLEx0ubja>q9
 10.0.21.71 91Mwbyd!
 
-ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git
-http://git.9now.net:10080/yangjunming/mwee_paidui_soa.git
+git clone ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git -b dev_cat
 
 http://localhost:3042/services/base/ping
 
@@ -18,6 +17,10 @@ cd /data/service/paidui_service
 
 cd /data/service/paidui_service/service-shop/lib
 java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
+cd /data/service/paidui_service/service-shop/lib
+java -server -Xms512m -Xmx512m -javaagent:/root/downloads/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002167-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
 
 curl http://localhost:3040/services/shop/ping
 
@@ -54,6 +57,11 @@ Field h = point.getTarget().getClass().getSuperclass().getDeclaredField("h");
         sql.setAccessible(true);
         SqlSessionTemplate sessionTemplate = (SqlSessionTemplate) sql.get(oh);
         
+   
+   
+   
+
+sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了
         
 
 zk缺陷
