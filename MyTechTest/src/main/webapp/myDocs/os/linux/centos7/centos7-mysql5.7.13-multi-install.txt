@@ -37,10 +37,13 @@ mkdir -p /opt/mysql/data3307
 chmod 770 /opt/mysql/data3307
 mkdir -p /opt/mysql/logbin
 chmod 770 /opt/mysql/logbin
+mkdir -p /opt/mysql/relaylog
+chmod 770 /opt/mysql/relaylog
 chown -R mysql.mysql /opt/mysql/data3306
 chown -R mysql.mysql /opt/mysql/data3307
 chown -R mysql.mysql /opt/mysql
 chown -R mysql.mysql /opt/mysql/logbin
+chown -R mysql.mysql /opt/mysql/relaylog
 
 cd /usr/local/mysql
 chown -R mysql .
@@ -106,6 +109,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  binlog_format=mixed
  expire_logs_days=7
  log_bin_trust_function_creators=1
+ relay_log = /opt/mysql/relaylog/mysql-relay-bin
 
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
@@ -127,6 +131,8 @@ mysql -u root  -S /tmp/mysql3307.sock -p
 
 以后连接：
 mysql -u root  -S /tmp/mysql3306.sock -proot
+
+mysql -u root  -S /tmp/mysql3307.sock -proot
 
 10、修改密码：
 mysql>SET PASSWORD = PASSWORD('root');
