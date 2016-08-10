@@ -1,0 +1,68 @@
+1、适用版本：1.5.2
+
+2、存储：
+hdfs集群、hbase集群、zookeeper集群
+
+3、pinpoint collector：
+部署（为了提升性能，可以部署多个）：
+pinpoint collector是一个可部署war包（pinpoint-collector-1.5.2.war），可直接放在tomcat/webapps下
+
+配置：
+a、pinpoint-collector.properties(tomcat/webapps/pinpoint-collector-1.5.2/WEB-INF/classes/pinpoint-collector.properties)
+collector.tcpListenPort=9994     # agent's profiler.collector.tcp.port - default: 9994
+collector.udpStatListenPort=9995 # agent's profiler.collector.stat.port - default: 9995
+collector.udpSpanListenPort=9996 # agent's profiler.collector.span.port - default: 9996
+
+b、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.5.2/WEB-INF/classes/hbase.properties)
+hbase.client.host=10.0.21.67 # default: localhost
+hbase.client.port=2181       # default: 2181
+
+4、pinpoint agent：
+部署：
+pinpoint-agent-1.5.2.tar.gz解压到/data/service目录下即可
+配置：
+pinpoint.config
+profiler.collector.ip=10.0.21.67 #collector安装的机器对应的ip (default: 127.0.0.1)
+
+
+5、pinpoint web：
+部署：
+pinpoint-web-1.5.2.war要将包中的内容放在tomcat/webapps/ROOT下面作为root应用部署。
+
+配置：
+a、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/ROOT/WEB-INF/classes/hbase.properties)
+hbase.client.host=10.0.21.67 # default: localhost
+hbase.client.port=2181       # default: 2181
+
+6、使用：
+A、java应用：
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdasp-001 -Dpinpoint.applicationName=PDAdminServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDAdminServiceProvider
+
+B、web应用
+CATALINA_OPTS="$CATALINA_OPTS -javaagent:$AGENT_PATH/pinpoint-bootstrap-$VERSION.jar"
+CATALINA_OPTS="$CATALINA_OPTS -Dpinpoint.agentId=$AGENT_ID"
+CATALINA_OPTS="$CATALINA_OPTS -Dpinpoint.applicationName=$APPLICATION_NAME"
+
+注：
+applicationName：同一应用无论开多少进程，名称相同（用于合并统计）
+agentId规则：
+1、最大长度24位
+2、全局唯一（为了保证全局唯一，可以采用如下规则：最大12位ip-最大7位应用名称缩写-最大3位序列号）
+例如：PDAdminServiceProvider部署在10.0.21.64上
+agentId=1002164-pdasp-001
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

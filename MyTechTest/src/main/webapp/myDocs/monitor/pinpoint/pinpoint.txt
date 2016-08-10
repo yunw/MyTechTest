@@ -20,18 +20,18 @@ wget https://github.com/naver/pinpoint/archive/1.5.2.tar.gz
 6、Pinpoint Collector
 cp $PINPOINT_PATH/collector/target/pinpoint-collector-$VERSION.war $TOMCAT_HOME/webapps
 配置：
-a、pinpoint-collector.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.6.0-SNAPSHOT/WEB-INF/classes/pinpoint-collector.properties)
+a、pinpoint-collector.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.5.2/WEB-INF/classes/pinpoint-collector.properties)
 collector.tcpListenPort=9994     # agent's profiler.collector.tcp.port - default: 9994
 collector.udpStatListenPort=9995 # agent's profiler.collector.stat.port - default: 9995
 collector.udpSpanListenPort=9996 # agent's profiler.collector.span.port - default: 9996
-b、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.6.0-SNAPSHOT/WEB-INF/classes/hbase.properties)
+b、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.5.2/WEB-INF/classes/hbase.properties)
 hbase.client.host=localhost # default: localhost
 hbase.client.port=2181      # default: 2181
 
 7、Pinpoint Web(必须配置为ROOT应用，将文件夹pinpoint-web-$VERSION中的内容拷贝到ROOT下)
 cp $PINPOINT_PATH/web/target/pinpoint-web-$VERSION.war $TOMCAT_HOME/webapps/ROOT
 配置：
-a、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-web-1.6.0-SNAPSHOT/WEB-INF/classes/hbase.properties)
+a、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-web-1.5.2/WEB-INF/classes/hbase.properties)
 hbase.client.host=localhost # default: localhost
 hbase.client.port=2181      # default: 2181
 
@@ -53,6 +53,33 @@ b、命令行参数：
 -Dpinpoint.applicationName     # 一组提供相同服务的应用的标识符
 例如：
 java -jar -javaagent:/root/downloads/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002167-ppt-001" -Dpinpoint.applicationName="PinPointTest" PinPointTest.jar
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002167-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+java -server -Xms1024m -Xmx1024m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdbsp-001 -Dpinpoint.applicationName=PDBaseServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDBaseServiceProvider
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdasp-001 -Dpinpoint.applicationName=PDAdminServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDAdminServiceProvider
+
+
+java -server -Xms512m -Xmx512m  -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
+java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDCustomerServiceProvider
+
+java -server -Xms1024m -Xmx1024m  -Djava.ext.dirs=. cn.mwee.service.paidui.PDBaseServiceProvider
+
+java -server -Xms512m -Xmx512m  -Djava.ext.dirs=. cn.mwee.service.paidui.PDWeChatServiceProvider
+
+java -server -Xms512m -Xmx512m  -Djava.ext.dirs=. cn.mwee.service.paidui.PDAdminServiceProvider
+
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002164-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdcsp-001 -Dpinpoint.applicationName=PDCustomerServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDCustomerServiceProvider
+
+java -server -Xms1024m -Xmx1024m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdbsp-001 -Dpinpoint.applicationName=PDBaseServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDBaseServiceProvider
+
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdwcsp-001 -Dpinpoint.applicationName=PDWeChatServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDWeChatServiceProvider
+
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId=10002173-pdasp-001 -Dpinpoint.applicationName=PDAdminServiceProvider -Djava.ext.dirs=. cn.mwee.service.paidui.PDAdminServiceProvider
+
+
+
 
 B、运行web应用的时候：
 CATALINA_OPTS="$CATALINA_OPTS -javaagent:$AGENT_PATH/pinpoint-bootstrap-$VERSION.jar"

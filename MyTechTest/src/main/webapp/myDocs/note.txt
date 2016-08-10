@@ -4,6 +4,8 @@ youdao:yin_slin@163.com/
 10.0.21.68 &"xH7tsGBjifE{m5asKw
 10.0.21.84 d#teSZ*iYLEx0ubja>q9
 10.0.21.71 91Mwbyd!
+10.0.21.64 provider  root/91Mwbyd!  /data/service/
+10.0.21.73 provider  root/91Mwbyd!  /data/service/
 
 git clone ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git -b dev_cat
 
@@ -20,6 +22,8 @@ java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopSe
 
 cd /data/service/paidui_service/service-shop/lib
 java -server -Xms512m -Xmx512m -javaagent:/root/downloads/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002167-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002164-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002173-pdcsp-001" -Dpinpoint.applicationName="PDCustomerServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDCustomerServiceProvider
 
 
 curl http://localhost:3040/services/shop/ping
