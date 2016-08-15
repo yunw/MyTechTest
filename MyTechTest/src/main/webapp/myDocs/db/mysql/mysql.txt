@@ -1,3 +1,51 @@
+死锁：
+输入：show engine innodb status \G;
+找到：LATEST DETECTED DEADLOCK这一节内容：
+例如：
+------------------------
+LATEST DETECTED DEADLOCK
+------------------------
+2016-08-12 10:50:01 7fcbca0f8700
+*** (1) TRANSACTION:
+TRANSACTION 14983029, ACTIVE 0 sec starting index read
+mysql tables in use 1, locked 1
+LOCK WAIT 2 lock struct(s), heap size 360, 1 row lock(s)
+MySQL thread id 2831, OS thread handle 0x7fcbca1bb700, query id 48156893 10.0.21.67 cattest updating
+DELETE
+        FROM alarm_history
+        WHERE application_id = 'PDShopServiceProvider' AND checker_name = 'ERROR COUNT'
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 186 page no 4 n bits 336 index `application_id_checker_name_idx` of table `pinpoint`.`alarm_history` trx id 14983029 lock_mode X waiting
+Record lock, heap no 261 PHYSICAL RECORD: n_fields 3; compact format; info bits 32
+ 0: len 21; hex 504453686f705365727669636550726f7669646572; asc PDShopServiceProvider;;
+ 1: len 11; hex 4552524f5220434f554e54; asc ERROR COUNT;;
+ 2: len 4; hex 00001a5f; asc    _;;
+
+*** (2) TRANSACTION:
+TRANSACTION 14983028, ACTIVE 0 sec inserting
+mysql tables in use 1, locked 1
+4 lock struct(s), heap size 1184, 3 row lock(s), undo log entries 2
+MySQL thread id 2833, OS thread handle 0x7fcbca0f8700, query id 48156895 10.0.21.67 cattest update
+INSERT INTO alarm_history (application_id, checker_name, detected, sequence_count, timing_count)
+        VALUES
+            ('PDShopServiceProvider', 'ERROR COUNT', 0, 0, 1)
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 186 page no 4 n bits 336 index `application_id_checker_name_idx` of table `pinpoint`.`alarm_history` trx id 14983028 lock_mode X locks rec but not gap
+Record lock, heap no 261 PHYSICAL RECORD: n_fields 3; compact format; info bits 32
+ 0: len 21; hex 504453686f705365727669636550726f7669646572; asc PDShopServiceProvider;;
+ 1: len 11; hex 4552524f5220434f554e54; asc ERROR COUNT;;
+ 2: len 4; hex 00001a5f; asc    _;;
+
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 186 page no 4 n bits 336 index `application_id_checker_name_idx` of table `pinpoint`.`alarm_history` trx id 14983028 lock mode S waiting
+Record lock, heap no 261 PHYSICAL RECORD: n_fields 3; compact format; info bits 32
+ 0: len 21; hex 504453686f705365727669636550726f7669646572; asc PDShopServiceProvider;;
+ 1: len 11; hex 4552524f5220434f554e54; asc ERROR COUNT;;
+ 2: len 4; hex 00001a5f; asc    _;;
+
+*** WE ROLL BACK TRANSACTION (1)
+-----------------------------------------------------------------------------
+
 交互式连接和非交互式连接：
 mysql_real_connect方法最后一个参数的值是：
 交互式：CLIENT_INTERACTIVE  1024    /* This is an interactive client */

@@ -21,9 +21,11 @@ hbase.client.port=2181       # default: 2181
 部署：
 pinpoint-agent-1.5.2.tar.gz解压到/data/service目录下即可
 配置：
-pinpoint.config
+pinpoint-agent-1.5.2/pinpoint.config
 profiler.collector.ip=10.0.21.67 #collector安装的机器对应的ip (default: 127.0.0.1)
 
+/data/service/pinpoint-agent-1.5.2/lib/log4j.xml
+   日志级别调整到error
 
 5、pinpoint web：
 部署：
