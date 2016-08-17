@@ -25,21 +25,21 @@ collector.tcpListenPort=9994     # agent's profiler.collector.tcp.port - default
 collector.udpStatListenPort=9995 # agent's profiler.collector.stat.port - default: 9995
 collector.udpSpanListenPort=9996 # agent's profiler.collector.span.port - default: 9996
 b、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.5.2/WEB-INF/classes/hbase.properties)
-hbase.client.host=localhost # default: localhost
+hbase.client.host=10.0.21.67,10.0.21.68,10.0.21.84 # default: localhost
 hbase.client.port=2181      # default: 2181
 
 7、Pinpoint Web(必须配置为ROOT应用，将文件夹pinpoint-web-$VERSION中的内容拷贝到ROOT下)
 cp $PINPOINT_PATH/web/target/pinpoint-web-$VERSION.war $TOMCAT_HOME/webapps/ROOT
 配置：
 a、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-web-1.5.2/WEB-INF/classes/hbase.properties)
-hbase.client.host=localhost # default: localhost
+hbase.client.host=10.0.21.67,10.0.21.68,10.0.21.84 # default: localhost
 hbase.client.port=2181      # default: 2181
 
 8、Pinpoint Agent
 $AGENT_PATH=/root/downloads/pinpoint-agent-1.5.2
 配置文件：
 $AGENT_PATH/pinpoint.config
-profiler.collector.ip (default: 127.0.0.1)
+profiler.collector.ip=10.0.21.67 (default: 127.0.0.1)
 profiler.collector.tcp.port (collector's collector.tcpListenPort - default: 9994)
 profiler.collector.stat.port (collector's collector.udpStatListenPort - default: 9995)
 profiler.collector.span.port (collector's collector.udpSpanListenPort - default: 9996)

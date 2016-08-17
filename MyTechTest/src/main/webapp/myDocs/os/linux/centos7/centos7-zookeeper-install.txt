@@ -40,8 +40,30 @@ systemctl status zookeeper
 
 zkCli.sh -server 127.0.0.1:2181
 
+测试：
+zkServer.sh status
 
+[root@centos71 conf]# zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /usr/local/zookeeper-3.4.8/bin/../conf/zoo.cfg
+Mode: follower
 
+[root@centos72 bin]# zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /usr/local/zookeeper-3.4.8/bin/../conf/zoo.cfg
+Mode: leader
 
+[root@centos73 bin]# zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /usr/local/zookeeper-3.4.8/bin/../conf/zoo.cfg
+Error contacting service. It is probably not running.
+报错：
+zkServer.sh stop
+zkServer.sh start-foreground #用前台方式启动可以看到启动日志
+根据日志解决后：
+[root@centos73 ~]# zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /usr/local/zookeeper-3.4.8/bin/../conf/zoo.cfg
+Mode: follower
 
 

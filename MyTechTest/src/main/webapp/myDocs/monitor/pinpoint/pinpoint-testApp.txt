@@ -25,6 +25,12 @@ cd pinpoint
 
 mvn install -Dmaven.test.skip=true
 
+wget http://mirrors.hust.edu.cn/apache/hbase/hbase-1.0.3/hbase-1.0.3-bin.tar.gz
+
+cp -f hbase-1.0.3-bin.tar.gz /root/downloads/pinpoint/quickstart/hbase
+tar zxf hbase-1.0.3-bin.tar.gz
+ln -s hbase-1.0.3 hbase
+
 quickstart/bin/start-hbase.sh
 
 quickstart/bin/init-hbase.sh

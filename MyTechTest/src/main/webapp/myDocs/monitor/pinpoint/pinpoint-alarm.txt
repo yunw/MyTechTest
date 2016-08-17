@@ -1,0 +1,154 @@
+1、mail.properties
+mail.smtp.host=smtp.exmail.qq.com
+mail.smtp.port=465
+mail.smtp.auth=true
+mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+mail.smtp.socketFactory.fallback=false
+mail.smtp.socketFactory.port=465
+mail.sender.username=alert.sender@puscene.com
+mail.sender.password=dongpoShi1geshuaige
+mail.sender.nickname=mwee_pd_service
+mail.to=yin.shunlin@puscene.com
+xmpp.mail.to=yin.shunlin@puscene.com
+mail.cc=
+mail.bcc=
+
+2、jdbc.properties
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://10.0.21.52:3306/pinpoint?characterEncoding=UTF-8
+jdbc.username=cattest
+jdbc.password=mysql1q2w
+
+3、pinpoint-web.properties
+#local
+cluster.enable=true
+cluster.web.tcp.port=9997
+cluster.zookeeper.address=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181
+cluster.zookeeper.sessiontimeout=30000
+cluster.zookeeper.retry.interval=60000
+cluster.connect.address=
+
+# FIXME - should be removed for proper authentication
+admin.password=admin
+
+#log site link (guide url : https://github.com/naver/pinpoint/blob/master/doc/per-request_feature_guide.md)
+#log.enable=false
+#log.page.url=
+#log.button.name=
+
+# Configuration
+config.sendUsage=true
+config.editUserInfo=true
+
+web.hbase.selectSpans.limit=500
+web.hbase.selectAllSpans.limit=500
+
+web.activethread.activeAgent.duration.days=7
+
+4、batch.properties
+#batch enable config
+batch.enable=true
+
+#batch server ip to execute batch
+batch.server.ip=127.0.0.1
+
+5、applicationContext-dao-config.xml 
+添加：
+ <context:component-scan base-package="com.navercorp.pinpoint.web.service,com.navercorp.pinpoint.web.dao.mysql" />
+<aop:config>
+        <aop:pointcut id="transactionPointcut" expression="(execution(* *..serviceImpl.*(..))  )" />
+        <aop:advisor pointcut-ref="transactionPointcut" advice-ref="transactionAdvice" />
+    </aop:config>
+    
+
+6、vi applicationContext-web.xml 
+<bean id="propertyConfigurer"
+                class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+                <property name="locations">
+                        <list>
+                                <value>classpath:hbase.properties</value>
+                                <value>classpath:jdbc.properties</value>
+                                <value>classpath:mail.properties</value>
+                        </list>
+                </property>
+        </bean>
+<bean id="mailUtil" class="com.navercorp.pinpoint.web.util.MailUtil">
+                <constructor-arg name="properties">
+                        <props>
+                                <prop key="mail.smtp.host">${mail.smtp.host}</prop>
+                                <prop key="mail.smtp.port">${mail.smtp.port}</prop>
+                                <prop key="mail.smtp.auth">${mail.smtp.auth}</prop>
+                                <prop key="mail.smtp.socketFactory.class">${mail.smtp.socketFactory.class}</prop>
+                                <prop key="mail.smtp.socketFactory.fallback">${mail.smtp.socketFactory.fallback}</prop>
+                                <prop key="mail.smtp.socketFactory.port">${mail.smtp.socketFactory.port}</prop>
+                                <prop key="mail.sender.username">${mail.sender.username}</prop>
+                                <prop key="mail.sender.password">${mail.sender.password}</prop>
+                                <prop key="mail.sender.nickname">${mail.sender.nickname}</prop>
+                                <prop key="mail.to">${mail.to}</prop>
+                                <prop key="xmpp.mail.to">${xmpp.mail.to}</prop>
+                                <prop key="mail.cc">${mail.cc}</prop>
+                                <prop key="mail.bcc">${mail.bcc}</prop>
+                        </props>
+                </constructor-arg>
+                <constructor-arg name="debug" value="false" />
+        </bean>
+
+
+7、hbase.properties
+hbase.client.host=10.0.21.67,10.0.21.68,10.0.21.84
+hbase.client.port=2181
+
+# hbase timeout option==================================================================================
+# hbase default:true
+hbase.ipc.client.tcpnodelay=true
+# hbase default:60000
+hbase.rpc.timeout=10000
+# hbase default:Integer.MAX_VALUE
+hbase.client.operation.timeout=10000
+
+# hbase socket read timeout. default: 200000
+hbase.ipc.client.socket.timeout.read=20000
+# socket write timeout. hbase default: 600000
+hbase.ipc.client.socket.timeout.write=30000
+
+#==================================================================================
+# hbase client thread pool option
+hbase.client.thread.max=128
+hbase.client.threadPool.queueSize=5120
+# prestartAllCoreThreads
+hbase.client.threadPool.prestart=false
+
+#==================================================================================
+# hbase parallel scan options
+hbase.client.parallel.scan.enable=true
+hbase.client.parallel.scan.maxthreads=128
+hbase.client.parallel.scan.maxthreadsperscan=16
+
+8、AlarmMapper.xml
+<update id="updateCheckerResult" parameterType="ChecherResult">
+        update alarm_history
+           SET application_id = #{applicationId}, checker_name = #{checkerName}, detected = #{detected}, sequence_count = #{sequenceCount}, timing_count = #{timingCount}
+         WHERE application_id = #{applicationId} AND checker_name = #{checkerName}
+    </update>
+    
+9、MailUtil.java
+
+10、AlarmMessageSenderImpl.java
+
+11、AlarmServiceImpl.java
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
