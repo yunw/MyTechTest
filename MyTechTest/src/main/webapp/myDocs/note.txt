@@ -7,6 +7,9 @@ youdao:yin_slin@163.com/
 10.0.21.64 provider  root/91Mwbyd!  /data/service/
 10.0.21.73 provider  root/91Mwbyd!  /data/service/
 
+zipkin: http://blog.csdn.net/liaokailin/article/details/52077620?utm_source=tuicool&utm_medium=referral
+
+
 git clone ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git -b dev_cat
 Enter passphrase for key '/root/.ssh/id_rsa':Pass1234
 

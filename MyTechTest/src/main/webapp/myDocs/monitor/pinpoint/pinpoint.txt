@@ -24,6 +24,7 @@ a、pinpoint-collector.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoi
 collector.tcpListenPort=9994     # agent's profiler.collector.tcp.port - default: 9994
 collector.udpStatListenPort=9995 # agent's profiler.collector.stat.port - default: 9995
 collector.udpSpanListenPort=9996 # agent's profiler.collector.span.port - default: 9996
+
 b、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-collector-1.5.2/WEB-INF/classes/hbase.properties)
 hbase.client.host=10.0.21.67,10.0.21.68,10.0.21.84 # default: localhost
 hbase.client.port=2181      # default: 2181
@@ -34,6 +35,32 @@ cp $PINPOINT_PATH/web/target/pinpoint-web-$VERSION.war $TOMCAT_HOME/webapps/ROOT
 a、hbase.properties(/usr/local/apache-tomcat-8.0.36/webapps/pinpoint-web-1.5.2/WEB-INF/classes/hbase.properties)
 hbase.client.host=10.0.21.67,10.0.21.68,10.0.21.84 # default: localhost
 hbase.client.port=2181      # default: 2181
+
+b、pinpoint-web.properties
+#local
+cluster.enable=true
+cluster.web.tcp.port=9997
+cluster.zookeeper.address=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181
+cluster.zookeeper.sessiontimeout=30000
+cluster.zookeeper.retry.interval=60000
+cluster.connect.address=
+
+# FIXME - should be removed for proper authentication
+admin.password=admin
+
+#log site link (guide url : https://github.com/naver/pinpoint/blob/master/doc/per-request_feature_guide.md)
+#log.enable=false
+#log.page.url=
+#log.button.name=
+
+# Configuration
+config.sendUsage=true
+config.editUserInfo=true
+
+web.hbase.selectSpans.limit=500
+web.hbase.selectAllSpans.limit=500
+
+web.activethread.activeAgent.duration.days=7
 
 8、Pinpoint Agent
 $AGENT_PATH=/root/downloads/pinpoint-agent-1.5.2
