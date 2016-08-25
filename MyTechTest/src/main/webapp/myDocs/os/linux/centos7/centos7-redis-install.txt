@@ -38,6 +38,7 @@ cluster-node-timeout 15000
 dir /data/redis
 cluster-require-full-coverage no
 #bind 192.168.56.71
+requirepass 123456   #msater设置了密码，slave必须要配置相应的参数，否则无权限复制，配置如下：masterauth  123456
 
 #开机启动服务
 cp /root/downloads/redis-3.2.1/utils/redis_init_script /etc/init.d/redis_6379
@@ -85,6 +86,8 @@ case "$1" in
         echo "Please use start or stop as first argument"
         ;;
 esac
+
+chmod +x /etc/init.d/redis_6379
 
 vi /etc/systemd/system/redis_6379.service
 [Unit]
@@ -229,6 +232,39 @@ WantedBy=multi-user.target
 systemctl enable redis_26379
 systemctl start redis_26379
 systemctl status redis_26379
+
+查看集群状态：
+[root@centos71 bin]# /usr/local/redis/bin/redis-cli -h 192.168.56.71 -p 6379 -a 123456
+192.168.56.71:6379> cluster nodes
+92ece21560a44eae2896526e69d6cf0ea98102ff 192.168.56.71:6379 myself,master - 0 0 1 connected 0-5460
+4c6f58a40eb1039ad5cf9eb13b0557d4988c4aa0 192.168.56.73:6379 master - 0 1471834897626 3 connected 10923-16383
+37d244e0f764e6b9dabd511fb9fef9ba9fc50796 192.168.56.72:6379 master - 0 1471834899639 2 connected 5461-10922
+
+修改密码：
+[root@centos71 redis]# /usr/local/redis/bin/redis-cli -h 192.168.56.71 -p 6379 -a 123456
+192.168.56.71:6379> config set requirepass 234567
+OK
+192.168.56.71:6379> config get requirepass
+1) "requirepass"
+2) "234567"
+退出用老密码重新登录，发现登录可以操作不行，需要认证：
+[root@centos71 redis]# /usr/local/redis/bin/redis-cli -h 192.168.56.71 -p 6379 -a 123456
+192.168.56.71:6379> cluster nodes
+NOAUTH Authentication required.
+192.168.56.71:6379> auth 234567
+OK
+192.168.56.71:6379> cluster nodes
+4c6f58a40eb1039ad5cf9eb13b0557d4988c4aa0 192.168.56.73:6379 master - 0 1471848008749 3 connected 10923-16383
+37d244e0f764e6b9dabd511fb9fef9ba9fc50796 192.168.56.72:6379 master - 0 1471848007744 2 connected 5461-10922
+92ece21560a44eae2896526e69d6cf0ea98102ff 192.168.56.71:6379 myself,master - 0 0 1 connected 0-5460
+
+
+
+
+
+
+
+
 
 
 

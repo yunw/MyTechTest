@@ -29,6 +29,8 @@ cd /data/service/paidui_service
 cd /data/service/paidui_service/service-shop/lib
 java -server -Xms512m -Xmx512m -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
 
+java -javaagent:/root/.m2/repository/org/springframework/spring-instrument/4.2.5.RELEASE/spring-instrument-4.2.5.RELEASE.jar -javaagent:/root/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
+
 cd /data/service/paidui_service/service-shop/lib
 java -server -Xms512m -Xmx512m -javaagent:/root/downloads/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="10002167-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
 java -server -Xms512m -Xmx512m -javaagent:/data/service/pinpoint-agent-1.5.2/pinpoint-bootstrap-1.5.2.jar -Dpinpoint.agentId="2168-pdssp-001" -Dpinpoint.applicationName="PDShopServiceProvider" -Djava.ext.dirs=. cn.mwee.service.paidui.PDShopServiceProvider
@@ -41,6 +43,11 @@ http://10.0.21.68:3040/services/shop/fail
 
 http://114.80.88.52:9001/nexus/#nexus-config admin/91Mwbyd!
 
+zipkin http header:
+x-b3-sampled = 1
+x-b3-traceid = b8de19ff03f22311
+x-b3-spanid = 613d43766a31570b
+x-b3-parentspanid = b8de19ff03f22311
 
 
 

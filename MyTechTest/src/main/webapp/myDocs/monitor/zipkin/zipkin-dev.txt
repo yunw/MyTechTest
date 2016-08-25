@@ -1,0 +1,70 @@
+1、添加依赖：
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-http</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-mysql</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-okhttp</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-spancollector-http</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-web-servlet-filter</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-core-spring</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+
+2、配置zipkin相关对象：
+参考：
+BraveConfig.java
+ZipkinProperties.java
+application.properties
+
+3、添加对dubbo协议的支持：
+ZipkinFilter.java      
+        
+4、添加对redis的监控：
+对redis的监控需要用spring aop load-time-weaver（LTW）。
+因此：
+A、在resources/META-INF/下添加aop.xml文件
+B、添加配置文件：spring-ltw.xml
+C、添加aop类：RedisAop.java
+D、针对ltw，需要添加代理：
+java -jar -javaagent:/path/.m2/repository/org/springframework/spring-instrument/4.3.2.RELEASE/spring-instrument-4.3.2.RELEASE.jar -javaagent:/path/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar web-server-demo2-0.0.1-SNAPSHOT.jar
+
+5、开启trace message collector：
+wget -O zipkin.jar 'https://search.maven.org/remote_content?g=io.zipkin.java&a=zipkin-server&v=LATEST&c=exec'
+java -jar zipkin.jar
+默认端口为：9411
+访问：http://ip:9411        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
