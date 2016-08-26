@@ -29,11 +29,17 @@
             <artifactId>brave-core-spring</artifactId>
             <version>3.10.0</version>
         </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-spancollector-kafka</artifactId>
+            <version>3.10.0</version>
+        </dependency>
 
 2、配置zipkin相关对象：
 参考：
 BraveConfig.java
 ZipkinProperties.java
+KafkaProperties.java
 application.properties
 
 3、添加对dubbo协议的支持：
@@ -48,16 +54,37 @@ C、添加aop类：RedisAop.java
 D、针对ltw，需要添加代理：
 java -jar -javaagent:/path/.m2/repository/org/springframework/spring-instrument/4.3.2.RELEASE/spring-instrument-4.3.2.RELEASE.jar -javaagent:/path/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar web-server-demo2-0.0.1-SNAPSHOT.jar
 
-5、开启trace message collector：
+5、开启trace message collector(内存数据库)：
 wget -O zipkin.jar 'https://search.maven.org/remote_content?g=io.zipkin.java&a=zipkin-server&v=LATEST&c=exec'
 java -jar zipkin.jar
 默认端口为：9411
 访问：http://ip:9411        
         
-        
-        
-        
-        
+6、kafka收集：
+默认topic：zipkin
+
+
+7、mysql存储：
+数据结构：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql/src/main/resources/mysql.sql
+执行：zipkin-mysql.sql
+
+rm -rf zipkin-storage/mysql/src/main/java/zipkin/storage/mysql/internal/generated/
+
+先在本地库上设置本地root账户免密登录：
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY '' WITH GRANT OPTION;
+或者：
+use mysql
+update user set authentication_string = '' where user = 'root' and host='localhost';
+然后执行：
+./mvnw -pl :zipkin-storage-mysql clean org.jooq:jooq-codegen-maven:generate com.mycila:license-maven-plugin:format
+
+8、zipkin server：
+git clone https://github.com/openzipkin/zipkin
+cd zipkin
+./mvnw -DskipTests --also-make -pl zipkin-server clean install
+java -jar ./zipkin-server/target/zipkin-server-*exec.jar
+STORAGE_TYPE=mysql MYSQL_USER=root MYSQL_PASS=root MYSQL_HOST=10.0.21.67 MYSQL_TCP_PORT=3306 KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.zipkin=DEBUG
+
         
         
         

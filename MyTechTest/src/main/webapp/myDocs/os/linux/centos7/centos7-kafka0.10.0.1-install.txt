@@ -1,0 +1,88 @@
+启动kafka：
+/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+
+停止kafka：
+/usr/local/kafka/bin/kafka-server-stop.sh
+
+创建主题：
+/usr/local/kafka/bin/kafka-topics.sh --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test --create --partitions 3 --replication-factor 3 --topic test
+
+显示主题列表：
+/usr/local/kafka/bin/kafka-topics.sh --list --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test
+
+发送消息：
+/usr/local/kafka/bin/kafka-console-producer.sh --broker-list 10.0.21.67:9092 --topic test
+This is a message
+This is another message
+
+查看消息：
+/usr/local/kafka/bin/kafka-console-consumer.sh --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test --topic test --from-beginning
+
+
+
+创建集群（10.0.21.67、10.0.21.68、10.0.21.84）：
+iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 9092 -j ACCEPT
+service iptables save
+service iptables status
+
+关闭防火墙
+service iptables stop
+
+yum search openjdk
+yum install -y wget java-1.8.0-openjdk-devel.x86_64
+
+[root@SSSVL0028 ~]# hostname
+SSSVL0028
+
+vi /etc/hosts
+10.129.12.44     SCSV00466
+10.129.12.45     SCSV00467
+10.129.12.46     SCSV00468
+
+wget http://mirrors.cnnic.cn/apache/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
+#wget http://apache.fayea.com/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
+tar zxvf kafka_2.11-0.10.0.1.tgz
+mv kafka_2.11-0.10.0.1 /usr/local/
+cd /usr/local
+ln -s kafka_2.11-0.10.0.1 kafka
+mkdir -p /app/kafka-logs
+
+mkdir -p /app/kafka-runtime-logs
+vi /usr/local/kafka/bin/kafka-run-class.sh
+#在最前面加上：
+LOG_DIR=/app/kafka-runtime-logs
+
+vi /usr/local/kafka/config/log4j.properties
+#修改日志级别
+
+vi /etc/cron.daily/kafka-logs-cron
+#!/bin/sh
+find /app/kafka-runtime-logs -type f -ctime +30 | xargs rm -rf
+
+chmod +x /etc/cron.daily/kafka-logs-cron
+
+
+10.0.21.67:
+vi /usr/local/kafka/config/server.properties
+broker.id=90
+host.name=10.0.21.67
+advertised.host.name=10.0.21.67
+log.dirs=/app/kafka-logs
+zookeeper.connect=10.129.13.76:2181,10.129.13.77:2181,10.129.13.78:2181,10.129.13.79:2181,10.129.13.80:2181/kafka-prd
+
+10.0.21.68:
+vi /usr/local/kafka/config/server.properties
+broker.id=91
+host.name=10.0.21.68
+advertised.host.name=10.0.21.68
+log.dirs=/data/kafka-logs
+zookeeper.connect=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test
+
+10.0.21.84:
+vi /usr/local/kafka/config/server.properties
+broker.id=92
+host.name=10.0.21.84
+advertised.host.name=10.0.21.84
+log.dirs=/data/kafka-logs
+zookeeper.connect=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test
+

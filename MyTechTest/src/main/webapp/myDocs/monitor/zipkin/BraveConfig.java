@@ -8,7 +8,7 @@ import com.github.kristofa.brave.Brave;
 import com.github.kristofa.brave.SpanCollector;
 import com.github.kristofa.brave.SpanCollectorMetricsHandler;
 import com.github.kristofa.brave.http.DefaultSpanNameProvider;
-import com.github.kristofa.brave.http.HttpSpanCollector;
+import com.github.kristofa.brave.kafka.KafkaSpanCollector;
 import com.github.kristofa.brave.mysql.MySQLStatementInterceptorManagementBean;
 import com.github.kristofa.brave.okhttp.BraveOkHttpRequestResponseInterceptor;
 import com.github.kristofa.brave.servlet.BraveServletFilter;
@@ -19,28 +19,53 @@ import okhttp3.OkHttpClient;
 public class BraveConfig {
 
     @Autowired
-    private ZipkinProperties properties;
+    private ZipkinProperties zipkinProperties;
+    
+    @Autowired
+    private KafkaProperties kafkaProperties;
 
     @Bean
     public SpanCollector spanCollector() {
-        HttpSpanCollector.Config config = HttpSpanCollector.Config.builder()
-                .connectTimeout(properties.getConnectTimeout()).readTimeout(properties.getReadTimeout())
-                .compressionEnabled(properties.isCompressionEnabled()).flushInterval(properties.getFlushInterval())
-                .build();
-        return HttpSpanCollector.create(properties.getUrl(), config, new SpanCollectorMetricsHandler() {
+        KafkaSpanCollector.Config cnf = KafkaSpanCollector.Config.builder().kafkaProperties(kafkaProperties.getProps())
+                .flushInterval(zipkinProperties.getFlushInterval()).build();
+
+        return KafkaSpanCollector.create(cnf, new SpanCollectorMetricsHandler() {
 
             @Override
             public void incrementAcceptedSpans(int quantity) {
-                System.out.println("accepted: " + quantity);
+                System.out.println("kafka accepted: " + quantity);
             }
 
             @Override
             public void incrementDroppedSpans(int quantity) {
-                System.out.println("dropped: " + quantity);
+                System.out.println("kafka dropped: " + quantity);
             }
 
         });
+
     }
+
+//     @Bean
+//     public SpanCollector spanCollector() {
+//     HttpSpanCollector.Config config = HttpSpanCollector.Config.builder()
+//     .connectTimeout(zipkinProperties.getConnectTimeout()).readTimeout(zipkinProperties.getReadTimeout())
+//     .compressionEnabled(zipkinProperties.isCompressionEnabled()).flushInterval(zipkinProperties.getFlushInterval())
+//     .build();
+//     return HttpSpanCollector.create(zipkinProperties.getUrl(), config, new
+//     SpanCollectorMetricsHandler() {
+//    
+//     @Override
+//     public void incrementAcceptedSpans(int quantity) {
+//     System.out.println("accepted: " + quantity);
+//     }
+//    
+//     @Override
+//     public void incrementDroppedSpans(int quantity) {
+//     System.out.println("dropped: " + quantity);
+//     }
+//    
+//     });
+//     }
 
     @Bean
     public Brave brave(SpanCollector spanCollector) {

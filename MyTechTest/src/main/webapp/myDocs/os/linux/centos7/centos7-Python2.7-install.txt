@@ -1,0 +1,10 @@
+yum install gcc gcc-c++
+
+wget https://www.python.org/ftp/python/2.7.11/Python-2.7.11.tar.xz
+xz -dk Python-2.7.11.tar.xz
+tar xf Python-2.7.11.tar
+cd Python-2.7.11
+./configure --prefix=/usr/local/python27
+make && make install
+
+python -V #查看当前的python版本
