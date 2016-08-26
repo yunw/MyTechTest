@@ -82,7 +82,7 @@ update user set authentication_string = '' where user = 'root' and host='localho
 git clone https://github.com/openzipkin/zipkin
 cd zipkin
 ./mvnw -DskipTests --also-make -pl zipkin-server clean install
-java -jar ./zipkin-server/target/zipkin-server-*exec.jar
+
 STORAGE_TYPE=mysql MYSQL_USER=root MYSQL_PASS=root MYSQL_HOST=10.0.21.67 MYSQL_TCP_PORT=3306 KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.zipkin=DEBUG
 
 9、cassandra存储：
@@ -96,7 +96,7 @@ Use HELP for help.
 cqlsh> 
 
 
-STORAGE_TYPE=cassandra CASSANDRA_CONTACT_POINTS=10.0.21.67,10.0.21.68 java -jar KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.com.datastax.driver.core.QueryLogger=trace     
+STORAGE_TYPE=cassandra CASSANDRA_CONTACT_POINTS=10.0.21.67,10.0.21.68 KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.com.datastax.driver.core.QueryLogger=trace     
         
 测试：
 [root@master ~]# cqlsh
