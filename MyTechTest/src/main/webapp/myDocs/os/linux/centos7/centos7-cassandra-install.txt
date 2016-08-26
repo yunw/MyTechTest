@@ -1,0 +1,57 @@
+前提：安装python2.7
+python --version
+
+1、下载：
+wget http://mirrors.cnnic.cn/apache/cassandra/3.7/apache-cassandra-3.7-bin.tar.gz 
+
+tar -xzf apache-cassandra-3.7-bin.tar.gz -C /usr/local
+cd /usr/local
+ln -s apache-cassandra-3.7 cassandra
+
+vi /etc/profile
+export CASSANDRA_HOME=/usr/local/cassandra
+export PATH=$CASSANDRA_HOME/bin:$PATH
+
+#start
+cassandra -R
+
+#status
+nodetool status
+
+#stop
+pkill -f CassandraDaemon
+
+#config cassandra $CASSANDRA_HOME/conf/cassandra.yaml
+cluster_name:                 # default：'Test Cluster'。集群名称，主要用于防止一个逻辑集群中的节点加入另一个
+num_tokens:                   # default：256。令牌数量，值越大，相对于其它节点，存储的数据比例就越大，如果硬件能力相同，这个值也保持相同
+data_file_directories         # default：$CASSANDRA_HOME/data/data。数据文件目录
+- class_name: org.apache.cassandra.locator.SimpleSeedProvider
+  parameters:
+    - seeds: "127.0.0.1"      # 种子。逗号分割的ip列表。在多节点的集群中，当前结点使用这个ip列表查找和学习集群的拓扑结构，因此在集群环境中必须设置，列表可以是集群中的一个或多个节点。
+storage_port:                 # default: 7000。tcp端口，用于命令和数据。为了安全，不要暴露在公网上。
+listen_address:               # dafault: localhost。节点之间通信的地址，如果希望其它的cassandra节点能访问该节点，它必须设置。
+                              # listen_address和listen_interface只能设置一个，不能都设置。
+                              # listen_address设置为0.0.0.0是错误的。
+listen_interface:             # default: eth0。默认情况下被注释掉了
+listen_interface_prefer_ipv6: # default: false。如果网络接口既有ipv4又有ipv6地址，可以用它来选择使用哪个地址。
+native_transport_port:        # default: 9042。用于监听客户端的cql本地传输的端口。为了安全，不要暴露在公网上。
+
+
+
+集群搭建：
+配置需要修改：
+cluster_name
+listen_address
+seeds
+
+
+
+
+
+
+
+
+
+
+
+

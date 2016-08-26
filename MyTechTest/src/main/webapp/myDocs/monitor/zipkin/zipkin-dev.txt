@@ -85,9 +85,37 @@ cd zipkin
 java -jar ./zipkin-server/target/zipkin-server-*exec.jar
 STORAGE_TYPE=mysql MYSQL_USER=root MYSQL_PASS=root MYSQL_HOST=10.0.21.67 MYSQL_TCP_PORT=3306 KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.zipkin=DEBUG
 
+9、cassandra存储：
+数据结构：https://github.com/openzipkin/zipkin/tree/master/zipkin-storage/cassandra/src/main/resources/cassandra-schema-cql3.txt
+创建KEYSPACE、TABLE
+首先，用cqlsh连上cassandra：
+[root@node1 conf]# cqlsh
+Connected to Test Cluster at 127.0.0.1:9042.
+[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+cqlsh> 
+
+
+STORAGE_TYPE=cassandra CASSANDRA_CONTACT_POINTS=10.0.21.67,10.0.21.68 java -jar KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.com.datastax.driver.core.QueryLogger=trace     
         
-        
-        
+测试：
+[root@master ~]# cqlsh
+Connected to Test Cluster at 127.0.0.1:9042.
+[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+cqlsh> use zipkin;
+cqlsh:zipkin> select * from service_names;
+
+ service_name
+-----------------------
+ redis-10.0.21.61:6383
+ redis-10.0.21.52:6382
+           msql-master
+       service_prvider
+
+(4 rows)
+cqlsh:zipkin> 
+ 
         
         
         
