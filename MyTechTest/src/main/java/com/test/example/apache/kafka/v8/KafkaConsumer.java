@@ -16,7 +16,7 @@ public class KafkaConsumer {
 
 	private final ConsumerConnector consumer;
 	
-	private final String TOPIC="TRACE-TOPIC";
+	private final String TOPIC="TOPIC1";
 
 	private KafkaConsumer() {
 		Properties props = new Properties();

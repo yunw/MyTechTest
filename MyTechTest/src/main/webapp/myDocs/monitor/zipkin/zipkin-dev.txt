@@ -52,7 +52,7 @@ A、在resources/META-INF/下添加aop.xml文件
 B、添加配置文件：spring-ltw.xml
 C、添加aop类：RedisAop.java
 D、针对ltw，需要添加代理：
-java -jar -javaagent:/path/.m2/repository/org/springframework/spring-instrument/4.3.2.RELEASE/spring-instrument-4.3.2.RELEASE.jar -javaagent:/path/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar web-server-demo2-0.0.1-SNAPSHOT.jar
+java -jar -javaagent:/root/.m2/repository/org/springframework/spring-instrument/4.3.2.RELEASE/spring-instrument-4.3.2.RELEASE.jar -javaagent:/root/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar web-server-demo2.jar
 
 5、开启trace message collector(内存数据库)：
 wget -O zipkin.jar 'https://search.maven.org/remote_content?g=io.zipkin.java&a=zipkin-server&v=LATEST&c=exec'
@@ -60,7 +60,7 @@ java -jar zipkin.jar
 默认端口为：9411
 访问：http://ip:9411        
         
-6、kafka收集：
+6、kafka收集(目前版本：0.8.2.2)：
 默认topic：zipkin
 
 
@@ -100,7 +100,7 @@ cqlsh>
 
 cd /root/downloads/zipkin
 STORAGE_TYPE=cassandra CASSANDRA_CONTACT_POINTS=10.0.21.67,10.0.21.68 KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.com.datastax.driver.core.QueryLogger=trace     
-        
+
 测试：
 [root@master ~]# cqlsh
 Connected to Test Cluster at 127.0.0.1:9042.
