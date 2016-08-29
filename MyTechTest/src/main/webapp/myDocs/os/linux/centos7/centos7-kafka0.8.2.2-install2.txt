@@ -1,8 +1,10 @@
 启动kafka：
 /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+zkServer.sh status
 
 停止kafka：
 /usr/local/kafka/bin/kafka-server-stop.sh
+ps -ef | grep kafka
 
 创建主题：
 /usr/local/kafka/bin/kafka-topics.sh --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test --create --partitions 3 --replication-factor 3 --topic test
@@ -26,9 +28,8 @@ This is another message
 3、删除配置：
 /usr/local/kafka/bin/kafka-topics.sh --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test --alter --topic test --delete-config x
 4、删除主题：
-/usr/local/kafka/bin/kafka-topics.sh --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test --delete --topic my_topic_name
+/usr/local/kafka/bin/kafka-topics.sh --zookeeper 10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 --delete --topic my_topic_name
 删除主题必须配置：delete.topic.enable=true
-
 
 创建集群（10.0.21.67、10.0.21.68、10.0.21.84）：
 iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 9092 -j ACCEPT
@@ -49,12 +50,12 @@ vi /etc/hosts
 10.129.12.45     SCSV00467
 10.129.12.46     SCSV00468
 
-wget http://mirrors.cnnic.cn/apache/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
-#wget http://apache.fayea.com/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
-tar zxvf kafka_2.11-0.10.0.1.tgz
-mv kafka_2.11-0.10.0.1 /usr/local/
+#wget http://mirrors.cnnic.cn/apache/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
+wget http://mirrors.cnnic.cn/apache/kafka/0.8.2.2/kafka_2.11-0.8.2.2.tgz
+tar zxvf kafka_2.11-0.8.2.2.tgz
+mv kafka_2.11-0.8.2.2 /usr/local/
 cd /usr/local
-ln -s kafka_2.11-0.10.0.1 kafka
+ln -s kafka_2.11-0.8.2.2 kafka
 mkdir -p /app/kafka-logs
 
 mkdir -p /app/kafka-runtime-logs
@@ -75,28 +76,28 @@ chmod +x /etc/cron.daily/kafka-logs-cron
 10.0.21.67:
 vi /usr/local/kafka/config/server.properties
 broker.id=90
-listeners=PLAINTEXT://10.0.21.67:9092
-advertised.listeners=PLAINTEXT://10.0.21.67:9092
+host.name=10.0.21.67
+advertised.host.name=10.0.21.67
 log.dirs=/app/kafka-logs
-zookeeper.connect=10.129.13.76:2181,10.129.13.77:2181,10.129.13.78:2181,10.129.13.79:2181,10.129.13.80:2181
+zookeeper.connect=10.129.13.76:2181,10.129.13.77:2181,10.129.13.78:2181,10.129.13.79:2181,10.129.13.80:2181/kafka-prd
 delete.topic.enable=true
 
 10.0.21.68:
 vi /usr/local/kafka/config/server.properties
 broker.id=91
-listeners=PLAINTEXT://10.0.21.68:9092
-advertised.listeners=PLAINTEXT://10.0.21.68:9092
+host.name=10.0.21.68
+advertised.host.name=10.0.21.68
 log.dirs=/data/kafka-logs
-zookeeper.connect=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181
+zookeeper.connect=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test
 delete.topic.enable=true
 
 10.0.21.84:
 vi /usr/local/kafka/config/server.properties
 broker.id=92
-listeners=PLAINTEXT://10.0.21.84:9092
-advertised.listeners=PLAINTEXT://10.0.21.84:9092
+host.name=10.0.21.84
+advertised.host.name=10.0.21.84
 log.dirs=/data/kafka-logs
-zookeeper.connect=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181
+zookeeper.connect=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181/kafka-test
 delete.topic.enable=true
 
 

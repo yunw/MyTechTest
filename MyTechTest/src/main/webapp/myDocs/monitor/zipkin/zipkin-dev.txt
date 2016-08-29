@@ -96,6 +96,9 @@ Use HELP for help.
 cqlsh> 
 
 
+/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+
+cd /root/downloads/zipkin
 STORAGE_TYPE=cassandra CASSANDRA_CONTACT_POINTS=10.0.21.67,10.0.21.68 KAFKA_ZOOKEEPER=10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181 java -jar ./zipkin-server/target/zipkin-server-1.7.0-exec.jar --logging.level.com.datastax.driver.core.QueryLogger=trace     
         
 测试：

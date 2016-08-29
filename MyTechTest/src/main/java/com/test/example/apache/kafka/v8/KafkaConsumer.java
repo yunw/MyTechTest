@@ -15,11 +15,13 @@ import kafka.utils.VerifiableProperties;
 public class KafkaConsumer {
 
 	private final ConsumerConnector consumer;
+	
+	private final String TOPIC="TRACE-TOPIC";
 
 	private KafkaConsumer() {
 		Properties props = new Properties();
 		// zookeeper 配置
-		props.put("zookeeper.connect", "10.25.23.32:2181,10.25.23.33:2181,10.25.23.34:2181,10.25.23.35:2181,10.25.23.36:2181/kafka-dev");
+		props.put("zookeeper.connect", "10.0.21.67:2181,10.0.21.68:2181,10.0.21.84:2181");
 
 		// group 代表一个消费组
 		props.put("group.id", "jd-group");
@@ -39,14 +41,14 @@ public class KafkaConsumer {
 
 	private void consume() {
 		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-		topicCountMap.put("newrvm", new Integer(1));
+		topicCountMap.put(TOPIC, new Integer(1));
 
 		StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
 		StringDecoder valueDecoder = new StringDecoder(new VerifiableProperties());
 
 		Map<String, List<KafkaStream<String, String>>> consumerMap = consumer.createMessageStreams(topicCountMap,
 				keyDecoder, valueDecoder);
-		KafkaStream<String, String> stream = consumerMap.get("newrvm").get(0);
+		KafkaStream<String, String> stream = consumerMap.get(TOPIC).get(0);
 		ConsumerIterator<String, String> it = stream.iterator();
 		while (it.hasNext()) {
 			System.out.println("recive: " + it.next().message());

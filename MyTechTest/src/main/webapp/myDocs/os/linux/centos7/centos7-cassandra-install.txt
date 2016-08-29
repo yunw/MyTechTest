@@ -35,6 +35,13 @@ listen_address:               # dafault: localhost。节点之间通信的地址
 listen_interface:             # default: eth0。默认情况下被注释掉了
 listen_interface_prefer_ipv6: # default: false。如果网络接口既有ipv4又有ipv6地址，可以用它来选择使用哪个地址。
 native_transport_port:        # default: 9042。用于监听客户端的cql本地传输的端口。为了安全，不要暴露在公网上。
+start_rpc                     # default: false。是否开启thrift rpc server。
+rpc_address                   # 绑定到thrift rpc service和native transport server。可以被设置为0.0.0.0
+broadcast_rpc_address         # 如果rpc_address设置为0.0.0.0。 必须设置为非0.0.0.0
+rpc_server_type               # default：sync。sync：每个thrift连接一个线程。如果有大量的客户端，内存将成为瓶颈。每个线程最小栈大小为180k。
+                              # hsha：half synchronous, half asynchronous。所有的thrift连接由少量的线程异步处理，线程数量不随客户端变化。
+                              # rpc请求仍然是同步的（每个线程对应一个活动请求）。如果选择了hsha，那么，rpc_max_threads必须设置。
+rpc_max_threads               # 
 
 
 
