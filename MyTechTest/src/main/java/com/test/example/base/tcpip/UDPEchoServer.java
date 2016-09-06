@@ -8,7 +8,8 @@ public class UDPEchoServer {
 
 	private static final int ECHOMAX = 255; // Maximum size of echo datagram
 
-	public static void main(String[] args) throws IOException {
+	@SuppressWarnings("resource")
+    public static void main(String[] args) throws IOException {
 		if (args.length != 1) { // Test for correct argument list
 			throw new IllegalArgumentException("Parameter(s): <Port>");
 		}

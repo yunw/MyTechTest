@@ -52,6 +52,7 @@ public class SslFactory implements Configurable {
         this.mode = mode;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void configure(Map<String, ?> configs) throws KafkaException {
         this.protocol =  (String) configs.get(SslConfigs.SSL_PROTOCOL_CONFIG);

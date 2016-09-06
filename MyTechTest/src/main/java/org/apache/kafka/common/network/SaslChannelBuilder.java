@@ -49,6 +49,7 @@ public class SaslChannelBuilder implements ChannelBuilder {
         this.securityProtocol = securityProtocol;
     }
 
+    @SuppressWarnings("unchecked")
     public void configure(Map<String, ?> configs) throws KafkaException {
         try {
             this.configs = configs;

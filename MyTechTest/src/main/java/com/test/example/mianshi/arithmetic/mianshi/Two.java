@@ -2,7 +2,8 @@ package com.test.example.mianshi.arithmetic.mianshi;
 
 public class Two {
 
-	public static void main(String[] args) {
+	@SuppressWarnings("unused")
+    public static void main(String[] args) {
 		int x = 4;
 		java.util.Date date = (x > 4) ? new A() : new B();
 		System.out.println(5.0942*1000);
@@ -11,8 +12,10 @@ public class Two {
 	}
 }
 
+@SuppressWarnings("serial")
 class A extends java.util.Date {
 }
 
+@SuppressWarnings("serial")
 class B extends java.util.Date {
 }

@@ -60,7 +60,8 @@ public class ChannelCopy {
 	 * data copying but may result in more systems calls. No post-loop cleanup
 	 * is needed because the buffer will be empty when the loop is exited.
 	 */
-	private static void channelCopy2(ReadableByteChannel src,
+	@SuppressWarnings("unused")
+    private static void channelCopy2(ReadableByteChannel src,
 			WritableByteChannel dest) throws IOException {
 		ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
 		while (src.read(buffer) != -1) {

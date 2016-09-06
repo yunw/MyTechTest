@@ -8,10 +8,9 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import org.csource.common.*;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 /**
 * Tracker server group
@@ -40,7 +39,8 @@ public class TrackerGroup
 * @param
 * @return connected tracker server, null for fail
 */
-	public TrackerServer getConnection() throws IOException
+	@SuppressWarnings("resource")
+    public TrackerServer getConnection() throws IOException
 	{
 		Socket sock;
 		int current_index;

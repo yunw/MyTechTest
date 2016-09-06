@@ -25,7 +25,8 @@ public class ShardedJedisPoolTest {
 
 	}
 
-	public static void set(String key, String value) {
+	@SuppressWarnings("deprecation")
+    public static void set(String key, String value) {
 		ShardedJedis jedis = shardedMasterPool.getResource();
 		try {
 			jedis.setex(key, EXPIRE_SECONDS, value);
@@ -36,7 +37,8 @@ public class ShardedJedisPoolTest {
 		}
 	}
 
-	public static String get(String key) {
+	@SuppressWarnings("deprecation")
+    public static String get(String key) {
 		ShardedJedis jedis = shardedSlavePool.getResource();
 		String result = null;
 		try {

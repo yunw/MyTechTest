@@ -48,7 +48,8 @@ public class SSLClient {
 	 * @return
 	 * @throws Exception
 	 */
-	private Socket clientWithoutCert() throws Exception {
+	@SuppressWarnings("unused")
+    private Socket clientWithoutCert() throws Exception {
 		SocketFactory sf = SSLSocketFactory.getDefault();
 		//服务端证书的CN（common name）被设定为test.com那么客户端在连接服务端的时候，
 		//也要用这个域名（可在hosts文件中配置）来连接，否则根据SSL协议标准，域名与证书的CN不匹配，

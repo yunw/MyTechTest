@@ -56,7 +56,8 @@ public class DataMonitor implements Watcher, StatCallback {
 		void closing(int rc);
 	}
 
-	public void process(WatchedEvent event) {
+	@SuppressWarnings("deprecation")
+    public void process(WatchedEvent event) {
 		String path = event.getPath();
 		if (event.getType() == Event.EventType.None) {
 			// We are are being told that the state of the
@@ -87,7 +88,8 @@ public class DataMonitor implements Watcher, StatCallback {
 		}
 	}
 
-	public void processResult(int rc, String path, Object ctx, Stat stat) {
+	@SuppressWarnings("deprecation")
+    public void processResult(int rc, String path, Object ctx, Stat stat) {
 		boolean exists;
 		switch (rc) {
 		case Code.Ok:

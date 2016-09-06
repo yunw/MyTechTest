@@ -6,3 +6,10 @@ Remember this passphrase, as you will need it to unlock the key whenever you use
 the box below, then click on "Add".
 Note that id_rsa.pub is your public key and can be shared,
 while id_rsa is your private key and should be kept secret.
+
+ssh -T git@git.oschina.net
+
+pass:Pass1234
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtSSbVmwwqpM9+Ss0JRplCeej5RJsqTma6X1ZRwOvqaojL2Yl5cw2suieZxOWCbWNq/7qhvLoa56Yb1sPk0gRFtqeScwHKB55xMrBdaQUWHjWVm5GlaSjhPJHnytFVZWfxT3NI0AQknd0icmYdpShWZSchH4azxEK7OdAZswJL63nMknufaTOG+czr/fjzfb1B3/0KlvPqVRDKfD03bt+AlDAb0Wpdpnswcc4SDHcdNteIVcMveOw0VTJ5Unwvc4WzcK7LVQYz+cfzOJ73Sp/+Kq3eBOmhig+1vha716b5vL+4P1xaQBbAMMPxI1ytuQiL7TqE1/kQ7/+I+H1rp5Ep yin.shunlin@puscenen.com
+
+

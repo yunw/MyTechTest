@@ -18,8 +18,6 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.time.Month;
-import org.jfree.data.time.TimeSeries;
 
 @SuppressWarnings("serial")
 public class WinServlet extends HttpServlet {

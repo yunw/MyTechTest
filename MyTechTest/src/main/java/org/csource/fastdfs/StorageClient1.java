@@ -8,10 +8,10 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import org.csource.common.*;
+import java.io.IOException;
+import java.net.Socket;
+
+import org.csource.common.NameValuePair;
 
 /**
 * Storage client for 1 field file id: combined group name and filename
@@ -164,7 +164,8 @@ public class StorageClient1 extends StorageClient
 	* @param the file id(including group name and filename)
 	* @return 0 for success, none zero for fail (error code)
 	*/
-	public int delete_file1(String file_id) throws IOException, Exception
+	@SuppressWarnings("static-access")
+    public int delete_file1(String file_id) throws IOException, Exception
 	{
 		String[] parts = new String[2];
 		this.errno = this.split_file_id(file_id, parts);
@@ -196,7 +197,8 @@ public class StorageClient1 extends StorageClient
 	* @param download_bytes download bytes, 0 for remain bytes from offset
 	* @return file content/buff, return null if fail
 	*/
-	public byte[] download_file1(String file_id, long file_offset, long download_bytes) throws IOException, Exception
+	@SuppressWarnings("static-access")
+    public byte[] download_file1(String file_id, long file_offset, long download_bytes) throws IOException, Exception
 	{
 		String[] parts = new String[2];
 		this.errno = this.split_file_id(file_id, parts);
@@ -230,7 +232,8 @@ public class StorageClient1 extends StorageClient
 	* @param local_filename  filename on local
 	* @return 0 success, return none zero errno if fail
 	*/
-	public int download_file1(String file_id, long file_offset, long download_bytes, String local_filename) throws IOException, Exception
+	@SuppressWarnings("static-access")
+    public int download_file1(String file_id, long file_offset, long download_bytes, String local_filename) throws IOException, Exception
 	{
 		String[] parts = new String[2];
 		this.errno = this.split_file_id(file_id, parts);
@@ -264,7 +267,8 @@ public class StorageClient1 extends StorageClient
 	* @param callback call callback.recv() when data arrive
 	* @return 0 success, return none zero errno if fail
 	*/
-	public int download_file1(String file_id, long file_offset, long download_bytes, DowloadCallback callback) throws IOException, Exception
+	@SuppressWarnings("static-access")
+    public int download_file1(String file_id, long file_offset, long download_bytes, DowloadCallback callback) throws IOException, Exception
 	{
 		String[] parts = new String[2];
 		this.errno = this.split_file_id(file_id, parts);
@@ -281,7 +285,8 @@ public class StorageClient1 extends StorageClient
 	* @param the file id(including group name and filename)
 	* @return meta info array, return null if fail
 	*/
-	public NameValuePair[] get_metadata1(String file_id)throws IOException, Exception
+	@SuppressWarnings("static-access")
+    public NameValuePair[] get_metadata1(String file_id)throws IOException, Exception
 	{
 		String[] parts = new String[2];
 		this.errno = this.split_file_id(file_id, parts);
@@ -304,7 +309,8 @@ public class StorageClient1 extends StorageClient
 	*				       the metadata item not exist, otherwise update it</li></ul>
 	* @return 0 for success, !=0 fail (error code)
 	*/
-	public int set_metadata1(String file_id, NameValuePair[] meta_list, byte op_flag) throws IOException, Exception
+	@SuppressWarnings("static-access")
+    public int set_metadata1(String file_id, NameValuePair[] meta_list, byte op_flag) throws IOException, Exception
 	{
 		String[] parts = new String[2];
 		this.errno = this.split_file_id(file_id, parts);

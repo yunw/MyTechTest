@@ -26,8 +26,10 @@ import java.util.Map;
 public class LRUCache<K, V> implements Cache<K, V> {
     private final LinkedHashMap<K, V> cache;
 
+    @SuppressWarnings("serial")
     public LRUCache(final int maxSize) {
         cache = new LinkedHashMap<K, V>(16, .75f, true) {
+            @SuppressWarnings("rawtypes")
             @Override
             protected boolean removeEldestEntry(Map.Entry eldest) {
                 return size() > maxSize;

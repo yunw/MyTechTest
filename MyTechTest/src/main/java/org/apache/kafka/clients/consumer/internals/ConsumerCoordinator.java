@@ -628,6 +628,7 @@ public final class ConsumerCoordinator extends AbstractCoordinator {
     }
 
     private class ConsumerCoordinatorMetrics {
+        @SuppressWarnings("unused")
         public final Metrics metrics;
         public final String metricGrpName;
 

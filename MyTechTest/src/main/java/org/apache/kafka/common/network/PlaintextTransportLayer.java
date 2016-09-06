@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PlaintextTransportLayer implements TransportLayer {
+    @SuppressWarnings("unused")
     private static final Logger log = LoggerFactory.getLogger(PlaintextTransportLayer.class);
     private final SelectionKey key;
     private final SocketChannel socketChannel;

@@ -4,7 +4,8 @@ import java.util.List;
 
 public class JenkinsResult {
 	
-	private List<Action> actions;
+	@SuppressWarnings("unused")
+    private List<Action> actions;
 	
 	class Action {
 		

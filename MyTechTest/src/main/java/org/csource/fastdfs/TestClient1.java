@@ -8,11 +8,10 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import org.csource.common.*;
-import org.csource.fastdfs.*;
+import java.io.File;
+import java.net.InetSocketAddress;
+
+import org.csource.common.NameValuePair;
 
 /**
 * client test
@@ -31,7 +30,8 @@ public class TestClient1
 	*     <ul><li>args[0]: config filename</li></ul>
 	*     <ul><li>args[1]: local filename to upload</li></ul>
 	*/
-  public static void main(String args[])
+  @SuppressWarnings("unused")
+public static void main(String args[])
   {
   	if (args.length < 2)
   	{

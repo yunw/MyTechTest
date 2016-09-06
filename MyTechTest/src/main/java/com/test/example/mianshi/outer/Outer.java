@@ -7,7 +7,8 @@ public class Outer {
 	private static String b;
 
 	// 定义在方法外部的内部类
-	private class InnerOutMethod {
+	@SuppressWarnings("unused")
+    private class InnerOutMethod {
 		// 非静态内部类中不能定义静态变量。
 		// private static String a;
 		private String s;
@@ -19,12 +20,14 @@ public class Outer {
 	}
 	
 	public static void gett() {
-		class InnerInStaticMethod {
+		@SuppressWarnings("unused")
+        class InnerInStaticMethod {
 			
 		}
 	}
 
-	public void get() {
+	@SuppressWarnings("unused")
+    public void get() {
 		// 定义在方法内部的内部类：不能有访问修饰符，可以由final、abstract修饰
 		// 必须先定义后实现。
 		String gg = null;
@@ -48,7 +51,8 @@ public class Outer {
 	
 	//静态内部类
 	static class NetedClass {
-		private String n;
+		@SuppressWarnings("unused")
+        private String n;
 		public String get() {
 //			n = s;
 			n = b;

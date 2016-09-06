@@ -12,6 +12,7 @@
  */
 package org.apache.kafka.common.errors;
 
+@SuppressWarnings("serial")
 public class GroupAuthorizationException extends AuthorizationException {
     private final String groupId;
 

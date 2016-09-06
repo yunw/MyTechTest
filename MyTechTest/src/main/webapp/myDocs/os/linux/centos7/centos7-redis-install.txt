@@ -32,6 +32,7 @@ mkdir -p /etc/redis
 vi /etc/redis/6379.conf
 
 port 6379
+tcp-backlog 2048    # tcp监听队列的长度，默认值：511。该值还受到内核参数somaxconn的限制，因此必须同时调整这两者的值。
 cluster-enabled yes
 cluster-config-file /etc/redis/nodes-6379.conf
 cluster-node-timeout 15000

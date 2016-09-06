@@ -19,7 +19,8 @@ import org.dom4j.Element;
 */
 public class TestDom4j {
 
-  public void readStringXml(String xml) {
+  @SuppressWarnings("rawtypes")
+public void readStringXml(String xml) {
       Document doc = null;
       try {
 
@@ -92,7 +93,8 @@ public class TestDom4j {
    * @param xml
    * @return Map
    */
-  public static Map readStringXmlOut(String xml) {
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+public static Map readStringXmlOut(String xml) {
       Map map = new HashMap();
       Document doc = null;
       try {
@@ -161,7 +163,8 @@ public class TestDom4j {
       return map;
   }
 
-  public static void main(String[] args) {
+  @SuppressWarnings("rawtypes")
+public static void main(String[] args) {
 
       // 下面是需要解析的xml字符串例子
       String xmlString = "<html>" + "<head>" + "<title>dom4j解析一个例子</title>"

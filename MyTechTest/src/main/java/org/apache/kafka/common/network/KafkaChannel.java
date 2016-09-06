@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class KafkaChannel {
+    @SuppressWarnings("unused")
     private static final Logger log = LoggerFactory.getLogger(KafkaChannel.class);
     private final String id;
     private TransportLayer transportLayer;

@@ -20,6 +20,7 @@ package org.apache.kafka.common.security.kerberos;
 
 import java.io.IOException;
 
+@SuppressWarnings("serial")
 public class NoMatchingRule extends IOException {
     NoMatchingRule(String msg) {
         super(msg);

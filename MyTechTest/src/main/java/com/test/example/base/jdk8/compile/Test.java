@@ -5,7 +5,8 @@ import javax.tools.ToolProvider;
 
 public class Test {
 
-	public static void main(String[] args) {
+	@SuppressWarnings("unused")
+    public static void main(String[] args) {
 		JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
 //		javac.getTask(null, null, null, options, classes, compilationUnits);
 	}

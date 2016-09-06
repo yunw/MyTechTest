@@ -11,7 +11,8 @@ public class WebSocketServer {
 	
 	private static final int BUFSIZE = 32; // Size of receive buffer
 	
-	public static void main(
+	@SuppressWarnings("resource")
+    public static void main(
 			String[] args) throws IOException {
 
 

@@ -15,7 +15,8 @@ import org.quartz.impl.StdSchedulerFactory;
 
 public class QuartzTest {
 	
-	private Scheduler scheduler;
+	@SuppressWarnings("unused")
+    private Scheduler scheduler;
 	
 	public static void main(String args[]) throws SchedulerException, ParseException {
         

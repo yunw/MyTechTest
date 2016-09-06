@@ -66,7 +66,8 @@ public class Test {
 //		copyFile(file, target);
 	}
 	
-	public static void httpProxyTest() {
+	@SuppressWarnings("unused")
+    public static void httpProxyTest() {
 		String responseContent = null;
 		try {
 			HttpRoutePlanner routePlanner = new HttpRoutePlanner() {
@@ -110,7 +111,8 @@ public class Test {
 		}
 	}
 	
-	public static void JsTest() {
+	@SuppressWarnings("unused")
+    public static void JsTest() {
 		
 		List<MorrisData> list = new ArrayList<MorrisData>();
 		list.add(new MorrisData("2011 Q3", 3407, 660));

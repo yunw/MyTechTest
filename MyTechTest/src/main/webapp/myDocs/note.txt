@@ -78,7 +78,10 @@ Field h = point.getTarget().getClass().getSuperclass().getDeclaredField("h");
         SqlSessionTemplate sessionTemplate = (SqlSessionTemplate) sql.get(oh);
         
    
-   
+metrics:
+telnet 10.0.21.68 8126
+counters   
+timers
    
 
 sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了

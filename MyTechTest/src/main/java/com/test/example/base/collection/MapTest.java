@@ -25,7 +25,8 @@ public class MapTest {
 		treeMapTest3();
 	}
 	
-	private static void synchronizedMapTest() {
+	@SuppressWarnings({ "unchecked", "rawtypes", "unused" })
+    private static void synchronizedMapTest() {
 		Map m = Collections.synchronizedMap(new HashMap());
 	    List l = Collections.synchronizedList(new ArrayList());
 	    // put-if-absent idiom -- contains a race condition

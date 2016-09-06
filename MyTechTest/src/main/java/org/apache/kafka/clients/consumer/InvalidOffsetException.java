@@ -23,6 +23,7 @@ import java.util.Set;
  * @see NoOffsetForPartitionException
  * @see OffsetOutOfRangeException
  */
+@SuppressWarnings("serial")
 public abstract class InvalidOffsetException extends KafkaException {
 
     public InvalidOffsetException(String message) {

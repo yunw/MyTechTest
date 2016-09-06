@@ -142,7 +142,8 @@ public class ShardedJedisSentinelPool extends Pool<ShardedJedis> {
 		return shardMasters;
 	}
 
-	private List<HostAndPort> initSentinels(Set<String> sentinels, final List<String> masters) {
+	@SuppressWarnings("resource")
+    private List<HostAndPort> initSentinels(Set<String> sentinels, final List<String> masters) {
 
     	Map<String, HostAndPort> masterMap = new HashMap<String, HostAndPort>();
     	List<HostAndPort> shardMasters = new ArrayList<HostAndPort>();

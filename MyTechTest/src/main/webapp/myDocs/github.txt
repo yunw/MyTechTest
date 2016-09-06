@@ -44,8 +44,11 @@ clone branch:
 git clone <remote_repo> -b <branch>
 例如：git clone ssh://git@git.9now.net:10022/yangjunming/mwee_paidui_soa.git -b dev_cat
 
-提交到本地：
+将文件加入索引：
 git add modifiedfile   #将工作区的修改添加到缓存区
+git add --all          #将工作区的所有修改添加到缓存区
+
+提交到本地：
 git commit -m "your message"  #将缓存区的所有修改提交到当前分支
 
 提交到远程分支：
@@ -67,6 +70,8 @@ git push origin <本地分支名称>:<远程分支名称>
 
 更新代码到本地：
 git pull origin dev_cat
+
+
 
 
 

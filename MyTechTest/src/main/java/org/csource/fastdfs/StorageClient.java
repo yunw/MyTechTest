@@ -131,7 +131,8 @@ public class StorageClient
 	*           <ul><li>results[1]: the new created filename</li></ul>
 	*         return null if fail
 	*/
-	public String[] upload_file(String group_name, long file_size, 
+	@SuppressWarnings("unused")
+    public String[] upload_file(String group_name, long file_size, 
 	       UploadCallback callback, String file_ext_name, 
 	       NameValuePair[] meta_list) throws IOException, Exception
 	{

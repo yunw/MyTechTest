@@ -688,6 +688,7 @@ public abstract class AbstractCoordinator implements Closeable {
     }
 
     private class GroupCoordinatorMetrics {
+        @SuppressWarnings("unused")
         public final Metrics metrics;
         public final String metricGrpName;
 

@@ -575,6 +575,7 @@ public class Utils {
      * @param <T> the type of element
      * @return Set
      */
+    @SuppressWarnings("unchecked")
     public static <T> Set<T> mkSet(T... elems) {
         return new HashSet<>(Arrays.asList(elems));
     }
@@ -585,6 +586,7 @@ public class Utils {
      * @param <T> the type of element
      * @return List
      */
+    @SuppressWarnings("unchecked")
     public static <T> List<T> mkList(T... elems) {
         return Arrays.asList(elems);
     }

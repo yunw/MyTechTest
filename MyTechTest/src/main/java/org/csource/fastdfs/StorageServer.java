@@ -8,10 +8,10 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import org.csource.common.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 /**
 * Storage Server Info

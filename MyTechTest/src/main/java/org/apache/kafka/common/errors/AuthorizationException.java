@@ -12,6 +12,7 @@
  */
 package org.apache.kafka.common.errors;
 
+@SuppressWarnings("serial")
 public class AuthorizationException extends ApiException {
 
     public AuthorizationException(String message) {

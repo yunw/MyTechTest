@@ -8,10 +8,10 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import org.csource.common.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Arrays;
 
 /**
 * Tracker client
@@ -68,7 +68,8 @@ public class TrackerClient
 	* @param group_name the group name to upload file to, can be empty
 	* @return storage server Socket object, return null if fail
 	*/
-	public StorageServer getStoreStorage(Socket trackerSocket, String group_name) throws IOException
+	@SuppressWarnings("unused")
+    public StorageServer getStoreStorage(Socket trackerSocket, String group_name) throws IOException
 	{
 		OutputStream out = trackerSocket.getOutputStream();
 		byte[] header;

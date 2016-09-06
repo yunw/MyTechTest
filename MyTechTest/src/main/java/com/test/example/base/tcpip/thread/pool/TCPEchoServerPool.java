@@ -10,7 +10,8 @@ import com.test.example.base.tcpip.EchoProtocol;
 
 public class TCPEchoServerPool {
 
-	public static void main(String[] args) throws IOException {
+	@SuppressWarnings("resource")
+    public static void main(String[] args) throws IOException {
 		if (args.length != 2) { // Test for correct # of args
 			throw new IllegalArgumentException("Parameter(s): <Port> <Threads>");
 		}

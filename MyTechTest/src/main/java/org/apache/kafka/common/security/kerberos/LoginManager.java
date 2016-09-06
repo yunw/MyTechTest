@@ -31,6 +31,7 @@ import org.apache.kafka.common.security.JaasUtils;
 
 public class LoginManager {
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static final EnumMap<LoginType, LoginManager> CACHED_INSTANCES = new EnumMap(LoginType.class);
 
     private final Login login;

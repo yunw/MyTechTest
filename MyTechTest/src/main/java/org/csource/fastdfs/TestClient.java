@@ -8,11 +8,10 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import org.csource.common.*;
-import org.csource.fastdfs.*;
+import java.io.File;
+import java.net.InetSocketAddress;
+
+import org.csource.common.NameValuePair;
 
 /**
 * client test

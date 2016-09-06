@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import net.iharder.base64.Base64;
 
+@SuppressWarnings("deprecation")
 public class HttpClientTest {
 
 	private static String url = "http://abfme:Pass1234@10.25.20.104:8080/job/tracereport/lastSuccessfulBuild/api/json?tree=result";
@@ -26,7 +27,7 @@ public class HttpClientTest {
 		test();
 	}
 
-	@SuppressWarnings({ "resource", "deprecation" })
+	@SuppressWarnings({ "resource" })
 	public static void doGet(String url) throws Exception {
 		HttpClient httpclient = new DefaultHttpClient();
 
@@ -50,7 +51,7 @@ public class HttpClientTest {
 		is.close();
 	}
 
-	@SuppressWarnings({ "resource", "deprecation" })
+	@SuppressWarnings({ "resource" })
 	public static void doGet2(String url) throws Exception {
 		DefaultHttpClient httpclient = new DefaultHttpClient();
 

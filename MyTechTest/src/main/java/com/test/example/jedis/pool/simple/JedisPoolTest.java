@@ -21,7 +21,8 @@ public class JedisPoolTest {
 
 	}
 
-	public static void set(String key, String value) {
+	@SuppressWarnings("deprecation")
+    public static void set(String key, String value) {
 		Jedis jedis = masterPool.getResource();
 		try {
 			jedis.setex(key, EXPIRE_SECONDS, value);
@@ -32,7 +33,8 @@ public class JedisPoolTest {
 		}
 	}
 
-	public static void hset(String key, String feild, String value) {
+	@SuppressWarnings("deprecation")
+    public static void hset(String key, String feild, String value) {
 		Jedis jedis = masterPool.getResource();
 		try {
 			jedis.hset(key, feild, value);
@@ -43,7 +45,8 @@ public class JedisPoolTest {
 		}
 	}
 
-	public static String hget(String key, String feild) {
+	@SuppressWarnings("deprecation")
+    public static String hget(String key, String feild) {
 		Jedis jedis = slavePool.getResource();
 		String result = null;
 		try {
@@ -56,7 +59,8 @@ public class JedisPoolTest {
 		return result;
 	}
 
-	public static String get(String key) {
+	@SuppressWarnings("deprecation")
+    public static String get(String key) {
 		Jedis jedis = slavePool.getResource();
 		String result = null;
 		try {

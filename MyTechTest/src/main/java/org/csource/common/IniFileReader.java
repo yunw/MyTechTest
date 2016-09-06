@@ -8,9 +8,12 @@
 
 package org.csource.common;
 
-import java.io.*;
-import java.util.*;
-import org.csource.common.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 /**
 * ini file reader / parser
@@ -19,7 +22,8 @@ import org.csource.common.*;
 */
 public class IniFileReader
 {
-	private Hashtable paramTable;
+	@SuppressWarnings("rawtypes")
+    private Hashtable paramTable;
 	
 /**
 * @param conf_filename config filename
@@ -34,7 +38,8 @@ public class IniFileReader
 * @param name item name in config file
 * @return string value
 */
-	public String getStrValue(String name)
+	@SuppressWarnings("rawtypes")
+    public String getStrValue(String name)
 	{
 		Object obj;
 		obj = this.paramTable.get(name);
@@ -91,7 +96,8 @@ public class IniFileReader
 * @param name item name in config file
 * @return string values (array)
 */
-	public String[] getValues(String name)
+	@SuppressWarnings("rawtypes")
+    public String[] getValues(String name)
 	{
 		Object obj;
 		String[] values;
@@ -115,7 +121,8 @@ public class IniFileReader
 		return values;
 	}
 	
-	private void loadFromFile(String conf_filename) throws FileNotFoundException, IOException
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+    private void loadFromFile(String conf_filename) throws FileNotFoundException, IOException
 	{
 		FileReader fReader;
 		BufferedReader buffReader;

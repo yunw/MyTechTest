@@ -1,0 +1,19 @@
+参考：http://git.oschina.net/yinsl/spring-cloud-demo
+启动：
+cloud-simple-service:
+java -jar cloud-simple-service-1.0.0.jar --server.port=8082
+集中配置：
+/{application}/{profile}[/{label}]
+/{application}-{profile}.yml
+/{label}/{application}-{profile}.yml
+/{application}-{profile}.properties
+/{label}/{application}-{profile}.properties
+
+例如：applicat=simple-service profile=dev laber=master
+http://localhost:8888/simple-service/dev
+http://localhost:8888/simple-service/dev/master
+http://localhost:8888/simple-service.properties
+http://localhost:8888/master/simple-service.properties
+
+启动注册管理器（eureka服务器）
+java -jar cloud-eureka-server-1.0.0.jar >/dev/null 2 >&1 &

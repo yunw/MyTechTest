@@ -11,7 +11,8 @@ import com.test.example.base.tcpip.EchoProtocol;
 
 public class TCPEchoServerExecutor {
 	
-	public static void main(String[] args) throws IOException {
+	@SuppressWarnings("resource")
+    public static void main(String[] args) throws IOException {
 		if (args.length != 1) { // Test for correct # of args
 			throw new IllegalArgumentException("Parameter(s): <Port>");
 		}

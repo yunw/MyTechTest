@@ -128,11 +128,13 @@ public class RequestFuture<T> {
         raise(error.exception());
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void fireSuccess() {
         for (RequestFutureListener listener: listeners)
             listener.onSuccess(value);
     }
 
+    @SuppressWarnings("rawtypes")
     private void fireFailure() {
         for (RequestFutureListener listener: listeners)
             listener.onFailure(exception);

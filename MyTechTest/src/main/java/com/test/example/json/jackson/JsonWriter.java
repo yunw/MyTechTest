@@ -9,7 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonWriter {
 	
-	public static void main(String[]  args) throws JsonParseException, JsonMappingException, IOException {
+	@SuppressWarnings("unused")
+    public static void main(String[]  args) throws JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
 		User user = mapper.readValue(new File("user.json"), User.class);
 	}

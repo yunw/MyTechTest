@@ -14,7 +14,6 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteResult;
-import com.mongodb.util.JSON;
 
 public class MongoTest {
 
@@ -122,14 +121,16 @@ public class MongoTest {
 		}
 	}
 
-	private static void test6() {
+	@SuppressWarnings("unused")
+    private static void test6() {
 		DBCursor cursor = findByLogicOperator("users", "$lt", "age", 24);
 		while (cursor.hasNext()) {
 			System.out.println(cursor.next());
 		}
 	}
 
-	private static void test5() {
+	@SuppressWarnings("unused")
+    private static void test5() {
 		List<Object> valueList = new ArrayList<>();
 		valueList.add("n");
 		valueList.add("m");
@@ -139,7 +140,8 @@ public class MongoTest {
 		}
 	}
 
-	private static void test4() {
+	@SuppressWarnings("unused")
+    private static void test4() {
 		DBObject obj = findOne("users", "name0", "hoojo0");
 		System.out.println(obj);
 		DBObject newObject = new BasicDBObject();
@@ -148,14 +150,16 @@ public class MongoTest {
 		update("users", new BasicDBObject("name0", "hoojo0"), newObject);
 	}
 
-	private static void test3() {
+	@SuppressWarnings("unused")
+    private static void test3() {
 		DBCursor cursor = find("users", "name", "hoojo");
 		while (cursor.hasNext()) {
 			System.out.println(cursor.next());
 		}
 	}
 
-	private static void test2() {
+	@SuppressWarnings("unused")
+    private static void test2() {
 		DBObject obj = findOne("users", "name", "hoojo");
 		System.out.println(obj);
 	}
@@ -169,7 +173,8 @@ public class MongoTest {
 		}
 	}
 
-	private static void test0() {
+	@SuppressWarnings("unused")
+    private static void test0() {
 		List<DBObject> list = new ArrayList<>();
 		DBObject user1 = new BasicDBObject();
 		user1.put("name", "name1");

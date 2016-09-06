@@ -11,7 +11,8 @@ public class TCPEchoServer {
 
 	private static final int BUFSIZE = 32; // Size of receive buffer
 
-	public static void main(String[] args) throws IOException {
+	@SuppressWarnings({ "resource", "unused" })
+    public static void main(String[] args) throws IOException {
 
 		if (args.length != 1) // Test for correct # of args
 			throw new IllegalArgumentException("Parameter(s): <Port>");

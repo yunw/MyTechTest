@@ -18,6 +18,7 @@ package org.apache.kafka.common.network;
 
 import org.apache.kafka.common.KafkaException;
 
+@SuppressWarnings("serial")
 public class InvalidReceiveException extends KafkaException {
 
     public InvalidReceiveException(String message) {

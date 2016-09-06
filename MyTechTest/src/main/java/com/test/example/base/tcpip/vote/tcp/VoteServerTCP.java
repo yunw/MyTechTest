@@ -14,7 +14,8 @@ import com.test.example.base.tcpip.vote.VoteService;
 
 public class VoteServerTCP {
 
-	public static void main(String[] args) throws Exception {
+	@SuppressWarnings("resource")
+    public static void main(String[] args) throws Exception {
 		if (args.length != 1) { // Test for correct # of args
 			throw new IllegalArgumentException("Parameter(s): <Port>");
 		}

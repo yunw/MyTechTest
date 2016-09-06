@@ -15,6 +15,7 @@ package org.apache.kafka.common.errors;
 import java.util.Collections;
 import java.util.Set;
 
+@SuppressWarnings("serial")
 public class TopicAuthorizationException extends AuthorizationException {
     private final Set<String> unauthorizedTopics;
 

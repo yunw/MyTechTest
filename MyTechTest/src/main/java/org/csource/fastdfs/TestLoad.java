@@ -8,12 +8,6 @@
 
 package org.csource.fastdfs;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import org.csource.common.*;
-import org.csource.fastdfs.*;
-
 /**
 * load test class
 * @author Happy Fish / YuQing
@@ -21,7 +15,8 @@ import org.csource.fastdfs.*;
 */
 public class TestLoad
 {
-	public static java.util.concurrent.ConcurrentLinkedQueue file_ids;
+	@SuppressWarnings("rawtypes")
+    public static java.util.concurrent.ConcurrentLinkedQueue file_ids;
 	public static int total_download_count = 0;
 	public static int success_download_count = 0;
 	public static int fail_download_count = 0;
@@ -62,7 +57,8 @@ public class TestLoad
   		this.trackerServer = tracker.getConnection();
 		}
 		
-  	public int uploadFile() throws Exception
+  	@SuppressWarnings("unchecked")
+    public int uploadFile() throws Exception
   	{
   		StorageServer storageServer = null;
   		StorageClient1 client = new StorageClient1(trackerServer.getSocket(), storageServer);
@@ -197,7 +193,8 @@ public class TestLoad
 			this.thread_index = index;
 		}
 		
-	  public void run()
+	  @SuppressWarnings("static-access")
+    public void run()
     {
     	try
     	{
@@ -280,7 +277,8 @@ public class TestLoad
 	* @param args comand arguments
 	*     <ul><li>args[0]: config filename</li></ul>
 	*/
-  public static void main(String args[])
+  @SuppressWarnings("rawtypes")
+public static void main(String args[])
   {
   	if (args.length < 1)
   	{

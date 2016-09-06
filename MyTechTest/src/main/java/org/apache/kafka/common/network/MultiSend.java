@@ -34,6 +34,7 @@ public class MultiSend implements Send {
     private static final Logger log = LoggerFactory.getLogger(MultiSend.class);
     private String dest;
     private long totalWritten = 0;
+    @SuppressWarnings("unused")
     private List<Send> sends;
     private Iterator<Send> sendsIterator;
     private Send current;

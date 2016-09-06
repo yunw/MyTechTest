@@ -35,6 +35,7 @@ public class One {
 		// 桃子总数为e个
 		int e = 5 * (5 * (5 * (5 * a + 1) / 4 + 1) / 4 + 1) / 4 + 1;
 		e = (((625 * a + 125) / 4 + 25) / 4 + 5) / 4 + 1;
+        System.out.println(a + b + c + d + e);
 	}
 
 }
