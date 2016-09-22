@@ -652,13 +652,189 @@ rtt min/avg/max/mdev = 0.117/0.145/0.201/0.041 ms
 再次运行ping命令（这次使用容器名称：web），ping成功了，显示了一个不同以前（172.17.0.2）的新ip（172.18.0.3）。旧的ip在bridge网络上，新的ip在my-bridge-network网络上。
 
 
+container links:
+docker run -d -P training/webapp python app.py
+-P 自动映射容器中的网络端口到docker主机的临时端口范围（ephemeral port range）中的随机一个。
+docker run -d -p 80:5000 training/webapp python app.py
+-p 指定端口映射
+docker run -d -p 8000-9000:5000 training/webapp python app.py
+-p 指定临时端口范围，这样主机的临时端口会是8000-9000中的随机一个
+docker run -d -p 127.0.0.1:80:5000 training/webapp python app.py
+-p 指定网络接口和端口映射，默认绑定到dockers主机的所有网络接口。
+docker run -d -p 127.0.0.1::5000 training/webapp python app.py
+-p指定网络接口，端口动态
+docker run -d -p 127.0.0.1:80:5000/udp training/webapp python app.py
+-p 指定udp端口，通过添加/udp
+
+Communication across links：
+docker stop `docker ps -a -q`
+docker rm `docker ps -a -q`
+docker run -d --name db training/postgres
+创建一个新的web容器并与db容器链接。
+docker run -d -P --name web --link db:db training/webapp python app.py
+--link <name or id>:alias 名称就是我们要链接的容器，也可以不要别名：--link<name or id> 如果不要别名，那么别名就是容器名。
+[docker@centos71 mydockerbuild]$ docker inspect -f "{{ .HostConfig.Links }}" web
+[/db:/web/db]
+可以看到，web容器现在链接到db容器web/db上了，这样它就可以访问db容器上的信息了。
+
+link做了什么？
+link允许源容器提供它自己的信息给收件人容器（recipient container）。上述例子中，收件人web能访问源db。为了做到这一点，docker在两个容器之间创建了一个安全隧道，不需要
+暴露任何容器上的端口给外部。我们在启动db容器的时候没有使用-p和-P选项。这是link的一个很大的好处：我们不需要暴露源容器，这个例子里就是PostgreSQL database，到网络上。
+docker暴露源容器的链接信息给收件人容器，通过以下两种方式：
+环境变量
+更新/etc/hosts文件
+
+环境变量：
+在链接容器的时候docker创建了几个环境变量。docker基于--link参数在目标容器中创建环境变量。它也暴露所有的源自docker源自源容器的环境变量。这些变量来自于：
+A、源容器Dockerfile中ENV命令定义的变量
+B、源容器启动时，执行docker run命令时添加的 -e --env --env-file等选项制定的变量
+这些环境变量能让目标容器发现与源容器相关的信息。
+注意：一个容器中源自docker的环境变量对所有链接到它的容器都是可见的，如果敏感信息存储在这些变量中，可能带来严重的安全隐患。
+docker设置一个<alias>_NAME环境变量，为每一个用--link参数列举的目标容器。例如，一个新的叫web的容器链接到一个叫db的容器上，通过 --link db:webdb，那么docker就
+会在web容器中创建一个WEBDB_NAME=/web/webdb变量。
+docker也为源容器暴露出来的端口定义一套环境变量。每个变量都有唯一的前缀，采用下面的格式：
+<name>_PORT_<port>_<protocol>
+name： --link参数中的别名，如webdb
+port：暴露的端口号
+protocol：TCP或UDP
+docker使用这个前缀定义三个不同的环境变量：
+prefix_ADDR：包含了ip地址，例如：WEBDB_PORT_5432_TCP_ADDR=172.17.0.82
+prefix_PORT：包含了端口，例如：WEBDB_PORT_5432_TCP_PORT=5432
+prefix_PROTO：包含了协议，例如：WEBDB_PORT_5432_TCP_PROTO=tcp
+如果容器暴露了多个端口，那么就会为每个端口设置一套环境变量。例如，容器暴露了4个端口，那么docker就会创建12个环境变量，每个端口3个。
+另外，docker还创建了一个叫<alias>_PORT的环境变量。这个变量包含了源容器url中的首个暴露的端口。首个端口的定义是暴露的端口中数字最小的一个。例如：
+WEBDB_PORT=tcp://172.17.0.82:5432，如果这个端口既用于tcp也用于udp，那么它就代表tcp
+回到我们的例子中来，我们可以运行env命令来列出指定容器的环境变量：
+docker run --rm --name web2 --link db:db training/webapp env
+--rm 自动删除容器如果它已经存在
+[docker@centos71 mydockerbuild]$ docker run --rm --name web2 --link db:db training/webapp env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=b80dd9cf51fa
+DB_PORT=tcp://172.17.0.2:5432
+DB_PORT_5432_TCP=tcp://172.17.0.2:5432
+DB_PORT_5432_TCP_ADDR=172.17.0.2
+DB_PORT_5432_TCP_PORT=5432
+DB_PORT_5432_TCP_PROTO=tcp
+DB_NAME=/web2/db
+DB_ENV_PG_VERSION=9.3
+HOME=/root
+可以看到docker创建了一套有关源容器db的环境变量。你可以用这些环境变量配置你自己的应用来连接db容器中的数据库，这个连接将是安全和私有的：只有链接到db容器的web容器可以和它通信。
+注意：存储在环境变量中的ip地址不会自动更新，如果源容器重启。这一点和更新/etc/hosts文件不一样，因此，建议使用/etc/hosts方式解析ip地址。
+
+更新/etc/hosts文件：
+除了环境变量，docker还在/etc/hosts中添加了一个源容器的条目。例如：
+[docker@centos71 mydockerbuild]$ docker run -t -i --rm --link db:webdb training/webapp /bin/bash
+root@cdb8f03c0307:/opt/webapp# cat /etc/hosts
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.17.0.2      webdb 7c013eea3faf db
+172.17.0.4      cdb8f03c0307
+可以看见两个相关的条目：
+172.17.0.4      cdb8f03c0307
+这个是针对web容器的，使用容器id做hostname。
+172.17.0.2      webdb 7c013eea3faf db
+这个采用容器别名来引用db容器的ip地址，除了你提供的别名——如果--link提供的别名是唯一的——那么被链接的容器的hostname也会被添加。
+如果重启源容器，链接的容器的/etc/hosts将被自动更新为源容器的新ip。
 
 
+管理容器中的数据：
+docker引擎管理数据的两种方式：
+数据卷（data volumes）
+数据卷容器（data volume containers）
 
+数据卷：
+数据卷是在一个或多个容器中特别设计的目录，它绕过了联合文件系统。数据卷为持久化或共享数据提供了几个有用的特性：
+1）容器创建的时候卷就被初始化了。如果容器的基础镜像在特定的挂载点包含有数据，这些存在的数据就会在卷初始化的时候拷贝到新的卷中。
+2）数据卷可以在容器之间共享和重用。
+3）对数据卷的修改直接生效
+4）镜像升级时对数据卷的修改不会被包含进去
+5）数据卷持久存在，即使容器本身已经被删除
+数据卷被设计来持久化数据，独立于容器的生命周期。docker因此永远也不会自动删除卷，当你删除容器的时候。在没有容器引用卷的时候卷也不会被“垃圾收集”。
 
+添加一个卷：
+docker run -d -P --name web -v /webapp training/webapp python app.py
+这将会在容器中创建一个卷：/webapp
+你可以通过docker inspect命令找到卷在主机上的位置：
+docker inspect web
+[docker@centos71 mydockerbuild]$ docker run -d -P --name web -v /webapp training/webapp python app.py
+5e1a285e6f6ae626307f456c5dfbbd67d846a13733dfe541639a082236ccc166
+[docker@centos71 mydockerbuild]$ docker inspect --format='{{json .Mounts}}' web
+[{"Name":"1282ccf7a0c44f58377423392150486e7e0f57943a76233ad2f8e337e0846c04",
+  "Source":"/var/lib/docker/volumes/1282ccf7a0c44f58377423392150486e7e0f57943a76233ad2f8e337e0846c04/_data",
+  "Destination":"/webapp",
+  "Driver":"local",
+  "Mode":"",
+  "RW":true,
+  "Propagation":""
+}]
+其中Source指出了卷在主机上的位置，Destination指出了卷在容器中的位置。RW指定了卷的读/写模式。
 
+挂载一个主机目录作为一个数据卷：
+除了用-v选项创建一个卷，你也可以挂载docker引擎所在的主机的一个目录到容器中。例如：
+docker run -d -P --name web -v /src/webapp:/opt/webapp training/webapp python app.py
+这个命令挂载主机目录：/src/webapp到容器的/opt/webapp。如果/opt/webapp在容器的镜像中已经存在，/src/webapp挂载将覆盖但不删除已经存在的内容。一旦挂载被删除，这些
+内容就可以再次被访问。这与mount命令的行为是一致的。
+容器目录必须是绝对路径，如/opt/webapp。主机目录可以是一个绝对路径也可以是一个名称值。如果你为主机目录提供了一个绝对路径，docker将绑定挂载到你指定的目录上。如果你提供了一个名字。
+docker将用这个名称创建一个命名卷。例如：你可以为主机目录提供/foo 或 foo。如果是/foo，docker引擎将绑定挂载。如果提供foo，docker引擎将创建一个命名卷（默认主机地址在/var/lib/docker/volumes下创建）。
+docker卷默认挂载为读写模式，但是也可以设置为只读模式：
+docker run -d -P --name web -v /src/webapp:/opt/webapp:ro training/webapp python app.py
 
+挂载一个共享存储卷作为一个数据卷：
+除了在容器中挂载主机目录，某些docker卷插件允许你规定并挂载共享存储，例如： iSCSI, NFS, or FC。
+使用共享卷的好处是他们是主机独立的。这意味着，卷对所有主机可见，只要安装了插件，容器在启动后就可以在后端访问共享存储。
+docker run -d -P \
+  --volume-driver=flocker \
+  -v my-named-volume:/opt/webapp \
+  --name web training/webapp python app.py
+这个命令创建了一个命名卷：my-named-volume，使用flocker卷驱动，让它在容器的/opt/webapp下可见。
+也可以用docker volume create命令创建卷，在容器使用之前。
+$ docker volume create -d flocker -o size=20GB my-named-volume
+$ docker run -d -P \
+  -v my-named-volume:/opt/webapp \
+  --name web training/webapp python app.py
 
+卷标（volume label）：
+
+挂载一个主机文件作为数据卷：
+-v选项也可以挂载单个文件
+docker run --rm -it -v ~/.bash_history:/root/.bash_history ubuntu /bin/bash
+这个命令可以进入一个新容器的bash shell，当你从容器中退出的时候，主机可以获得你在容器中执行的命令的历史信息。
+
+创建并挂载一个数据卷容器：
+如果你有些持久化数据你想在容器之间共享，或者非持久化的容器想使用。最好的方式是创建一个命名的数据卷容器。然后从它里面挂载数据。
+docker create -v /dbdata --name dbstore training/postgres /bin/true
+该命令创建了一个共享数据卷容器
+docker run -d --volumes-from dbstore --name db1 training/postgres
+该命令挂载了共享数据卷容器的共享卷
+另一个：
+docker run -d --volumes-from dbstore --name db2 training/postgres
+上面的例子里，如果postgres镜像包含了一个叫/dbdata的目录，那么从dbstore容器挂载的卷将隐藏它，只有来自dbstore容器的/dbdata是可见的。
+这种挂载还可以继承：
+docker run -d --name db3 --volumes-from db1 training/postgres
+如果你删除了挂载卷的容器，包括最初的dbstore容器，卷也不会被删除。要从磁盘上删除卷，你必须显式执行docker rm -v，在最后一个引用该卷的容器上。这允许你升级或在容器间迁移数据。
+注：
+在你删除容器的时候，你没有提供-v选项去删除它的卷，docker不会给出警告。如果你删除容器而没有使用-v选项，你就留下了一个"dangling"卷，这样的卷不再被容器引用。
+你可以用docker volume ls -f dangling=true来发现dangling卷。然后使用docker volume rm <volume name>来删除不需要的卷。
+
+备份、再存储、迁移数据卷：
+卷的另一个有用的功能是备份、再存储、迁移数据。可以通过--volumes-from创建一个新的容器挂载这个卷。例如：
+docker run --rm --volumes-from dbstore -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /dbdata
+这个命令创建了一个新的容器并从dbstore容器挂载了卷。然后你又挂载了一个本地主机目录到/backup。最终，你通过tar命令备份了dbdata卷到backup.tar存储在/backup目录下。
+当命令执行完毕容器停止后我们就保留了dbdata卷的一个备份。
+然后你就可以创建一个新的容器将它再存储其他任何地方了：
+docker run -v /dbdata --name dbstore2 ubuntu /bin/bash
+然后解压备份文件到新容器的卷里：
+docker run --rm --volumes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar --strip 1"
+
+删除卷：
+你可以创建命名卷和匿名卷。命名卷在容器外有一个特定的源表（source form），例如：awesome:/bar。匿名卷没有特定的源。当容器删除的时候，你应该指导docker引擎清除匿名卷。
+为了做到这一点，需要使用 --rm选项，例如：
+docker run --rm -v /foo -v awesome:/bar busybox top
+这个命令创建了一个匿名的卷：/foo。当容器删除的时候，docker引擎删除/foo卷，但不删除命名卷：awesome。
 
 
 
