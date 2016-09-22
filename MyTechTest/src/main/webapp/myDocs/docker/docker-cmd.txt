@@ -531,6 +531,133 @@ docker network disconnect bridge networktest
 
 docker引擎本身支持bridge网络和overlay网络。bridge网络局限于单个主机运行docker引擎。overlay网络可以包含多个主机，是一个更高级的主题。
 创建自己的bridge网络：
+docker network create -d bridge my-bridge-network
+-d bridge 表明新的网络是一个bridge网络
+[docker@centos71 mydockerbuild]$ docker network create -d bridge my-bridge-network
+260f53ad3e5cfbadb3a9adad40bd753b2eb305a08f1584ee22cca2a839e241fd
+[docker@centos71 mydockerbuild]$ docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+f40c711296b2        bridge              bridge              local               
+7d6275425200        host                host                local               
+260f53ad3e5c        my-bridge-network   bridge              local               
+a86b18641d07        none                null                local 
+[docker@centos71 mydockerbuild]$ docker network inspect my-bridge-network
+[
+    {
+        "Name": "my-bridge-network",
+        "Id": "260f53ad3e5cfbadb3a9adad40bd753b2eb305a08f1584ee22cca2a839e241fd",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1/16"
+                }
+            ]
+        },
+        "Internal": false,
+        "Containers": {},
+        "Options": {},
+        "Labels": {}
+    }
+]
+可以看到，新网络中什么也没有。
+
+添加容器到新网络：
+网络可以提供容器间的完整隔离，在你首次运行容器的时候，可以将容器添加到一个网络。
+例如：
+docker run -d --network=my-bridge-network --name db training/postgres
+[docker@centos71 mydockerbuild]$ docker network inspect my-bridge-network
+[
+    {
+        "Name": "my-bridge-network",
+        "Id": "260f53ad3e5cfbadb3a9adad40bd753b2eb305a08f1584ee22cca2a839e241fd",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1/16"
+                }
+            ]
+        },
+        "Internal": false,
+        "Containers": {
+            "0fa26e15b3e70a6a89b4e7168ed5647e6679777c985ccd5491b1d4321073710c": {
+                "Name": "db",
+                "EndpointID": "56ea7320a56e116c6493d9332ccd27231e753d4a54a4fc03d9b2944855c73edc",
+                "MacAddress": "02:42:ac:12:00:02",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {}
+    }
+]
+[docker@centos71 mydockerbuild]$ docker inspect --format='{{json .NetworkSettings.Networks}}'  db
+{"my-bridge-network":{"IPAMConfig":null,"Links":null,"Aliases":["0fa26e15b3e7"],"NetworkID":"260f53ad3e5cfbadb3a9adad40bd753b2eb305a08f1584ee22cca2a839e241fd","EndpointID":"56ea7320a56e116c6493d9332ccd27231e753d4a54a4fc03d9b2944855c73edc","Gateway":"172.18.0.1","IPAddress":"172.18.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:12:00:02"}}
+
+测试容器隔离性：
+docker rm $(docker ps -a -q)
+docker run -d --name web training/webapp python app.py
+docker run -d --network=my-bridge-network --name db training/postgres
+
+获取web容器的ip地址：
+docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' web
+或
+docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' web
+[docker@centos71 mydockerbuild]$ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' web
+172.17.0.2
+[docker@centos71 mydockerbuild]$ docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' web
+172.17.0.2
+
+打开正在运行的db容器：
+docker exec -it db bash
+[docker@centos71 mydockerbuild]$ docker exec -it db bash
+root@c20c53032a47:/# ping 172.17.0.2 -c 3                                                                                                                                                                                                                                    
+PING 172.17.0.2 (172.17.0.2) 56(84) bytes of data.
+
+--- 172.17.0.2 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 1999ms
+可以看到ping不通。这是因为两个容器运行在不同的网络中。
+
+添加容器到不同的网络中：
+docker网络允许你添加容器到任意多的网络中，只要你愿意。你还可以添加正在运行的容器到不同的网络中。
+例如：
+docker network connect my-bridge-network web
+[docker@centos71 mydockerbuild]$ docker network connect my-bridge-network web
+[docker@centos71 mydockerbuild]$ docker inspect --format='{{json .NetworkSettings.Networks}}' web
+{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"f40c711296b2bcc22d159eb950027de6b8fb1710f830e3f37582e8cb1aa850e9","EndpointID":"48eabd2f95d926ca0c6e7c8801b2f2b926ceb654d78253e02ee0169984632034","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02"},
+ "my-bridge-network":{"IPAMConfig":{},"Links":null,"Aliases":["2989f1a28259"],"NetworkID":"260f53ad3e5cfbadb3a9adad40bd753b2eb305a08f1584ee22cca2a839e241fd","EndpointID":"c2f893c705555dec7b2981cca4ad48d503cfb05c1435922b2e15ed738d96b4cb","Gateway":"172.18.0.1","IPAddress":"172.18.0.3","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:12:00:03"}}
+可以看到，web容器已经有两个ip地址了
+[docker@centos71 mydockerbuild]$ docker exec -it db bash
+root@c20c53032a47:/# ping web -c 3                                                                                                                                                                                                                                           
+PING web (172.18.0.3) 56(84) bytes of data.
+64 bytes from web.my-bridge-network (172.18.0.3): icmp_seq=1 ttl=64 time=0.201 ms
+64 bytes from web.my-bridge-network (172.18.0.3): icmp_seq=2 ttl=64 time=0.119 ms
+64 bytes from web.my-bridge-network (172.18.0.3): icmp_seq=3 ttl=64 time=0.117 ms
+
+--- web ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2001ms
+rtt min/avg/max/mdev = 0.117/0.145/0.201/0.041 ms
+再次运行ping命令（这次使用容器名称：web），ping成功了，显示了一个不同以前（172.17.0.2）的新ip（172.18.0.3）。旧的ip在bridge网络上，新的ip在my-bridge-network网络上。
+
+
+
+
+
+
+
+
 
 
 
