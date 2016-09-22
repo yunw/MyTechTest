@@ -1,0 +1,29 @@
+java.nio.channels.Selector:
+它是SelectableChannel对象的一个多路复用器。Selector可以通过调用该类的open方法来创建，它将利用系统默认的java.nio.channels.spi.SelectorProvider来
+创建一个新的Selector。Selector也可以通过调用java.nio.channels.spi.SelectorProvider#openSelector方法获取一个定制的selector provider来创建。
+Selector一直保持打开直到调用close方法关闭。
+
+keys：
+一个可选择的通道（selectable channel）注册到一个选择器是由SelectionKey对象表示的。一个selector维护了三个选择器的集合：
+1、key set：代表了注册到该selector上的所有通道的keys。该集合由keys()方法返回。
+2、selected-key set：该集合中的key对应的channel在选择操作期间被检测到至少有一个操作是准备就绪的。它一般情况下是key set的一个子集。
+3、cancelled-key set：该集合中的keys被取消，但对应的channel还没有被注销。该集合中的keys不能被直接访问。它一般情况下是key set的一个子集。
+在新建的selector中，这三个集合都是空的。
+一个channel的key通过调用channel的SelectableChannel#register(Selector,int)方法添加到selector的key set。取消的keys在选择操作期间从key set中
+移走。key set本身并不能直接修改。
+keys由选择操作添加到selected-key set。一个key可以直接从selected-key set中移除，通过调用java.util.Set#remove(java.lang.Object)方法或调用
+java.util.Iterator#remove()方法，Iterator从set中获取。除此之外，selected-key set中的keys不会用任何别的方式移除。它们不会在选择操作中被移除。keys不能
+直接添加到selected-key set中。
+
+Selection：
+在每个选择操作期间，keys可能被从selector的selected-key set中添加或删除。通过执行select()、select(long)、selectNow()等方法来选择。这涉及到三个步骤：
+cancelled-key set中的key从包含它的所有key set中被删除，它的channel被注销。这一步将cancelled-key set置空。
+选择操作开始的时候，底层的操作系统对剩余的channel的更新进行查询，是否有感兴趣的操作。channel如果有任何一个操作准备就绪，将执行下面两个动过中的一个：
+      如果channel的key不在selected-key set中，就添加进去。ready-operation set被更新并报告channel准备就绪，它以前的准备就绪信息就被忽略。
+      如果channel的key已经在selected-key set中，ready-operation set被更新并报告channel准备就绪，它以前的准备就绪信息被忽略。
+在第二步中如果有任何key被加入cancelled-key set，就会回到第一步。
+
+Concurrency：
+selector本身是线程安全的，但它们的key set不是。
+key可能被取消，channnel在任何时候可能被关闭。因此，在一个或多个selector的key set中key的存在并不意味着该key是有效的或它的信道（channel）是打开的。因此应用程序要
+小心的同步并在必要的时候检查这些条件，另一个线程可能取消了key或关闭了信道。

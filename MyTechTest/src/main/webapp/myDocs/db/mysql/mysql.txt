@@ -1,3 +1,8 @@
+sqllog过期：
+sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]
+或[HKEY_CURRENT_USER\Software\{FCE48CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了
+
+
 死锁：
 输入：show engine innodb status \G;
 找到：LATEST DETECTED DEADLOCK这一节内容：

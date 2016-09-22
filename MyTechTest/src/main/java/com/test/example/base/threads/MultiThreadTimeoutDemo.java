@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,7 +27,12 @@ public class MultiThreadTimeoutDemo {
 		taskList.add(new Task("4"));
 		taskList.add(new Task("5"));
 		try {
-			exec.invokeAll(taskList, 5, TimeUnit.SECONDS);//5秒超时
+			List<Future<String>> boolList = exec.invokeAll(taskList, 5, TimeUnit.SECONDS);//5秒超时
+			for (Future<String> future : boolList) {
+			    if (future.isDone()) {
+			    System.out.println("\n-----g------" + future.get());
+			}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -37,23 +43,23 @@ public class MultiThreadTimeoutDemo {
 
 }
 
-class Task implements Callable<Boolean> {
+class Task implements Callable<String> {
 
-	private String printStr;
+	private String sequence;
 
-	public Task(String printStr) {
-		this.printStr = printStr;
+	public Task(String sequence) {
+		this.sequence = sequence;
 	}
 
 	@Override
-	public Boolean call() throws Exception {
+	public String call() throws Exception {
 		long radom = Math.round(Math.random() * 80);
-		System.out.println("thread" + printStr + ": " + radom/10.0 + "秒.");
+		System.out.println("thread" + sequence + ": " + radom/10.0 + "秒.");
 		for (int i = 0; i < radom; i++) {
 			Thread.sleep(100); // 睡眠0.1秒
-			System.out.print(printStr);
+			System.out.print(sequence);
 		}
-		System.out.println("\n---thread" + printStr + " normal over.------");
-		return Boolean.TRUE;
+		System.out.println("\n---thread" + sequence + " normal over.------");
+		return sequence;
 	}
 }

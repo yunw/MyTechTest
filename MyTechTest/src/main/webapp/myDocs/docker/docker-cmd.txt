@@ -1,0 +1,554 @@
+1、列出本地镜像：
+docker images
+
+2、查看容器：
+docker ps -a #查看所有的容器
+docker ps    #查看正在运行的容器
+
+3、创建镜像：
+mkdir mydockerbuild #该目录为构建的上下文环境，意味着该目录包含了构建镜像需要的所有东西。
+cd mydockerbuild
+vi Dockerfile
+FROM docker/whalesay:latest   #表明在镜像docker/whalesay:latest的基础上构建新镜像
+RUN apt-get -y update && apt-get install -y fortunes #在镜像中安装程序：fortunes
+CMD /usr/games/fortune -a | cowsay #容器运行的时候执行的命令
+
+docker build -t docker-whale .  #创建镜像 -t选项指定了镜像的标签。最后的.表示Dockfile的路径就是当前路径
+下面是该命令的构建信息和说明：
+
+Sending build context to Docker daemon 2.048 kB
+docker检查和确认它拥有构建镜像所需的一切
+
+Step 1 : FROM docker/whalesay:latest
+ ---> 6b362a9f73eb
+docker加载镜像：docker/whalesay:latest，因为该镜像在本地存在，因此不用下载。
+
+Step 2 : RUN apt-get -y update && apt-get install -y fortunes
+ ---> Running in a9779612a3c6
+Ign http://archive.ubuntu.com trusty InRelease
+Get:1 http://archive.ubuntu.com trusty-updates InRelease [65.9 kB]
+Get:2 http://archive.ubuntu.com trusty-security InRelease [65.9 kB]
+Hit http://archive.ubuntu.com trusty Release.gpg
+Get:3 http://archive.ubuntu.com trusty-updates/main Sources [473 kB]
+Get:4 http://archive.ubuntu.com trusty-updates/restricted Sources [5247 B]
+Get:5 http://archive.ubuntu.com trusty-updates/universe Sources [207 kB]
+Get:6 http://archive.ubuntu.com trusty-updates/main amd64 Packages [1122 kB]
+Get:7 http://archive.ubuntu.com trusty-updates/restricted amd64 Packages [23.5 kB]
+Get:8 http://archive.ubuntu.com trusty-updates/universe amd64 Packages [483 kB]
+Get:9 http://archive.ubuntu.com trusty-security/main Sources [152 kB]
+Get:10 http://archive.ubuntu.com trusty-security/restricted Sources [3944 B]
+Get:11 http://archive.ubuntu.com trusty-security/universe Sources [49.4 kB]
+Get:12 http://archive.ubuntu.com trusty-security/main amd64 Packages [659 kB]
+Get:13 http://archive.ubuntu.com trusty-security/restricted amd64 Packages [20.2 kB]
+Get:14 http://archive.ubuntu.com trusty-security/universe amd64 Packages [178 kB]
+Hit http://archive.ubuntu.com trusty Release
+Hit http://archive.ubuntu.com trusty/main Sources
+Hit http://archive.ubuntu.com trusty/restricted Sources
+Hit http://archive.ubuntu.com trusty/universe Sources
+Hit http://archive.ubuntu.com trusty/main amd64 Packages
+Hit http://archive.ubuntu.com trusty/restricted amd64 Packages
+Hit http://archive.ubuntu.com trusty/universe amd64 Packages
+Fetched 3508 kB in 1min 4s (54.7 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following extra packages will be installed:
+  fortune-mod fortunes-min librecode0
+Suggested packages:
+  x11-utils bsdmainutils
+The following NEW packages will be installed:
+  fortune-mod fortunes fortunes-min librecode0
+0 upgraded, 4 newly installed, 0 to remove and 87 not upgraded.
+Need to get 1961 kB of archives.
+After this operation, 4817 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu/ trusty/main librecode0 amd64 3.6-21 [771 kB]
+Get:2 http://archive.ubuntu.com/ubuntu/ trusty/universe fortune-mod amd64 1:1.99.1-7 [39.5 kB]
+Get:3 http://archive.ubuntu.com/ubuntu/ trusty/universe fortunes-min all 1:1.99.1-7 [61.8 kB]
+Get:4 http://archive.ubuntu.com/ubuntu/ trusty/universe fortunes all 1:1.99.1-7 [1089 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Teletype
+dpkg-preconfigure: unable to re-open stdin: 
+Fetched 1961 kB in 1min 50s (17.8 kB/s)
+Selecting previously unselected package librecode0:amd64.
+(Reading database ... 13116 files and directories currently installed.)
+Preparing to unpack .../librecode0_3.6-21_amd64.deb ...
+Unpacking librecode0:amd64 (3.6-21) ...
+Selecting previously unselected package fortune-mod.
+Preparing to unpack .../fortune-mod_1%3a1.99.1-7_amd64.deb ...
+Unpacking fortune-mod (1:1.99.1-7) ...
+Selecting previously unselected package fortunes-min.
+Preparing to unpack .../fortunes-min_1%3a1.99.1-7_all.deb ...
+Unpacking fortunes-min (1:1.99.1-7) ...
+Selecting previously unselected package fortunes.
+Preparing to unpack .../fortunes_1%3a1.99.1-7_all.deb ...
+Unpacking fortunes (1:1.99.1-7) ...
+Setting up librecode0:amd64 (3.6-21) ...
+Setting up fortune-mod (1:1.99.1-7) ...
+Setting up fortunes-min (1:1.99.1-7) ...
+Setting up fortunes (1:1.99.1-7) ...
+Processing triggers for libc-bin (2.19-0ubuntu6.6) ...
+ ---> 8e9f2d3a3f6d
+Removing intermediate container a9779612a3c6
+更新apt-get包并安装fortunes，期间需要下载更新包和安装包
+
+Step 3 : CMD /usr/games/fortune -a | cowsay
+ ---> Running in b264dd0b5dce
+ ---> 7c3eda2f21ce
+Removing intermediate container b264dd0b5dce
+Successfully built 7c3eda2f21ce
+最后，docker完成构建并报告结果。
+
+运行：
+docker run docker-whale
+
+给image打tag：
+docker tag 7c3eda2f21ce dockeruserabcd/docker-whale:latest
+
+登录docker hub：
+docker login
+
+上传image到docker hub：
+docker push dockeruserabcd/docker-whale
+
+删除本地镜像：
+docker rmi docker-whale
+或者
+docker rmi 7c3eda2f21ce
+
+停止容器：
+docker stop container_name
+
+删除容器
+docker rm container_name
+删除所有容器：
+docker rm `docker ps -a -q`
+
+从自己的仓库下载镜像并运行：
+docker run dockeruserabcd/docker-whale
+
+hello world 
+运行：
+docker run ubuntu /bin/echo 'Hello world'
+说明： ubuntu 是镜像
+    /bin/echo是容器中的命令
+    'Hello world'是命令的参数
+命令执行完容器就退出运行状态了。
+
+交互式运行容器：
+docker run -t -i ubuntu /bin/bash
+-t 在新容器中指定一个伪终端
+-i 与容器建立一个标准输入（STDIN）的交互式连接
+/bin/bash 在容器中打开一个bash shell
+
+以守护进程的方式运行：
+docker run -d ubuntu /bin/sh -c "while true; do echo hello world; sleep 1; done"
+-d 在后台运行容器（变为守护进程方式）
+该命令输出一个长字符串，就是容器id：
+efe2a63c44def0703f1adcf435453921f6806e3f2dbc342262e46ecdc64ca22f
+使用logs命令查看容器正在做什么：
+docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+efe2a63c44de        ubuntu              "/bin/sh -c 'while tr"   3 minutes ago       Up 3 minutes                            goofy_hoover
+
+docker logs goofy_hoover
+停止容器：
+docker stop goofy_hoover
+
+查看docker版本：
+docker version
+
+查看帮助：
+docker --help
+docker subcmd --help 例如： docker run --help
+
+
+运行一个简单的web应用：
+docker run -d -P training/webapp python app.py
+-d 后台运行
+-P 映射容器中任意必需的端口到主机。
+
+docker ps -l
+-l 显示最后一个创建的容器（不管处于什么状态）
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+8f4d225549e8        training/webapp     "python app.py"     18 seconds ago      Up 18 seconds       0.0.0.0:32768->5000/tcp   prickly_mcnulty
+
+访问：
+curl http://localhost:32768
+Hello World!
+
+上面命令的端口是随机的，也可以指定端口映射：
+docker run -d -p 80:5000 training/webapp python app.py
+-p 80:5000 指定宿主机的80端口映射到容器的5000端口
+
+查看映射端口命令：
+docker port prickly_mcnulty 5000
+0.0.0.0:32768
+
+查看log：
+docker logs -f prickly_mcnulty
+-f 可以查看滚动日志，象tail -f一样
+
+查看容器中的进程：
+docker top prickly_mcnulty
+
+检查容器：
+docker inspect prickly_mcnulty
+[root@centos71 ~]# docker inspect prickly_mcnulty
+[
+    {
+        "Id": "8f4d225549e8ba3d985b72767576b71179a70e4dec9c59093000a9f5bb507f42",
+        "Created": "2016-09-21T07:13:33.25697515Z",
+        "Path": "python",
+        "Args": [
+            "app.py"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 14838,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2016-09-21T07:13:33.970149111Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "Image": "sha256:6fae60ef344644649a39240b94d73b8ba9c67f898ede85cf8e947a887b3e6557",
+        "ResolvConfPath": "/var/lib/docker/containers/8f4d225549e8ba3d985b72767576b71179a70e4dec9c59093000a9f5bb507f42/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/8f4d225549e8ba3d985b72767576b71179a70e4dec9c59093000a9f5bb507f42/hostname",
+        "HostsPath": "/var/lib/docker/containers/8f4d225549e8ba3d985b72767576b71179a70e4dec9c59093000a9f5bb507f42/hosts",
+        "LogPath": "/var/lib/docker/containers/8f4d225549e8ba3d985b72767576b71179a70e4dec9c59093000a9f5bb507f42/8f4d225549e8ba3d985b72767576b71179a70e4dec9c59093000a9f5bb507f42-json.log",
+        "Name": "/prickly_mcnulty",
+        "RestartCount": 0,
+        "Driver": "devicemapper",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {},
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": true,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DiskQuota": 0,
+            "KernelMemory": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": -1,
+            "OomKillDisable": false,
+            "PidsLimit": 0,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0
+        },
+        "GraphDriver": {
+            "Name": "devicemapper",
+            "Data": {
+                "DeviceId": "59",
+                "DeviceName": "docker-253:0-201536278-938952a02a2da718893fbb8d0cd7146c26fb87a593d3ce6549c47b318b50658a",
+                "DeviceSize": "10737418240"
+            }
+        },
+        "Mounts": [],
+        "Config": {
+            "Hostname": "8f4d225549e8",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "5000/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "python",
+                "app.py"
+            ],
+            "Image": "training/webapp",
+            "Volumes": null,
+            "WorkingDir": "/opt/webapp",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "f4d681f47b9c6cdefc1b6d83c42a3660da65e2c6d744e29c6d3ed2d1c68640b2",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {
+                "5000/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "32768"
+                    }
+                ]
+            },
+            "SandboxKey": "/var/run/docker/netns/f4d681f47b9c",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "43e2caabb54d0fd094c22754e8a08296cb851654411290c0c81e98cb9d16497b",
+            "Gateway": "172.17.0.1",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "172.17.0.2",
+            "IPPrefixLen": 16,
+            "IPv6Gateway": "",
+            "MacAddress": "02:42:ac:11:00:02",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "f40c711296b2bcc22d159eb950027de6b8fb1710f830e3f37582e8cb1aa850e9",
+                    "EndpointID": "43e2caabb54d0fd094c22754e8a08296cb851654411290c0c81e98cb9d16497b",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:11:00:02"
+                }
+            }
+        }
+    }
+]
+
+检查具体元素：
+返回容器的ip地址：
+docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' prickly_mcnulty
+返回容器的pid
+docker inspect -f '{{.State.Pid}}' prickly_mcnulty
+
+停止容器：
+docker stop prickly_mcnulty
+
+启动容器：
+docker start prickly_mcnulty
+
+删除容器：
+docker stop prickly_mcnulty
+docker rm prickly_mcnulty
+docker rm $(docker ps -a -q) #删除所有容器
+
+在docker hub上搜索images
+docker search centos
+
+
+创建自己的images：
+两种方法：
+1、更新一个从镜像创建的容器，然后将结果提交为镜像
+2、用Dockerfile指定指令来创建镜像
+
+更新与提交镜像：
+更新：
+docker run -t -i training/sinatra /bin/bash
+在运行的容器中更新ruby
+root@8ba495581484:/# apt-get update
+root@8ba495581484:/# apt-get upgrade -y ruby
+[docker@centos71 ~]$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                     PORTS               NAMES
+8ba495581484        training/sinatra    "/bin/bash"         About an hour ago   Exited (1) 6 seconds ago                       stupefied_davinci
+提交：
+docker commit -m "Added json gem" -a "yin sl" 8ba495581484 dockeruserabcd/sinatra:v2
+[docker@centos71 ~]$ docker commit -m "Added json gem" -a "yin sl" 8ba495581484 dockeruserabcd/sinatra:v2
+sha256:c570eaaa0907a4863815f89a7cb94d5445e0638fbd81fe2aef5d349caead9f49
+[docker@centos71 ~]$ docker images | grep sinatra
+dockeruserabcd/sinatra        v2                  c570eaaa0907        23 seconds ago      937.1 MB
+training/sinatra              latest              49d952a36c58        2 years ago         447 MB
+
+用Dockerfile创建镜像：
+FROM ubuntu:14.04
+MAINTAINER yin sl <2225646595@qq.com>
+RUN apt-get update && apt-get install -y ruby ruby-dev
+RUN gem install sinatra
+
+
+命名容器：
+docker run -d -P --name web training/webapp python app.py
+--name 命名一个容器，如果不指定，则自动命名
+容器名称有两个功能：
+A、容易记忆
+B、提供一个引用点，允许其它容器引用。
+
+网络容器（network container）：
+docker使用网络驱动来支持网络容器。默认情况下，docker提供两种网路驱动：bridge、overlay。你也可以写自己的网络驱动插件，这样就可以创建自己的驱动程序，这是个高级任务。
+每个安装好的docker engine自动包含三个网络，可以列出它们：
+docker network ls
+[docker@centos71 mydockerbuild]$ docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+f40c711296b2        bridge              bridge              local               
+7d6275425200        host                host                local               
+a86b18641d07        none                null                local 
+
+bridge是一个特殊的网络。除非你特别指出，否则，docker就在这个网络上发布你的容器。例如：
+docker run -itd --name=networktest ubuntu
+docker network inspect bridge
+[docker@centos71 mydockerbuild]$ docker run -itd --name=networktest ubuntu
+3cbe239a8ecfe06a1332a974561c93689b10c900396791181f149b5ad8dfc07c
+[docker@centos71 mydockerbuild]$ docker network inspect bridge
+[
+    {
+        "Name": "bridge",
+        "Id": "f40c711296b2bcc22d159eb950027de6b8fb1710f830e3f37582e8cb1aa850e9",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.17.0.0/16"
+                }
+            ]
+        },
+        "Internal": false,
+        "Containers": {
+            "3cbe239a8ecfe06a1332a974561c93689b10c900396791181f149b5ad8dfc07c": {
+                "Name": "networktest",
+                "EndpointID": "0d8ee18b282cf00987efc6225fe84cddb7a3995ee9f2b6a2e27f006c47239522",
+                "MacAddress": "02:42:ac:11:00:02",
+                "IPv4Address": "172.17.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "true",
+            "com.docker.network.bridge.enable_icc": "true",
+            "com.docker.network.bridge.enable_ip_masquerade": "true",
+            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+            "com.docker.network.bridge.name": "docker0",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {}
+    }
+]
+
+你可以从一个网络上删除一个容器，通过断开容器连接的方法。这需要你同时提供网络名称和容器名称（容器id也可以）。
+docker network disconnect bridge networktest
+[docker@centos71 mydockerbuild]$ docker network disconnect bridge networktest
+[docker@centos71 mydockerbuild]$ docker network inspect bridge
+[
+    {
+        "Name": "bridge",
+        "Id": "f40c711296b2bcc22d159eb950027de6b8fb1710f830e3f37582e8cb1aa850e9",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.17.0.0/16"
+                }
+            ]
+        },
+        "Internal": false,
+        "Containers": {},
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "true",
+            "com.docker.network.bridge.enable_icc": "true",
+            "com.docker.network.bridge.enable_ip_masquerade": "true",
+            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+            "com.docker.network.bridge.name": "docker0",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {}
+    }
+]
+
+网络是隔离其它容器或其它网络的容器的自然的方法。
+
+
+docker引擎本身支持bridge网络和overlay网络。bridge网络局限于单个主机运行docker引擎。overlay网络可以包含多个主机，是一个更高级的主题。
+创建自己的bridge网络：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

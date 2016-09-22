@@ -1,0 +1,101 @@
+IoService:
+所有IoAcceptor和IoConnector的基础接口，提供I/O服务并管理IoSession。
+
+IoAcceptor：
+接受进入的链接，与客户端通信，触发事件到IoHandler。你应该绑定所需的套接字地址来接收传入的连接，然后将传入连接的事件发送到指定的默认IoHandler。
+当bind方法调用后，绑定传入连接的线程就自动开始，unbind方法调用后停止。
+
+IoConnector：
+连接到终端，与服务器通信，并触发事件到IoHandler。你应该连接到所需的套接字开始通信，并将传入连接的事件发送到指定的默认IoHandler。
+当connect(SocketAddress)方法调用后，连接到终端的线程自动开始，所有的连接尝试都结束后停止。
+
+IoProcessor：
+一个内部接口，代表了一个“I/O processor”执行IoSession的实际的I/O操作。它再一次的抽象了既存的reactor framework例如java nio，简化了传输实现。
+
+IoHandler：
+处理所有的由mina出发的I/O事件。
+
+-----------------------IoFilter start----------------------
+IoFilter:
+象servlet filter一样拦截IoHandler事件。它主要用于以下目的：
+记录事件日志
+性能测量
+授权
+过载控制
+消息转换（如加密解密等）
+以及其他更多目的。。。
+-----------------------IoFilter end------------------------
+
+-----------------------session start----------------------
+Session：
+mina的心脏。每次一个客户端连接来到server。一个新的session就被创建，并保存在内存中知道客户端断开连接。
+session用于保存这个连接的持久化信息，以及在请求处理过程中，服务器可能需要使用的任何类型的信息，并最终在整个会话过程中使用。
+
+配置session：
+可以设置许多不同的参数，例如：
+receive buffer size
+sending buffer size
+Idle time
+Write timeOut
+
+管理用户定义的属性：
+session's container：在session创建的时候自动创建，session结束的时候自动释放。它是一个key/value容器。
+
+过滤器链：
+每个session都被分配了一个过滤器链，当一个传入的请求或一个传出的消息被接收或发出时，将被处理。这些过滤器链可以针对不同的session个别指定。即使大多数情况下，我们将使用非常相同的过滤器链的所有现有的会话。
+
+统计：
+每个session都保存了跟踪记录，来记录session做了些什么：
+number of bytes received/sent
+number of messages received/sent
+Idle status
+throughput
+
+handler：
+session被附加到handler上，负责调度消息到您的应用程序，这个handler也将使用会话发送包的响应，通过简单的调用write()方法
+
+session id: 此会话的唯一标志。每个会话都有它自己的不同于其他会话的id。
+IoSession: 表示两个终端之间的连接的句柄，不管它们之间的传输类型。
+AbstractIoSession: IoSession的一个基本实现
+通过 AtomicLong idGenerator = new AtomicLong(0);
+sessionId = idGenerator.incrementAndGet();
+来生成一个保证唯一的session id。
+-----------------------session end----------------------
+
+大体上，mina应用分为三层：
+I/O service：执行实际的I/O
+I/O filter chain：过滤/转换字节到所需的数据结构，反之亦然。
+I/O handler：处理实际的业务逻辑
+因此，为了建立一个基本的mina应用，必须：
+1、建立一个I/O service。从已存在的service(*Acceptor)中选择或建立自己的
+例如：IoAcceptor acceptor = new NioSocketAcceptor();
+NioSocketAcceptor的accept方法会创建该连接的session。
+
+2、建立一个filter chain。选择已经存在的filters或建立定制的filter来转化请求/响应
+3、建立一个I/O hander。写业务逻辑，或处理不同的消息。
+4、绑定端口，接收请求。
+
+服务端架构：
+I/O Acceptor
+    |
+    |
+   \|/
+    V
+I/O Filter # 1
+    |
+    |
+   \|/
+    V
+I/O Filter # 2
+    |
+    |
+   \|/
+    V
+I/O Filter # 3
+    |
+    |
+   \|/
+    V
+I/O Handler
+
+客户端架构：

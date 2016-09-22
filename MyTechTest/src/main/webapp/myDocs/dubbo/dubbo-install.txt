@@ -1,0 +1,51 @@
+1、下载：
+https://github.com/alibaba/dubbo.git
+https://github.com/alibaba/opensesame.git
+http://code.taobao.org/svn/qf-dubbox/
+
+2、安装opensesame
+mvn clean install -DskipTests=true
+
+3、从http://code.taobao.org/svn/qf-dubbox/中checkout项目：hessian-lite
+修改pom文件，将parent的版本从2.8.4修改为2.5.3
+然后安装：
+mvn clean install -DskipTests
+
+4、dubbo-parent.xml文件中fastjson的版本为1.1.8，maven仓库中的最低版本为：1.1.15
+因此修改为1.1.15
+
+5、安裝dubbo
+mvn clean install -DskipTests
+
+6、运行在jdk8上的dubbo-admin配置（pom）：
+webx依赖的版本修改为：3.1.6
+<dependency>
+        <groupId>com.alibaba.citrus</groupId>
+        <artifactId>citrus-webx-all</artifactId>
+        <version>3.1.6</version>
+    </dependency>
+添加依赖：
+<dependency>
+        <groupId>org.apache.velocity</groupId>
+        <artifactId>velocity</artifactId>
+        <version>1.7</version>
+    </dependency>
+dubbo的依赖排除spring：
+<dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>dubbo</artifactId>
+        <version>${project.parent.version}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+注释掉针对spring的依赖：
+<!-- <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring</artifactId>
+        </dependency> -->
+经过以上修改后，重新打包，dubbo-admin就可以运行在jdk8上了
+

@@ -1,4 +1,4 @@
-docker hub account：dockuserabcd/qqmail/abcd_1234
+docker hub account：dockeruserabcd/qqmail/abcd_1234
 
 镜像导入导出：
 导出：
@@ -13,11 +13,13 @@ gcr.io/google_containers/kubernetes-dashboard-amd64   v1.0.1              f33198
 Dock Image（dock镜像）：
 就是一个只读模板。镜像可以用来创建容器。Docker 提供了一个很简单的机制来创建镜像或者更新现有的镜像，用户甚至可以直接从其他人那里下载一个已经做好的镜像来直接使用。
 
-Docker Container（docker容器）：docker利用容器来运行应用。容器是从镜像创建的运行实例。它可以被启动、开始、停止、删除。每个容器都是隔离的保证安全的平台。
+Docker Container（docker容器）：
+docker利用容器来运行应用。容器是从镜像创建的运行实例。它可以被启动、开始、停止、删除。每个容器都是隔离的保证安全的平台。
               可以把容器看做是一个简易版的 Linux 环境（包括root用户权限、进程空间、用户空间和网络空间等）和运行在其中的应用程序。
 *注：镜像是只读的，容器在启动的时候创建一层可写层作为最上层。
 
-Docker Repository（docker仓库）：仓库是集中存放镜像文件的场所。有时候会把仓库和仓库注册服务器（Registry）混为一谈，并不严格区分。实际上，
+Docker Repository（docker仓库）：
+仓库是集中存放镜像文件的场所。有时候会把仓库和仓库注册服务器（Registry）混为一谈，并不严格区分。实际上，
 仓库注册服务器上往往存放着多个仓库，每个仓库中又包含了多个镜像，每个镜像有不同的标签（tag）。
 仓库分为公开仓库（Public）和私有仓库（Private）两种形式。
 最大的公开仓库是 Docker Hub，存放了数量庞大的镜像供用户下载。 国内的公开仓库包括 Docker Pool等，可以提供大陆用户更稳定快速的访问。
@@ -78,7 +80,7 @@ ENTRYPOINT /root/startup.sh
 
 
 
-创建的命令为：
+创建镜像的命令：
 docker build [OPTIONS] path #path为包含Dockerfile的路径（包含子路径）
 该命令将读取指定路径下（包括子目录）的 Dockerfile，并将
 该路径下所有内容发送给 Docker 服务端，由服务端来创建镜像。因此一般建议放置 Dockerfile 的目录为空目录。
@@ -95,6 +97,7 @@ Dockerfile 由一行行命令语句组成，并且支持以 # 开头的注释行
 FROM
 格式为 FROM <image> 或 FROM <image>:<tag> 。
 第一条指令必须为 FROM 指令。并且，如果在同一个Dockerfile中创建多个镜像时，可以使用多个FROM指令（每个镜像一次）。
+该指令告诉docker，你的镜像是以哪个镜像为基础创建的。
 MAINTAINER
 格式为MAINTAINER <name>，指定维护者信息。
 RUN

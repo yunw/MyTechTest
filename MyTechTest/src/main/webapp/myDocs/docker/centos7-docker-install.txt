@@ -1,0 +1,47 @@
+1、更新系统
+yum update -y
+
+2、添加repo
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+3、安装引擎
+yum install -y docker-engine
+
+4、开机启动
+systemctl enable docker
+
+5、启动服务
+systemctl start docker
+
+6、测试安装是否成功
+docker run hello-world
+
+7、添加用户和用户组
+useradd docker -g docker
+#groupadd docker
+
+#usermod -aG docker docker
+
+8、卸载
+[root@centos71 ~]# yum list installed | grep docker
+Repository base is listed more than once in the configuration
+Repository updates is listed more than once in the configuration
+Repository extras is listed more than once in the configuration
+Repository centosplus is listed more than once in the configuration
+docker-engine.x86_64                 1.12.1-1.el7.centos             @dockerrepo
+docker-engine-selinux.noarch         1.12.1-1.el7.centos             @dockerrepo
+
+删除包：
+yum -y remove docker-engine.x86_64
+该命令不会删除images, containers, volumes, or user-created configuration files on your host
+rm -rf /var/lib/docker  #delete all images, containers, and volumes
+最后手动删除用户创建的配置文件。
+
+

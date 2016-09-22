@@ -1,0 +1,21 @@
+1、dubbo loadbalance
+客户端配置：
+<dubbo:reference interface="..." loadbalance="roundrobin"/>
+或
+<dubbo:reference interface="...">
+    <dubbo:methodname="..." loadbalance="roundrobin"/>
+</dubbo:reference>
+
+服务端配置：
+<dubbo:service interface="..." loadbalance="roundrobin"/>
+或
+<dubbo:service interface="...">
+    <dubbo:methodname="..." loadbalance="roundrobin"/>
+</dubbo:service>
+
+客户端：
+com.alibaba.dubbo.rpc.cluster.support.AbstractClusterInvoker获取loadbalance策略。
+
+com.alibaba.dubbo.rpc.cluster.support.FailoverClusterInvoker
+
+dubbo的客户端请求最终通过netty发送出去。

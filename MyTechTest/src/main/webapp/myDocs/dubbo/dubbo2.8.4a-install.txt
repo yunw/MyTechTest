@@ -1,0 +1,6 @@
+1、下载：
+https://github.com/yjmyzz/dubbox.git
+
+将cxf的版本升级为2.7.18
+
+

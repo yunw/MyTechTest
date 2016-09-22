@@ -80,9 +80,10 @@ Field h = point.getTarget().getClass().getSuperclass().getDeclaredField("h");
    
 metrics:
 telnet 10.0.21.68 8126
-counters   
+counters
 timers
-   
+
+systemctl restart statsd
 
 sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了
         
@@ -91,6 +92,11 @@ zk缺陷
 kafka 消费者
 jvm8默认gc
 
+tomcat load time weaver:
+1、/usr/local/apache-tomcat-8.0.36/bin/catalina.sh中添加：
+CATALINA_OPTS="$CATALINA_OPTS -javaagent:/root/.m2/repository/org/springframework/spring-instrument/4.2.7.RELEASE/spring-instrument-4.2.7.RELEASE.jar -javaagent:/root/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar"
+CATALINA_OPTS="$CATALINA_OPTS -javaagent:C:/Users/yinshunlin/.m2/repository/org/springframework/spring-instrument/4.2.7.RELEASE/spring-instrument-4.2.7.RELEASE.jar -javaagent:C:/Users/yinshunlin/.m2/repository/org/aspectj/aspectjweaver/1.8.9/aspectjweaver-1.8.9.jar"
+2、
 
 日报、周报
 

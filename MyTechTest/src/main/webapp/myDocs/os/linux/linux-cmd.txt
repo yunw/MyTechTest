@@ -40,6 +40,13 @@ mount /dev/sda1  /boot_old
 删除/etc/fstab表中含有 /boot项
 该方法是取消将/boot挂在到sda1上，而是直接使用/boot目录，但是需要将原来在/dev/sda1上的文件拷贝到/boot下。 
 
+添加用户：
+adduser username #没有添加-g参数，根据系统设置的不同，该命令有不同的行为：/etc/login.defs文件中的USERGROUPS_ENAB变量如果设置为yes，创建新用户的时候也会创建一个与它的登录名相同的组。
+                 #如果设置为no，将根据/etc/default/useradd文件中GROUP变量的值设置该用户的主组。
+添加组：
+groupadd groupname
+修改用户组：
+
 查看用户列表：
 cat /etc/passwd
 查看用户组：
