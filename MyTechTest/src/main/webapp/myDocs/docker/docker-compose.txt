@@ -1,0 +1,261 @@
+install compose:
+在root用户权限下：
+curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+
+getging started：
+创建一个简单的python web application运行在docker compose上。这个应用使用flask框架，让一个redis中的值增加。
+
+第一步：设置
+1、创建项目目录：
+mkdir composetest
+cd composetest
+
+2、创建app.py文件在项目目录下：
+from flask import Flask
+from redis import Redis
+
+app = Flask(__name__)
+redis = Redis(host='redis', port=6379)
+
+@app.route('/')
+def hello():
+    redis.incr('hits')
+    return 'Hello World! I have been seen %s times.' % redis.get('hits')
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)
+
+3、在项目目录下创建文件requirements.txt：
+flask
+redis
+这个文件定义了应用的依赖。
+
+第二步：创建一个docker镜像：
+这一步创建一个新的docker镜像。这个镜像包含了这个python应用需要的所有依赖，包括python本身。
+1、创建Dockerfile：
+FROM python:2.7
+ADD . /code
+WORKDIR /code
+RUN pip install -r requirements.txt
+CMD python app.py
+说明：
+创建一个镜像从python2.7镜像开始
+将当前路径.加入到镜像的/code中
+将工作目录设置为/code
+安装python依赖
+将容器的默认命令设置为：python app.py
+
+2、创建镜像：
+docker build -t web .
+
+第三步：定义服务：
+用docker-compose.yml文件定义一套服务：
+1、创建文件docker-compose.yml：
+version: '2'
+services:
+  web:
+    build: .
+    ports:
+     - "5000:5000"
+    volumes:
+     - .:/code
+    depends_on:
+     - redis
+  redis:
+    image: redis
+这个compose文件定义了两个服务：web和redis。
+web服务：
+从当前目录下的Dockerfile构建
+暴露容器的5000端口映射到主机的5000端口
+挂载主机的项目目录到容器的/code目录，这允许你修改代码而不用重新构建镜像
+链接web服务到redis服务
+
+redis服务：
+使用从docker hub registry上拉取的最新版的redis。
+
+第四步：使用compose构建并运行程序
+1、从项目目录，启动你的应用：
+docker-compose up
+compose拉取一个redis镜像，为你的code构建一个镜像，并启动你定义的服务：
+curl http://localhost:5000
+可以看到应用已经在运行。
+[root@centos71 ~]# curl http://localhost:5000
+Hello World! I have been seen 1 times.
+[root@centos71 ~]# curl http://localhost:5000
+Hello World! I have been seen 2 times.
+每调用一次，数字增加一个。
+
+第五步：更多命令：
+docker-compose up -d #进入后台模式
+docker-compose ps #查看正在运行的compose
+[docker@centos71 composetest]$ docker-compose ps
+       Name                      Command               State           Ports          
+-------------------------------------------------------------------------------------
+composetest_redis_1   docker-entrypoint.sh redis ...   Up      6379/tcp               
+composetest_web_1     /bin/sh -c python app.py         Up      0.0.0.0:5000->5000/tcp
+
+docker-compose stop #停止正在运行的compose
+docker-compose --help #显示帮助
+docker-compose run web env #允许你对你的服务运行一次性命令。该命令显示web服务的环境变量
+
+
+
+
+docker compose and Django：
+快速演示怎样用docker compose设置并运行一个简单的Django/PostgreSQL app。
+
+第一步：定义项目组件：
+1、创建一个空的项目目录：
+这个目录是你的应用镜像的上下文环境。这个目录将仅仅包含构建镜像的资源
+mkdir djangotest
+cd djangotest
+2、在项目目录下创建Dockerfile
+vi Dockerfile
+FROM python:2.7
+ENV PYTHONUNBUFFERED 1
+RUN mkdir /code
+WORKDIR /code
+ADD requirements.txt /code/
+RUN pip install -r requirements.txt
+ADD . /code/
+3、创建requirements.txt
+Django
+psycopg2
+4、创建docker-compose.yml：
+version: '2'
+services:
+  db:
+    image: postgres
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+第二步：创建Django项目：
+docker-compose run web django-admin.py startproject composeexample .
+这个指令表明，compose在容器中运行django-admin.py startproject composeexample，使用webservice的镜像和配置。因为web镜像不存在，compose从当前路径构建它。
+一旦web服务镜像构建完毕，compose运行它并在容器中执行django-admin.py startproject命令。这个命令指示Django创建一套代表一个Django项目的文件和目录。
+docker-compose命令执行完成之后，在项目目录下执行如下命令列出项目的内容：
+[docker@centos71 djangotest]$ ll
+total 16
+drwxr-xr-x. 2 root   root    70 Sep 22 18:51 composeexample
+-rw-rw-r--. 1 docker docker 209 Sep 22 18:42 docker-compose.yml
+-rw-rw-r--. 1 docker docker 146 Sep 22 18:41 Dockerfile
+-rwxr-xr-x. 1 root   root   812 Sep 22 18:51 manage.py
+-rw-rw-r--. 1 docker docker  16 Sep 22 18:41 requirements.txt
+在linux下运行docker，django-admin创建的文件属于root，这是因为容器是以root用户运行的。可以改变文件的所属关系：
+sudo chown -R $USER:$USER . #如果没有权限，可以在root用户下，执行 chown -R docker:docker .
+第三步：连接数据库：
+在项目目录，编辑composeexample/settings.py文件：
+用下面的文字覆盖DATABASES = ...
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
+    }
+}
+
+这些设置是由docker-compose.yml文件指定的postgres镜像决定的。
+运行docker-compose up命令
+最后在浏览器输入：http://local:8000就可以访问了
+
+
+
+docker compose and rails：
+快速演示怎样使用docker compose设置并运行Rails/PostgreSQL app
+
+第一步：定义项目：
+mkdir railstest
+cd railstest
+vi Dockerfile
+FROM ruby:2.2.0
+RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
+RUN mkdir /myapp
+WORKDIR /myapp
+ADD Gemfile /myapp/Gemfile
+ADD Gemfile.lock /myapp/Gemfile.lock
+RUN bundle install
+ADD . /myapp
+
+vi Gemfile   # 创建一个Gemfile用来加载rails，它瞬间就会被rails new .覆盖。
+source 'https://rubygems.org'
+gem 'rails', '4.2.0'
+
+touch Gemfile.lock # 空文件，目的是构建Dockerfile
+
+vi docker-compose.yml
+version: '2'
+services:
+  db:
+    image: postgres
+  web:
+    build: .
+    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+docker-compose run web rails new . --force --database=postgresql --skip-bundle
+首先用Dockerfile构建web服务的image。然后用这个image在新容器中运行rails new。一旦执行完毕，你就有了一个新鲜的app：
+可以用ls -l命令查看：
+新的文件的所有人为root，请修改权限：
+chown -R docker:docker .
+
+去掉Gemfile中therubyracer前面的注释。这样你就有了一个js runtime：
+gem 'therubyracer', platforms: :ruby
+这样就有了一个新的Gemfile，你需要重新构建image，这将改变Dockerfile本身，这是你唯一的一次需要重构。
+docker-compose build
+
+覆盖config/database.yml用下面的内容：
+development: &default
+  adapter: postgresql
+  encoding: unicode
+  database: postgres
+  pool: 5
+  username: postgres
+  password:
+  host: db
+
+test:
+  <<: *default
+  database: myapp_test
+
+然后启动应用：
+docker-compose up
+
+最后你需要创建一个数据库，在另一个终端上：
+docker-compose run web rake db:create
+
+这样，你的app现在运行在3000端口上，在你的docker daemon上。
+
+注：如果你停止这个app并重新运行它，可能会出现错误：web_1 | A server is already running. Check /myapp/tmp/pids/server.pid.
+可以先删除tmp/pids/server.pid.，然后再运行：docker-compose up
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

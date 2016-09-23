@@ -17,6 +17,10 @@ sudo apt-get install virtualbox-5.0
 执行：yum install -y etcd kubernetes
 报错：Cannot find a valid baseurl for repo: base/7/x86_64
 解决：
+vi /etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 114.114.114.114
+
 【root@localhost ~]#ip addr
 查找网络配置文件的名字为：
 enp0s3
@@ -30,9 +34,44 @@ ONBOOT=no
 
 固定ip地址：
 将：BOOTPROTO=DHCP 改为：staitc
-添加：IPADDR=xxx.xxx.xxx.xxx
-      NETMASK=xxx.xxx.xxx.xxx
-      GATEWAY=xxx.xxx.xxx.xxx
-      DNS1=xxx.xxx.xxx.xxx
+添加：IPADDR=192.168.56.74
+    NETMASK=255.255.255.0
       
 虚拟机装双网卡：
+网卡1：网络地址转换（NAT）：虚拟机可以访问主机和互联网，做了端口映射之后，主机可以访问虚拟机上的服务
+网卡2：主机模式（host-only）：主机中模拟出一张专供虚拟机使用的网卡，所有虚拟机都是连接到该网卡上。虚拟机和主机不能互访。虚拟机可以互访，因为在同一网段。
+通过两张网卡的配置，虚拟机可以互访也可以访问宿主机
+设置好后再安装虚拟机，这样虚拟机就有双网卡了，具体如下：
+[root@centos71 network-scripts]# cat ifcfg-enp0s3
+TYPE=Ethernet
+#BOOTPROTO=dhcp
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=enp0s3
+UUID=b3465416-2e80-4834-aa6d-2d0e87942de8
+DEVICE=enp0s3
+ONBOOT=yes
+IPADDR=10.0.2.71
+NETMASK=255.255.255.0
+GATEWAY=10.0.2.2
+[root@centos71 network-scripts]# cat ifcfg-enp0s8
+TYPE=Ethernet
+#BOOTPROTO=dhcp
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+NAME=enp0s8
+DEVICE=enp0s8
+ONBOOT=yes
+IPADDR=192.168.56.71
+NETMASK=255.255.255.0

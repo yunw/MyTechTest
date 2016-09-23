@@ -1,0 +1,123 @@
+一、安装docker engine
+1、更新系统
+yum update -y
+
+#安装防火墙
+yum install -y firewalld
+systemctl start firewalld
+
+2、添加repos：
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+3、安装docker engine
+yum install -y docker-engine
+
+4、启动docker engine
+systemctl start docker
+systemctl enable docker
+
+5、测试：
+docker run hello-world
+
+6、创建docker用户并赋root权限
+useradd docker -g docker
+chmod +w /etc/sudoers
+vi /etc/sudoers
+## Allow root to run any commands anywhere
+root    ALL=(ALL)       ALL
+docker  ALL=(ALL)       ALL    #添加这一行
+
+chmod -w /etc/sudoers
+
+
+二、卸载docker engine
+[root@centos71 ~]# yum list installed | grep docker
+Repository base is listed more than once in the configuration
+Repository updates is listed more than once in the configuration
+Repository extras is listed more than once in the configuration
+Repository centosplus is listed more than once in the configuration
+docker-engine.x86_64                 1.12.1-1.el7.centos             @dockerrepo
+docker-engine-selinux.noarch         1.12.1-1.el7.centos             @dockerrepo
+
+删除包：
+yum -y remove docker-engine.x86_64
+该命令不会删除images, containers, volumes, or user-created configuration files on your host
+rm -rf /var/lib/docker  #delete all images, containers, and volumes
+最后手动删除用户创建的配置文件。
+
+三、swarm mode:
+A、设置
+1、准备三台主机
+192.168.56.74 manager1
+192.168.56.75 worker1
+192.168.56.76 worker2
+
+2、全部都安装docker engine，版本>=1.12
+
+3、管理节点的ip必须是固定ip，应为swarm中的所有节点都需要和管理节点通信
+
+4、开放端口：
+tcp 2377：用于集群管理通信
+tcp udp 7946：节点间通信
+tcp udp 4789：overlay network通信
+firewall-cmd --zone=public --add-port=2377/tcp --permanent
+firewall-cmd --zone=public --add-port=4789/tcp --permanent
+firewall-cmd --zone=public --add-port=4789/udp --permanent
+firewall-cmd --zone=public --add-port=7946/tcp --permanent
+firewall-cmd --zone=public --add-port=7946/udp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=2377/tcp
+firewall-cmd --permanent --query-port=4789/tcp
+firewall-cmd --permanent --query-port=4789/udp
+firewall-cmd --permanent --query-port=7946/tcp
+firewall-cmd --permanent --query-port=7946/udp
+firewall-cmd --list-all
+
+B、创建swarm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

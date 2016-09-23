@@ -17,3 +17,6 @@ yes
 firewall-cmd --zone=public --add-port=8080/tcp --permanent
 firewall-cmd --reload
 firewall-cmd --permanent --query-port=8080/tcp
+
+e、查看防火墙开放了哪些端口：    
+firewall-cmd --list-all

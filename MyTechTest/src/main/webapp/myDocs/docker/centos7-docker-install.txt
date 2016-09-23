@@ -28,6 +28,11 @@ useradd docker -g docker
 #groupadd docker
 
 #usermod -aG docker docker
+#docker用户密码：docker
+添加root权限：
+vi /etc/sudoers
+root    ALL=(ALL)     ALL
+docker   ALL=(ALL)     ALL #新添加该行
 
 8、卸载
 [root@centos71 ~]# yum list installed | grep docker
