@@ -1,0 +1,23 @@
+db中间件：
+Sharding-JDBC： 透明化数据库分库分表访问
+https://github.com/dangdangdotcom/sharding-jdbc
+ 
+mycat： 数据库分库分表中间件
+https://github.com/MyCATApache/Mycat-download/tree/master/1.6-RELEASE
+ 
+KingShard：在满足基本的读写分离的功能上，致力于简化MySQL分库分表操作；能够让DBA通过kingshard轻松平滑地实现MySQL数据库扩容
+https://github.com/flike/kingshard kingshard
+
+监控：
+cat： 实时应用监控平台，包括实时应用监控，业务监控
+https://github.com/dianping/cat
+
+pinpoint：
+https://github.com/naver/pinpoint
+
+zipkin：
+https://github.com/openzipkin/zipkin
+管理：
+camel： 软负载一体解决方案
+https://github.com/dianping/camel
+http://leonindy.coding.me/camel_in_action/posts/ch2-install/camel-admin.html

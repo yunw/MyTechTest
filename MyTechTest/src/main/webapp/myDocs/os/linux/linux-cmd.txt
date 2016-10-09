@@ -1,3 +1,9 @@
+bz2格式解压：
+tar   -jxvf    xx.tar.bz2
+
+xz格式解压：
+解压tar.xz文件：先 xz -d xxx.tar.xz 将 xxx.tar.xz解压成 xxx.tar 然后，再用 tar xvf xxx.tar来解包。
+
 zip:
 zip -r filename.xxx ./* #将当前目录下的所有文件和文件夹全部压缩成filename.xxx文件,-r表示递归压缩子目录下所有文件
 

@@ -134,3 +134,18 @@ mvn tomcat:redeploy
 
 从失败地方开始：
 mvn <命令> -rf :<projectName>
+
+修改maven默认的jdk版本：
+在settings文件中添加：
+<profile>
+    <id>jdk-1.7</id>
+    <activation>
+        <activeByDefault>true</activeByDefault>
+        <jdk>1.7</jdk>
+    </activation>
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.7</maven.compiler.compilerVersion>
+    </properties>
+</profile> 

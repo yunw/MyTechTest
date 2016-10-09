@@ -35,6 +35,13 @@ import com.google.gson.Gson;
 public class Test {
 
 	public static void main(String args[]) {
+	    List<Test> list = new ArrayList<Test>(100);
+	    long start = System.currentTimeMillis();
+	    for (int i = 0; i < 100; i++) {
+	        list.add(new Test());
+	    }
+	    long end = System.currentTimeMillis();
+	    System.out.println("time: " + (end - start) + list.size());
 		for (int i = 0; i < 20; i++) {
 			System.out.println(UUID.randomUUID().toString());
 		}

@@ -1,0 +1,7 @@
+pip安装：
+下载：
+wget https://bootstrap.pypa.io/get-pip.py
+运行：
+python get-pip.py
+升级：
+pip install -U pip

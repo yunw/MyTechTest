@@ -1,0 +1,74 @@
+安装：
+Graphite-web: git clone https://github.com/graphite-project/graphite-web.git
+Carbon: git clone https://github.com/graphite-project/carbon.git
+Whisper: git clone https://github.com/graphite-project/whisper.git
+Ceres: git clone https://github.com/graphite-project/ceres.git
+
+cd whisper
+python setup.py install
+cd ceres
+python setup.py install
+
+#安装在默认路径/opt/graphite下
+cd carbon
+python setup.py install
+cd graphite-web
+python setup.py install
+
+#安装在指定目录：/srv/graphite下:
+A）一切都在/srv/graphite下：
+cd carbon
+python setup.py install --prefix=/srv/graphite --install-lib=/srv/graphite/lib
+cd graphite-web
+python setup.py install --prefix=/srv/graphite --install-lib=/srv/graphite/webapp
+
+B）安装在系统范围：
+cd carbon
+python setup.py install --install-scripts=/usr/bin --install-lib=/usr/lib/python2.7/site-packages --install-data=/var/lib/graphite
+cd graphite-web
+python setup.py install --install-scripts=/usr/bin --install-lib=/usr/lib/python2.7/site-packages --install-data=/var/lib/graphite
+
+运行：
+1、修改配置文件：
+cd /opt/graphite/conf #该目录下有一系列示例配置文件
+cp aggregation-rules.conf.example aggregation-rules.conf
+cp blacklist.conf.example blacklist.conf
+cp carbon.amqp.conf.example carbon.amqp.conf
+cp carbon.conf.example carbon.conf
+cp dashboard.conf.example dashboard.conf
+cp graphite.wsgi.example graphite.wsgi
+cp graphTemplates.conf.example graphTemplates.conf
+cp relay-rules.conf.example relay-rules.conf
+cp rewrite-rules.conf.example rewrite-rules.conf
+cp storage-aggregation.conf.example storage-aggregation.conf
+cp storage-schemas.conf.example storage-schemas.conf
+cp whitelist.conf.example whitelist.conf
+
+2、启动carbon-cache进程：
+cd /opt/graphite/bin
+./carbon-cache.py start   #如果报错：ImportError: No module named twisted.python.util
+                          #则安装twisted： pip install twisted
+                          #然后重新执行
+3、发布指标项（metric）
+使用nc命令发布指标项
+yum install -y nc
+echo "carbon.agents.graphite-tutorial.metricsReceived 28198 `date +%s`" | nc localhost 2003
+echo "carbon.agents.graphite-tutorial.creates 8 `date +%s`" | nc localhost 2003
+echo "PRODUCTION.host.graphite-tutorial.responseTime.p95 0.10 `date +%s`" | nc localhost 2003
+
+4、可以用 whisper-info 脚本获取为这些指标项创建的Whisper文件的元数据信息：
+whisper-info.py /opt/graphite/storage/whisper/PRODUCTION/host/graphite-tutorial/responseTime/p95.wsp
+
+5、whisper-dump 是一个更完整的脚本，可以输出所有存储保留周期内的原始数据以及Whisper文件的元数据信息：
+whisper-dump.py /opt/graphite/storage/whisper/PRODUCTION/host/graphite-tutorial/responseTime/p95.wsp
+
+6、数据库初始化
+cd /opt/graphite
+export PYTHONPATH=$PYTHONPATH:`pwd`/webapp
+django-admin.py syncdb --settings=graphite.settings
+
+7、运行graphite-web
+cd /opt/graphite
+PYTHONPATH=`pwd`/storage/whisper ./bin/run-graphite-devel-server.py --port=8085 --libs=`pwd`/webapp /opt/graphite 1>/opt/graphite/storage/log/webapp/process.log 2>&1 &
+tail -f /opt/graphite/storage/log/webapp/process.log
+
