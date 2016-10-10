@@ -1,1 +1,38 @@
 /etc/yum.conf文件可以配置安装源
+
+yum check-update #列出所有可更新软件
+
+yum install <package_name> #安装指定软件
+
+yum -y update #更新所有软件
+
+yum update <package_name> #更新指定软件
+
+yum makecache #生成缓存
+
+yum remove <pkg_name>
+
+yum源配置目录：
+[root@centos71 yum.repos.d]# ls
+CentOS7-Base-163.repo  CentOS-Base.repo  CentOS-CR.repo  CentOS-Debuginfo.repo  CentOS-fasttrack.repo  CentOS-Media.repo  CentOS-Sources.repo  CentOS-Vault.repo  docker.repo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

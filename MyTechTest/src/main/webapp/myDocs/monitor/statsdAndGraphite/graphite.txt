@@ -1,14 +1,194 @@
-安装：
+Carbon和Whisper
+Graphite由多个后端和前端组件组成。后端组件用于存储数值型的时间序列数据。前端组件则用于获取指标项数据并根据情况渲染图表。
+
+Carbon：
+Carbon实际上是一系列守护进程，组成一个Graphite安装的存储后端。这些守护进程用一个名为 Twisted 的事件驱动网络引擎监听时间序列数据。Twisted框架让 Carbon 守护进程能够以很低的开销处理大量的客户端和流量。
+
+whisper：
+Whisper是一个用于存储时间序列数据的数据库，之后应用程序可以用 create，update和fetch操作获取并操作这些数据。
+
+安装依赖：
+yum -y install nc     #安装netcat命令行工具
+yum -y install python-setuptools-devel
+yum install -y httpd net-snmp perl pycairo mod_wsgi python-devel git gcc-c++
+easy_install pip
+pip install twisted
+yum install python-devel cairo-devel libffi-devel
+
+pip安装（参考：https://graphite.readthedocs.io/en/latest/install-pip.html）：
+export PYTHONPATH="/opt/graphite/lib/:/opt/graphite/webapp/"
+pip install https://github.com/graphite-project/whisper/tarball/master
+pip install https://github.com/graphite-project/carbon/tarball/master
+pip install https://github.com/graphite-project/graphite-web/tarball/master
+pip install https://github.com/graphite-project/ceres/tarball/master
+
+
+1、配置carbon：
+cd /opt/graphite/conf
+cp aggregation-rules.conf.example aggregation-rules.conf
+cp blacklist.conf.example blacklist.conf
+cp carbon.amqp.conf.example carbon.amqp.conf
+cp carbon.conf.example carbon.conf
+cp relay-rules.conf.example relay-rules.conf
+cp rewrite-rules.conf.example rewrite-rules.conf
+cp storage-aggregation.conf.example storage-aggregation.conf
+cp storage-schemas.conf.example storage-schemas.conf
+cp whitelist.conf.example whitelist.conf
+
+2、启动carbon
+/opt/graphite/bin/carbon-cache.py start
+
+3、配置web
+cd /opt/graphite/conf
+cp dashboard.conf.example dashboard.conf
+cp graphite.wsgi.example graphite.wsgi
+cp graphTemplates.conf.example graphTemplates.conf
+
+4、修改local_settings.py
+cd /opt/graphite/webapp/graphite
+cp local_settings.py.example local_settings.py
+
+5、初始化数据库：
+PYTHONPATH=/opt/graphite/webapp django-admin.py migrate --settings=graphite.settings --run-syncdb
+
+6、运行web程序：
+cd /opt/graphite
+PYTHONPATH=`pwd`/storage/whisper ./bin/run-graphite-devel-server.py --port=8085 --libs=`pwd`/webapp /opt/graphite 1>/opt/graphite/storage/log/webapp/process.log 2>&1 &
+tail -f /opt/graphite/storage/log/webapp/process.log
+
+
+
+
+安装carbon：
+git clone https://github.com/graphite-project/carbon.git
+cd carbon
+python setup.py install #默认安装在/opt/graphite目录下
+安装到指定目录/srv/graphite：
+A）一切都在/srv/graphite下：
+cd carbon
+python setup.py install --prefix=/srv/graphite --install-lib=/srv/graphite/lib
+B）安装在系统范围：
+cd carbon
+python setup.py install --install-scripts=/usr/bin --install-lib=/usr/lib/python2.7/site-packages --install-data=/var/lib/graphite
+
+安装whisper：
+git clone https://github.com/graphite-project/whisper.git
+cd whisper
+python setup.py install
+ls -l /usr/bin/whisper* #查看安装好的脚本
+
+启动Carbon缓存进程
+1、修改配置文件：
+cd /opt/graphite/conf #该目录下有一系列示例配置文件
+cp aggregation-rules.conf.example aggregation-rules.conf
+cp blacklist.conf.example blacklist.conf
+cp carbon.amqp.conf.example carbon.amqp.conf
+cp carbon.conf.example carbon.conf
+cp relay-rules.conf.example relay-rules.conf
+cp rewrite-rules.conf.example rewrite-rules.conf
+cp storage-aggregation.conf.example storage-aggregation.conf
+cp storage-schemas.conf.example storage-schemas.conf
+cp whitelist.conf.example whitelist.conf
+
+2、启动进程：
+cd /opt/graphite/bin
+./carbon-cache.py start
+
+3、检查：
+现在进程应该已经在监听2003端口：
+[root@centos71 bin]# ps -efla | grep carbon-cache
+1 S root     27029     1  0  80   0 - 77660 ep_pol 11:22 ?        00:00:00 /usr/bin/python ./carbon-cache.py start
+0 S root     27032  2702  0  80   0 - 28162 pipe_w 11:22 pts/0    00:00:00 grep --color=auto carbon-cache
+[root@centos71 bin]# netstat -nap | grep 2003
+tcp        0      0 0.0.0.0:2003            0.0.0.0:*               LISTEN      27029/python 
+
+4、发布示例数据项：
+例如，下面是一些有效的数据点：
+carbon-cache进程每分钟接收到的指标项数量
+ carbon.agents.graphite-tutorial.metricsReceived 28198 1400509108
+carbon-cache每分钟创建的指标项数量
+ carbon.agents.graphite-tutorial.creates 8 1400509110
+示例服务器端点每分钟的p95响应次数
+ PRODUCTION.host.graphite-tutorial.responseTime.p95 0.10 1400509112
+
+echo "carbon.agents.graphite-tutorial.metricsReceived 28198 `date +%s`" | nc localhost 2003
+echo "carbon.agents.graphite-tutorial.creates 8 `date +%s`" | nc localhost 2003
+echo "PRODUCTION.host.graphite-tutorial.responseTime.p95 0.10 `date +%s`" | nc localhost 2003
+
+5、Carbon与Whisper交互，将这些时间序列数据存储到文件系统中。切换到文件系统相应的位置，确保数据文件已经创建成功：
+[root@centos71 bin]# ls -l /opt/graphite/storage/whisper/carbon/agents/graphite-tutorial/
+total 3040
+-rw-r--r--. 1 root root 1555228 Oct  9 11:27 creates.wsp
+-rw-r--r--. 1 root root 1555228 Oct  9 11:27 metricsReceived.wsp
+
+6、用 whisper-info 脚本获取为这些指标项创建的Whisper文件的元数据信息
+[root@centos71 bin]# whisper-info.py /opt/graphite/storage/whisper/PRODUCTION/host/graphite-tutorial/responseTime/p95.wsp
+maxRetention: 86400
+xFilesFactor: 0.5
+aggregationMethod: average
+fileSize: 17308
+
+Archive 0
+retention: 86400
+secondsPerPoint: 60
+points: 1440
+size: 17280
+offset: 28
+
+安装graphite-web：
+git clone https://github.com/graphite-project/graphite-web.git
+cd graphite-web
+python setup.py install
+
+修改配置文件：
+/opt/graphite/webapp/graphite
+cp local_settings.py.example local_settings.py
+vi /opt/graphite/webapp/graphite/local_settings.py
+#########################
+# General Configuration #
+#########################
+# Set this to a long, random unique string to use as a secret key for this
+# install. This key is used for salting of hashes used in auth tokens,
+# CRSF middleware, cookie storage, etc. This should be set identically among
+# instances if used behind a load balancer.
+SECRET_KEY = 'UNSAFE_DEFAULT'
+
+TIME_ZONE = 'UTC'
+##########################
+# Database Configuration #
+##########################
+DATABASES = {
+  'default': {
+    'NAME': '/opt/graphite/storage/graphite.db',
+    'ENGINE': 'django.db.backends.sqlite3',
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': ''
+  }
+}
+
+数据库初始化：
+cd /opt/graphite
+export PYTHONPATH=$PYTHONPATH:`pwd`/webapp
+django-admin.py syncdb --settings=graphite.settings
+
+运行web程序：
+cd /opt/graphite
+PYTHONPATH=`pwd`/storage/whisper ./bin/run-graphite-devel-server.py --port=8085 --libs=`pwd`/webapp /opt/graphite 1>/opt/graphite/storage/log/webapp/process.log 2>&1 &
+
 Graphite-web: git clone https://github.com/graphite-project/graphite-web.git
 Carbon: git clone https://github.com/graphite-project/carbon.git
 Whisper: git clone https://github.com/graphite-project/whisper.git
 Ceres: git clone https://github.com/graphite-project/ceres.git
 
+1、安装whisper、ceres
 cd whisper
 python setup.py install
 cd ceres
 python setup.py install
 
+2、安装carbon
 #安装在默认路径/opt/graphite下
 cd carbon
 python setup.py install
@@ -35,14 +215,15 @@ cp aggregation-rules.conf.example aggregation-rules.conf
 cp blacklist.conf.example blacklist.conf
 cp carbon.amqp.conf.example carbon.amqp.conf
 cp carbon.conf.example carbon.conf
-cp dashboard.conf.example dashboard.conf
-cp graphite.wsgi.example graphite.wsgi
-cp graphTemplates.conf.example graphTemplates.conf
 cp relay-rules.conf.example relay-rules.conf
 cp rewrite-rules.conf.example rewrite-rules.conf
 cp storage-aggregation.conf.example storage-aggregation.conf
 cp storage-schemas.conf.example storage-schemas.conf
 cp whitelist.conf.example whitelist.conf
+
+cp dashboard.conf.example dashboard.conf
+cp graphite.wsgi.example graphite.wsgi
+cp graphTemplates.conf.example graphTemplates.conf
 
 2、启动carbon-cache进程：
 cd /opt/graphite/bin
@@ -61,6 +242,10 @@ whisper-info.py /opt/graphite/storage/whisper/PRODUCTION/host/graphite-tutorial/
 
 5、whisper-dump 是一个更完整的脚本，可以输出所有存储保留周期内的原始数据以及Whisper文件的元数据信息：
 whisper-dump.py /opt/graphite/storage/whisper/PRODUCTION/host/graphite-tutorial/responseTime/p95.wsp
+
+6、修改graphite配置：
+cd /opt/graphite/webapp/graphite
+cp local_settings.py.example local_settings.py
 
 6、数据库初始化
 cd /opt/graphite

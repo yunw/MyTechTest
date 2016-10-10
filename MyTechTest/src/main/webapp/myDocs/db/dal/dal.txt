@@ -1,0 +1,16 @@
+下载：sqljdbc.jar
+http://msdn.microsoft.com/en-us/sqlserver/aa937724
+下载sqljdbc_4.0.2206.100_enu.tar.gz
+从中解压出sqljdbc.jar
+然后放入maven本地仓库：
+mvn install:install-file -Dfile=sqljdbc.jar -Dpackaging=jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc -Dversion=4.0.2206
+
+
+
+生成codegen数据库：
+
+
+CREATE DATABASE IF NOT EXISTS codegen DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+
+admin/admin
+

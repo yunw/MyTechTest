@@ -8,3 +8,27 @@ cd Python-2.7.11
 make && make install
 
 python -V #查看当前的python版本
+
+安装pip
+yum -y install python-setuptools-devel
+easy_install pip
+pip install --upgrade pip  #pip升级自身
+
+pip list --outdated   #获取过期的库
+
+pip install -U <pkg_name> #pip升级包
+pip install --upgrade <pkg_name> #pip升级包
+
+
+
+
+
+
+
+错误：
+pip安装pycurl后报错：
+pycurl: libcurl link-time ssl backend (nss) is different from compile-time ssl backend (none/other)
+解决方法：卸载后用easy_install安装
+pip uninstall pycurl
+export PYCURL_SSL_LIBRARY=nss
+easy_install pycurl
