@@ -1,0 +1,116 @@
+https://github.com/kelseyhightower/confd
+
+1、下载：
+wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-0.11.0-linux-amd64
+
+2、安装：
+cp confd-0.11.0-linux-amd64 /usr/local/bin/confd
+chmod +x /usr/local/bin/confd
+
+3、创建confdir
+sudo mkdir -p /etc/confd/{conf.d,templates}
+
+4、创建模板资源配置：
+vi /etc/confd/conf.d/myconfig.toml
+[template]
+src = "myconfig.conf.tmpl"
+dest = "/tmp/myconfig.conf"
+keys = [
+    "/myapp/database/url",
+    "/myapp/database/user",
+]
+
+5、创建资源模板
+vi /etc/confd/templates/myconfig.conf.tmpl
+[myconfig]
+database_url = {{getv "/myapp/database/url"}}
+database_user = {{getv "/myapp/database/user"}}
+
+6、添加数据：
+etcd：
+etcdctl set /myapp/database/url db.example.com
+etcdctl set /myapp/database/user rob
+
+zookeeper(192.168.56.71:2181)：
+/usr/local/zookeeper-3.4.8/bin/zkCli.sh
+[zk: localhost:2181(CONNECTED) 0] create /myapp ""
+Created /myapp
+[zk: localhost:2181(CONNECTED) 1] create /myapp/database ""
+Created /myapp/database
+[zk: localhost:2181(CONNECTED) 2] create /myapp/database/url "db.example.com"
+Created /myapp/database/url
+[zk: localhost:2181(CONNECTED) 3] create /myapp/database/user "rob"
+Created /myapp/database/user
+[zk: localhost:2181(CONNECTED) 4]
+
+7、处理模板
+confd支持两种模式：daemon和onetime。
+confd -onetime -backend zookeeper -node 192.168.56.71:2181
+[root@centos74 bin]# confd -onetime -backend zookeeper -node 192.168.56.71:2181
+2016-10-10T18:49:17+08:00 centos74 confd[18820]: INFO Backend set to zookeeper
+2016-10-10T18:49:17+08:00 centos74 confd[18820]: INFO Starting confd
+2016-10-10T18:49:17+08:00 centos74 confd[18820]: INFO Backend nodes set to 192.168.56.71:2181
+2016-10-10T18:49:17+08:00 centos74 confd[18820]: INFO /tmp/myconfig.conf has md5sum d41d8cd98f00b204e9800998ecf8427e should be 8e76340b541b8ee29023c001a5e4da18
+2016-10-10T18:49:17+08:00 centos74 confd[18820]: INFO Target config /tmp/myconfig.conf out of sync
+2016-10-10T18:49:17+08:00 centos74 confd[18820]: INFO Target config /tmp/myconfig.conf has been updated
+[root@centos74 bin]# vi /tmp/myconfig.conf
+[myconfig]
+database_url = db.example.com
+database_user = rob
+
+confd -h
+Usage of confd:
+  -app-id string
+      Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)
+  -auth-token string
+      Auth bearer token to use
+  -auth-type string
+      Vault auth backend type to use (only used with -backend=vault)
+  -backend string
+      backend to use (default "etcd")
+  -basic-auth
+      Use Basic Auth to authenticate (only used with -backend=etcd)
+  -client-ca-keys string
+      client ca keys
+  -client-cert string
+      the client cert
+  -client-key string
+      the client key
+  -confdir string
+      confd conf directory (default "/etc/confd")
+  -config-file string
+      the confd config file
+  -interval int
+      backend polling interval (default 600)
+  -keep-stage-file
+      keep staged files
+  -log-level string
+      level which confd should log messages
+  -node value
+      list of backend nodes (default [])
+  -noop
+      only show pending changes
+  -onetime
+      run once and exit
+  -password string
+      the password to authenticate with (only used with vault and etcd backends)
+  -prefix string
+      key path prefix (default "/")
+  -scheme string
+      the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
+  -srv-domain string
+      the name of the resource record
+  -srv-record string
+      the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com
+  -sync-only
+      sync without check_cmd and reload_cmd
+  -table string
+      the name of the DynamoDB table (only used with -backend=dynamodb)
+  -user-id string
+      Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)
+  -username string
+      the username to authenticate as (only used with vault and etcd backends)
+  -version
+      print version and exit
+  -watch
+      enable watch support

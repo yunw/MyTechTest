@@ -9,10 +9,11 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -34,17 +35,26 @@ import com.google.gson.Gson;
 
 public class Test {
 
-	public static void main(String args[]) {
-	    List<Test> list = new ArrayList<Test>(100);
-	    long start = System.currentTimeMillis();
-	    for (int i = 0; i < 100; i++) {
-	        list.add(new Test());
+	public static void main(String args[]) throws IOException {
+	    List<String> a = new ArrayList<String>();
+	    a.add("a0000000001");
+	    a.add("a0000003000");
+	    a.add("b0000000001");
+	    a.add("b0001000000");
+	    a.add("a0000000070");
+	    a.add("b0000000600");
+	    for (String s : a) {
+	        System.out.println(s);
 	    }
-	    long end = System.currentTimeMillis();
-	    System.out.println("time: " + (end - start) + list.size());
-		for (int i = 0; i < 20; i++) {
-			System.out.println(UUID.randomUUID().toString());
-		}
+	    System.out.println("\n");
+	    Collections.sort(a, new Comparator<String>() {
+            public int compare(String arg0, String arg1) {
+                return arg0.compareTo(arg1);
+            }
+        });
+	    for (String s : a) {
+            System.out.println(s);
+        };
 //		System.out.println(System.getProperty("user.dir"));
 //		String url = "https://www.qq.com/aaa/bbb.html";
 //		int idx = url.indexOf("/", 8);

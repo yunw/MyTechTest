@@ -17,7 +17,7 @@ public class Client {
 	public static void main(String[] args) throws IOException, InterruptedException, KeeperException {
 		BaseZookeeper baseZookeeper = new BaseZookeeper();
 
-		String host = "10.25.23.117:2181";
+		String host = "192.168.56.71:2181";
 
 		// 连接zookeeper
 		baseZookeeper.connectZookeeper(host);

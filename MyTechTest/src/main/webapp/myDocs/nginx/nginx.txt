@@ -18,7 +18,7 @@ upstream backend {
 
     server backup1.example.com  backup;
 }
-上述配置，每7各请求将按如下方式分布：5个请求去backend1.example.com，一个去127.0.0.1:8080，最后一个去unix:/tmp/backend3。如果与服务器的通信出现错误，
+上述配置，每7个请求将按如下方式分布：5个请求去backend1.example.com，一个去127.0.0.1:8080，最后一个去unix:/tmp/backend3。如果与服务器的通信出现错误，
 请求将被发送到下一个服务器，以此类推，直到所有的服务器都试过。如果从任何服务器都不能获得成功的响应，客户端将从最后一个服务器获得信息。
 
 max_fails参数：与fail_timeout参数相关，在fail_timeout时间内与服务器连接失败的最大次数，如果到达，则认为该服务器宕机。默认为1，如果设为0，则不做该检查。
@@ -265,3 +265,42 @@ C：“/aoubt.html”只被前缀location“/”匹配。因此该配置被采�
 D：“/”比较复杂。它只被前缀location“/”匹配。因此该配置被采用。然后index指令校验它的index文件是否存在（先用“root /data/www”转换）。如果文件“/data/www/index.html”
 不存在，而“/data/www/index.php”存在，那么该指令做了一个内部重定向到“/index.php”，然后nginx重新匹配该请求，就像它是从客户端发送过来的一样。如上配置文件所述，
 重定向的请求最终被fastcgi服务器处理。
+
+
+
+
+
+#透传客户端真实ip
+        location / {
+            proxy_pass http://www.myapp22.com;
+            #透传客户端真实ip
+            proxy_redirect off;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+然后程序中按如下方式获取客户端IP：
+/**获取客户端IP*/
+    public static String getIpAddr(HttpServletRequest request) {
+        String fromSource = "X-Real-IP";
+        String ip = request.getHeader("X-Real-IP");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Forwarded-For");
+            fromSource = "X-Forwarded-For";
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+            fromSource = "Proxy-Client-IP";
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+            fromSource = "WL-Proxy-Client-IP";
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+            fromSource = "request.getRemoteAddr()";
+        }
+        log.debug("client ip:::::::::::::::" + fromSource);
+        return ip;
+    }

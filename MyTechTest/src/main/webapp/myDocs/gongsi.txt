@@ -1,3 +1,4 @@
+https://item.jd.com/10355832209.html
 美味不用等：
 台式机：
 
@@ -20,3 +21,11 @@ http://localhost:8081/dashboard/index?resId=99068
 有多个maven私服：
 114.80.88.41:9001
 114.80.88.52:9001
+
+svn：svn://svn.9now.cn/yunpos yin.shunlin=c4dwpqUrbcr]'"Qx9YGL
+https://exmail.qq.com/
+puscene-GitLab yin.shunlin/Pass1234 http://git.9now.net:10080/
+http://oa.9now.cn/SSO/Login.htm
+http://114.80.88.52:9001/nexus/#welcome
+Disconf - 分布式配置管理平台 admin/mwee.cn http://10.0.21.71:8079/
+Commits at dev_cat - 杨俊明 / mwee_paidui_soa | GitLab http://git.9now.net:10080/yangjunming/mwee_paidui_soa/commits/dev_cat

@@ -8,11 +8,12 @@ yum -y update #更新所有软件
 
 yum update <package_name> #更新指定软件
 
+yum clean all #清除缓存
 yum makecache #生成缓存
 
 yum remove <pkg_name>
 
-yum源配置目录：
+yum源配置目录（/etc/yum.repos.d/）：
 [root@centos71 yum.repos.d]# ls
 CentOS7-Base-163.repo  CentOS-Base.repo  CentOS-CR.repo  CentOS-Debuginfo.repo  CentOS-fasttrack.repo  CentOS-Media.repo  CentOS-Sources.repo  CentOS-Vault.repo  docker.repo
 

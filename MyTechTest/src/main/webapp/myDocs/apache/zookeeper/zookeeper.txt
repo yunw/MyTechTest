@@ -116,6 +116,23 @@ ephemeralOwner = 0x0
 dataLength = 3
 numChildren = 0
 
+修改：
+[zk: localhost:2181(CONNECTED) 8] set /myapp/database/url "db.example.com.cn"
+cZxid = 0x9400000006
+ctime = Mon Oct 10 14:49:36 CST 2016
+mZxid = 0x9500000004
+mtime = Mon Oct 10 16:40:40 CST 2016
+pZxid = 0x9400000006
+cversion = 0
+dataVersion = 1
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 17
+numChildren = 0
+
+删除：
+[zk: localhost:2181(CONNECTED) 11]  delete /myapp/database/url
+
 addauth scheme auth:
 addauth digest test:aaa
 
