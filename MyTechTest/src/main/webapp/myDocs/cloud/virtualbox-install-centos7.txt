@@ -12,6 +12,7 @@ sudo apt-get install virtualbox-5.0
 安装centos7
 下载centos7的光盘镜像（最小化安装）：http://mirrors.163.com/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1511.iso 
 安装方法参考：http://jingyan.baidu.com/article/29697b912b9125ab20de3c84.html
+网络设置：http://blog.chinaunix.net/uid-25839577-id-4358193.html
 
 进入centos7之后
 执行：yum install -y etcd kubernetes
@@ -60,9 +61,11 @@ NAME=enp0s3
 UUID=b3465416-2e80-4834-aa6d-2d0e87942de8
 DEVICE=enp0s3
 ONBOOT=yes
-IPADDR=10.0.2.71
+IPADDR=10.0.2.71           #nat默认IP：10.0.2.15
 NETMASK=255.255.255.0
-GATEWAY=10.0.2.2
+GATEWAY=10.0.2.2           #nat默认网关10.0.2.2
+Nat：宿主机没有插网线，虚拟机无法上网，因为宿主机的“本地连接”有红叉，不可用。
+
 [root@centos71 network-scripts]# cat ifcfg-enp0s8
 TYPE=Ethernet
 #BOOTPROTO=dhcp
