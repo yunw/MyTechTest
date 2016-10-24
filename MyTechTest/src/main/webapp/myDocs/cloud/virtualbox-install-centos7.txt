@@ -8,11 +8,14 @@ sudo apt-cache search virtualbox
 sudo apt-get install virtualbox-5.0
 3、启动virtualbox：
 /usr/bin/virtualbox
+4、修改全局设置：
+修改默认虚拟机位置为：d:/centos7
 
 安装centos7
 下载centos7的光盘镜像（最小化安装）：http://mirrors.163.com/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1511.iso 
 安装方法参考：http://jingyan.baidu.com/article/29697b912b9125ab20de3c84.html
 网络设置：http://blog.chinaunix.net/uid-25839577-id-4358193.html
+给一个网卡分配多个IP地址：https://linux.cn/article-5127-1.html
 
 进入centos7之后
 执行：yum install -y etcd kubernetes

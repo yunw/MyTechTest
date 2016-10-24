@@ -1,22 +1,19 @@
 1、下载nginx包
 wget http://nginx.org/packages/mainline/centos/7/x86_64/RPMS/nginx-1.11.4-1.el7.ngx.x86_64.rpm
 
-2、建立nginx的yum仓库
+2、安装nginx
 rpm -ivh nginx-1.11.4-1.el7.ngx.x86_64.rpm
 
-3、安装nginx
-yum -y install nginx
-
-4、开放80端口：
+3、开放80端口：
 firewall-cmd --permanent --zone=public --add-service=http
 firewall-cmd --zone=public --add-port=80/tcp --permanent
 firewall-cmd --reload
 firewall-cmd --permanent --query-port=80/tcp
 
-5、配置：
+4、配置：
 默认的配置文件在 /etc/nginx 路径下，使用该配置已经可以正确地运行nginx；如需要自定义，修改其下的 nginx.conf 或conf.d/default.conf等文件即可。
 
-6、测试：
+5、测试：
 http://ip
 如果出现nginx的初始页面，说明安装成功
 

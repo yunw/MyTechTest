@@ -6,3 +6,27 @@ tar zxf apache-tomcat-8.0.36.tar.gz -C /usr/local/
 usr/local/apache-tomcat-8.0.36/bin/startup.sh 
 #停止
 usr/local/apache-tomcat-8.0.36/bin/shutdown.sh
+
+安装服务：
+vi /etc/systemd/system/tomcat.service
+[Unit]
+Description=tomcat service
+After=network.target
+
+[Service]
+Type=forking
+EnvironmentFile=-/etc/sysconfig/tomcat
+ExecStart=/usr/local/apache-tomcat-8.5.6/bin/startup.sh
+ExecStop=/usr/local/apache-tomcat-8.5.6/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
+
+vi /etc/sysconfig/tomcat
+JAVA_HOME=/usr/local/jdk1.8.0_111
+
+systemctl daemon-reload
+systemctl enable tomcat
+systemctl start tomcat
+systemctl status tomcat
+

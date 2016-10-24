@@ -304,3 +304,10 @@ D：“/”比较复杂。它只被前缀location“/”匹配。因此该配置
         log.debug("client ip:::::::::::::::" + fromSource);
         return ip;
     }
+    
+    
+    
+[crit] 6675#6675: *16 connect() to 192.168.56.71:8080 failed (13: Permission denied) while connecting to upstream
+解决方案（参考：http://www.hpboys.com/827.html）：
+执行：setsebool -P httpd_can_network_connect 1 
+就可以了

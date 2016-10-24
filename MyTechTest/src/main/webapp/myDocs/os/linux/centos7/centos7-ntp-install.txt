@@ -3,6 +3,8 @@ yum -y install ntp
 systemctl enable ntpd
 systemctl start ntpd
 
+ntpdate -u cn.pool.ntp.org #手动同步一次时间
+
 timedatectl # 查看时区
 
 timedatectl list-timezones # 列出所有时区
@@ -11,4 +13,4 @@ timedatectl set-local-rtc 1 # 将硬件时钟调整为与本地时钟一致, 0 �
 
 timedatectl set-timezone Asia/Shanghai
 
-ntpdate -u cn.pool.ntp.org #手动同步一次时间
+

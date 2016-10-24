@@ -1,0 +1,4 @@
+修改Edge浏览器背景色：
+修改注册表：
+HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\SplashScreen\Microsoft.MicrosoftEdge_8wekyb3d8bbwe!MicrosoftEdge
+中的背景色键值为想要的背景色值（例如#D3D3D3为浅灰色）
