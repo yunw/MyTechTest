@@ -6,6 +6,25 @@ https://github.com/yinsl/TechTest.git
 
 https://github.com/yinsl/CMS.git
 
+git文件的三种状态：http://phplaber.iteye.com/blog/1699926
+Untracked files：未跟踪的文件。也就是文件在暂存区没有生成快照。该状态下可以：
+                                         执行：git add <filename>将文件变为跟踪的文件，也就是将文件放入暂存区（staging area）了
+Changes to be committed：在暂存区域生成了快照，等待被提交。这是执行git add命令之后的状态。该状态下可以：
+                         1、git push 将代码提交到远程仓库
+                         2、git reset HEAD <filename>将文件从暂存区移走，变为未跟踪状态
+Changes not staged for commit：如果一个已经提交的文件又有新的修改没有被提交，就是这个状态。该状态下可以：
+                               1、执行 git add <filename>将新的没有提交的内容提交到暂存区，变成等待提交状态
+                               2、执行git checkout -- <filename>将修改撤销掉，文件内容回滚到上次提交时的内容
+
+git for windows:
+下载：https://git-for-windows.github.io/
+然后一路默认安装
+生成ssh key：
+鼠标右键-->git bash here
+ssh-keygen -t rsa -C "邮箱地址"
+cd ~/.ssh
+将id_rsa.pub文件的内容拷贝到github的资源库中即可。
+
 
 rsa private key:C:\Users\IBM_ADMIN\.ssh\id_rsa
 

@@ -28,8 +28,9 @@ http://localhost:8081/dashboard/index?resId=99068
 114.80.88.41:9001
 114.80.88.52:9001
 
+http://wk.9now.net yin.shunlin
 svn：svn://svn.9now.cn/yunpos yin.shunlin=c4dwpqUrbcr]'"Qx9YGL
-https://exmail.qq.com/
+https://exmail.qq.com/ 腾讯企业邮箱 yin.shunlin@puscene.com
 puscene-GitLab yin.shunlin/Pass1234 http://git.9now.net:10080/
 http://oa.9now.cn/SSO/Login.htm
 http://114.80.88.52:9001/nexus/#welcome

@@ -1,0 +1,9 @@
+查看nginx.conf路径：
+参考：http://linux.it.net.cn/e/server/nginx/2014/0718/3177.html
+首先查找nginx路径：
+ps -ef | grep nginx
+然后执行：
+nginx -t
+或者：
+nginx -V
+然后看打印出来的信息，都可以查找到配置文件地址

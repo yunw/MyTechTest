@@ -21,8 +21,8 @@ my.ini:
  #binlog-ignore-db=test #不记录binlog
  #replicate-ignore-db=test #不复制test库的binlog
  binlog_cache_size = 1M
- binlog_format=mixed
- expire_logs_days=3
+ binlog_format=mixed    #binlog格式：statement、row、mixed
+ expire_logs_days=3     #binglog清理过期日志的时间
 
 2、从服务器配置：
 a)从服务器1：
