@@ -19,12 +19,3 @@ com.alibaba.dubbo.rpc.cluster.support.AbstractClusterInvoker获取loadbalance策
 com.alibaba.dubbo.rpc.cluster.support.FailoverClusterInvoker
 
 dubbo的客户端请求最终通过netty发送出去。
-
-2、源码构建：
-1)clone https://github.com/alibaba/opensesame到本地
-进入opensesame目录执行maven安装命令：mvn clean install -DskipTests=true
-
-2）clone https://github.com/alibaba/dubbo.git到本地
-3）checkout 2.5.3版本
-4）在dubbo目录下执行：
-mvn clean eclipse:eclipse -DskipTests=true

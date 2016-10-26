@@ -49,3 +49,10 @@ dubbo的依赖排除spring：
         </dependency> -->
 经过以上修改后，重新打包，dubbo-admin就可以运行在jdk8上了
 
+将dubbo-admin-2.5.3.war发布到tomcat的webapps/ROOT下作为root应用。
+访问：http://localhost:8080/
+登录用户名和密码可以查看dubbo.properties:
+dubbo.registry.address=zookeeper://127.0.0.1:2181
+dubbo.admin.root.password=root
+dubbo.admin.guest.password=guest
+说明有两组用户：root/root、guest/guest
