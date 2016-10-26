@@ -1,3 +1,10 @@
+[root@centos71 logs]# cat /proc/sys/kernel/sem
+250     32000   32      128
+第一列，表示每个信号集中的最大信号量数目。 
+第二列，表示系统范围内的最大信号量总数目。 
+第三列，表示每个信号发生时的最大系统操作数目。 
+第四列，表示系统范围内的最大信号集总数目。
+
 systemctl
 CentOS 7的服务systemctl脚本存放在：/usr/lib/systemd/，有系统（system）和用户（user）之分，像需要开机不登陆就能运行的程序，还是存在系统服务里吧，即：/usr/lib/systemd/system目录下，
 每一个服务以.service结尾，一般会分为3部分：[Unit]、[Service]和[Install]

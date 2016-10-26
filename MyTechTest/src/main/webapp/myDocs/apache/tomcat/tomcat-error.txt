@@ -1,0 +1,14 @@
+警告: Unable to add the resource at [/WEB-INF/lib/servlet-api-2.4.jar] to the cache 
+because there was insufficient free space available after evicting expired cache entries - consider increasing the maximum size of the cache
+参考：http://tomcat.apache.org/tomcat-8.5-doc/config/resources.html
+原因：cache默认10MB，太小。
+解决方案：
+$TOMCAT_HOME/conf/context.xml的context元素中添加：
+<Resources cachingAllowed="true" cacheMaxSize="102400"/> <!-- 100M -->
+
+
+
+
+
+
+
