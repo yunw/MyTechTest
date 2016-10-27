@@ -149,3 +149,20 @@ mvn <命令> -rf :<projectName>
         <maven.compiler.compilerVersion>1.7</maven.compiler.compilerVersion>
     </properties>
 </profile> 
+
+
+将source打包到本地仓库：
+<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+                <execution>
+                    <id>attach-sources</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>jar-no-fork</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>

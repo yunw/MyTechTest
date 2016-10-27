@@ -1,0 +1,3 @@
+启动服务：
+alfred-mobile-service
+mvn jetty:run
