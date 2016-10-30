@@ -1,17 +1,7 @@
-一、413 Request Entity Too Large
-参考：http://www.nginx.cn/837.html
-client_max_body_size，这个参数默认只是1M，也就是说发布的文章内容大小不能超过1M
-解决办法：
- 增加如下两行到nginx.conf的http{}段， 增大nginx上传文件大小限制
-#设置允许发布内容为8M
-client_max_body_size 8M;
-client_body_buffer_size 128k;
-另外如果运行的是php，那么还要检查php.ini，这个大小client_max_body_size要和php.ini中的如下值的最大值一致或者稍大，这样就不会因为提交数据大小不一致出现的错误。
-post_max_size = 8M
-upload_max_filesize = 6M
-修改完配置后，别忘记重新加载。
-
 二、nginx[7943]: nginx: [emerg] bind() to 0.0.0.0:8991 failed (13: Permission denied)
+错误描述：
+nginx配置文件的配置中监听8991端口，报错
+
 检查审计日志：
 vi /var/log/audit/audit.log
 在文件的末尾可以看到：
@@ -35,18 +25,3 @@ http_port_t                    tcp      8991, 80, 81, 443, 488, 8008, 8009, 8443
 
 然后启动nginx：systemctl start nginx 可以成功
 备注： semanage port -a命令修改的是：/etc/selinux/targeted/modules/active/ports.local文件。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

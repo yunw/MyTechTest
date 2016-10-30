@@ -13,25 +13,61 @@ firewall-cmd --permanent --query-port=6379/tcp
 firewall-cmd --permanent --query-port=16379/tcp
 firewall-cmd --permanent --query-port=26379/tcp
 
-yum install -y wget openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
-gem update --system
-gem -v
-gem install redis  --version 3.2.2
-gem list --local
-
-cd ~/downloads
 wget http://download.redis.io/releases/redis-3.2.5.tar.gz
-
 tar zxf redis-3.2.5.tar.gz
 cd redis-3.2.5
-make MALLOC=libc
-make PREFIX=/usr/local/redis install
+[root@centos75 redis-3.2.5]# make && make install
+......
+PREFIX             : /usr/local
+BINDIR             : /usr/local/bin
+DATADIR            : /usr/local/share
+INCLUDEDIR         : /usr/local/include
+LIBDIR             : /usr/local/lib
+MANDIR             : /usr/local/share/man
+......
+从编译安装信息中可以看出：redis安装到/usr/local,/usr/local/bin,/usr/local/share,/usr/local/include,/usr/local/lib,/usr/local/share/man等目录下。
 
-mkdir -p /data/redis
-mkdir -p /etc/redis
-cp /root/downloads/redis-3.2.5/redis.conf /etc/redis
+接下来执行初始化脚本，安装redis服务（一路回车）：
+[root@centos75 redis-3.2.5]# utils/install_server.sh
+Welcome to the redis service installer
+This script will help you easily set up a running redis server
 
-启动：
-/usr/local/redis/bin/redis-server /etc/redis/redis.conf
+Please select the redis port for this instance: [6379] 
+Selecting default: 6379
+Please select the redis config file name [/etc/redis/6379.conf] 
+Selected default - /etc/redis/6379.conf
+Please select the redis log file name [/var/log/redis_6379.log] 
+Selected default - /var/log/redis_6379.log
+Please select the data directory for this instance [/var/lib/redis/6379] 
+Selected default - /var/lib/redis/6379
+Please select the redis executable path [/usr/local/bin/redis-server] 
+Selected config:
+Port           : 6379
+Config file    : /etc/redis/6379.conf
+Log file       : /var/log/redis_6379.log
+Data dir       : /var/lib/redis/6379
+Executable     : /usr/local/bin/redis-server
+Cli Executable : /usr/local/bin/redis-cli
+Is this ok? Then press ENTER to go on or Ctrl-C to abort.
+Copied /tmp/6379.conf => /etc/init.d/redis_6379
+Installing service...
+Successfully added to chkconfig!
+Successfully added to runlevels 345!
+Starting Redis server...
+Installation successful!
 
+安装systemd服务：
+vi /etc/systemd/system/redis_6379.service
 
+[Unit]
+Description=Redis on port 6379
+[Service]
+Type=forking
+ExecStart=/etc/init.d/redis_6379 start
+ExecStop=/etc/init.d/redis_6379 stop
+[Install]
+WantedBy=multi-user.target
+
+systemctl enable redis_6379
+systemctl start redis_6379
+systemctl status redis_6379
