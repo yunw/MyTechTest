@@ -43,8 +43,152 @@ Permissive
 Enforcing
 
 
+selinux主配置文件：/etc/selinux/config
+[root@centos74 ~]# more /etc/selinux/config
 
+# This file controls the state of SELinux on the system.
+# SELINUX= can take one of these three values:
+#     enforcing - SELinux security policy is enforced.
+#     permissive - SELinux prints warnings instead of enforcing.
+#     disabled - No SELinux policy is loaded.
+SELINUX=enforcing
+# SELINUXTYPE= can take one of three two values:
+#     targeted - Targeted processes are protected,
+#     minimum - Modification of targeted policy. Only selected processes are protected. 
+#     mls - Multi Level Security protection.
+SELINUXTYPE=targeted 
 
+BOOLEANS policy：
+booleans允许部分selinux policy在运行是改变。它允许在没有重新加载或重新编译selinux policy的情况下改变，例如允许服务访问NFS卷。
+
+列出booleans：
+[root@centos74 ~]# semanage boolean -l
+SELinux boolean                State  Default Description
+
+ftp_home_dir                   (off  ,  off)  Allow ftp to home dir
+smartmon_3ware                 (off  ,  off)  Allow smartmon to 3ware
+mpd_enable_homedirs            (off  ,  off)  Allow mpd to enable homedirs
+xdm_sysadm_login               (off  ,  off)  Allow xdm to sysadm login
+xen_use_nfs                    (off  ,  off)  Allow xen to use nfs
+。。。。。。
+例如：
+ftp_home_dir                   (off  ,  off)  Allow ftp to home dir
+表示阻止FTP守护进程（vsftpd）在家目录读写文件。
+
+配置booleans：
+[root@centos74 ~]# getsebool httpd_can_network_connect_db
+httpd_can_network_connect_db --> off
+[root@centos74 ~]# setsebool httpd_can_network_connect_db on
+[root@centos74 ~]# getsebool httpd_can_network_connect_db
+httpd_can_network_connect_db --> on
+这就临时允许http服务的脚本和模块链接到数据库服务。系统重启后改变不生效，如果要永久改变，需要加 -P参数：
+setsebool -P httpd_can_network_connect_db on
+
+selinux context -- labeling files
+一个运行selinux的系统，所有的进程和文件都被代表安全相关信息的某种方式所标记。这个信息就被称为selinux context。对文件来说，查看这个上下文使用
+ls -Z命令：
+[root@centos74 downloads]# ls -Z a.txt 
+-rw-r--r--. root root unconfined_u:object_r:admin_home_t:s0 a.txt
+这个例子中，selinux提供了一个用户（unconfined_u），一个角色（object_r），一个类型（admin_home_t）和一个水平（s0）。这个信息用于访问控制决策。
+在DAC系统里，访问控制基于用户和组ID。selinux policy rule在DAC规则之后检查。如果DAC拒绝访问那么selinux policy rule不会被使用。
+注意：默认情况下，新创建的文件和目录继承它们父目录的selinux类型。例如，当在一个用etc_t类型标记的/etc/目录下创建一个新文件，这个新文件也会继承相同的类型：
+[root@centos74 downloads]# ls -dZ /etc
+drwxr-xr-x. root root system_u:object_r:etc_t:s0       /etc
+[root@centos74 downloads]# touch /etc/newfile
+[root@centos74 downloads]# ls -Z /etc/newfile
+-rw-r--r--. root root unconfined_u:object_r:etc_t:s0   /etc/newfile
+
+临时改变：chcon
+chcon命令改变文件的selinux context。
+chcon -t type file-name改变文件的类型，type是一个selinux type，例如：httpd_sys_content_t，file-name是一个文件或目录。
+[root@centos74 downloads]# ls -Z a.txt 
+-rw-r--r--. root root unconfined_u:object_r:admin_home_t:s0 a.txt
+[root@centos74 downloads]# chcon -t httpd_sys_content_t a.txt
+[root@centos74 downloads]# ls -Z a.txt
+-rw-r--r--. root root unconfined_u:object_r:httpd_sys_content_t:s0 a.txt
+restorecon -v file-name命令恢复原来的selinux类型。 -v选项可以看到什么被改变。
+[root@centos74 downloads]# restorecon -v a.txt
+restorecon reset /root/downloads/a.txt context unconfined_u:object_r:httpd_sys_content_t:s0->unconfined_u:object_r:admin_home_t:s0
+restorecon命令读取/etc/selinux/targeted/contexts/files/目录中的文件，看文件应该拥有哪种selinux context。
+
+永久改变：semanage fcontext
+semanage fcontext命令用于改变文件的selinux context。当使用target policy的时候，改变被写入/etc/selinux/targeted/contexts/files/目录下的文件中：
+file_contexts文件指定了许多文件的默认context，以及通过semanage fcontext更新的context。
+file_contexts.local文件存储了新创建的文件以及在file_contexts文件中没有找到的目录的context。
+
+semanage fcontext -a options file-name|directory-name
+记住请使用全路径，以避免给错误的文件贴标签。
+
+改变一个目录和它的内容的类型：
+mkdir /web
+touch /web/file{1,2,3}
+ls -dZ /web
+ls -lZ /web
+[root@centos74 files]# mkdir /web
+[root@centos74 files]# touch /web/file{1,2,3}
+[root@centos74 files]# ls -dZ /web
+drwxr-xr-x. root root unconfined_u:object_r:default_t:s0 /web
+[root@centos74 files]# ls -lZ /web
+-rw-r--r--. root root unconfined_u:object_r:default_t:s0 file1
+-rw-r--r--. root root unconfined_u:object_r:default_t:s0 file2
+-rw-r--r--. root root unconfined_u:object_r:default_t:s0 file3
+接下来用root用户运行下面的命令将/web目录和它里面的文件的类型改为：httpd_sys_content_t。命令如下：
+semanage fcontext -a -t httpd_sys_content_t "/web(/.*)?"
+-a 添加新记录
+-t 定义类型（httpd_sys_content_t）
+"/web(/.*)?" 正在表达式会导致semanage作用于/web/以及它里面的文件。
+注意：运行这个命令不会直接改变类型。它只是将下述入口加入到文件/etc/selinux/targeted/contexts/files/file_contexts.local里面：
+[root@centos74 files]# more /etc/selinux/targeted/contexts/files/file_contexts.local
+[root@centos74 files]# semanage fcontext -a -t httpd_sys_content_t "/web(/.*)?"
+[root@centos74 files]# ls -dZ /web
+drwxr-xr-x. root root unconfined_u:object_r:default_t:s0 /web
+[root@centos74 files]# ls -lZ /web
+-rw-r--r--. root root unconfined_u:object_r:default_t:s0 file1
+-rw-r--r--. root root unconfined_u:object_r:default_t:s0 file2
+-rw-r--r--. root root unconfined_u:object_r:default_t:s0 file3
+[root@centos74 files]# more /etc/selinux/targeted/contexts/files/file_contexts.local
+# This file is auto-generated by libsemanage
+# Do not edit directly.
+
+/web(/.*)?    system_u:object_r:httpd_sys_content_t:s0
+
+可以看到命令执行后/etc/selinux/targeted/contexts/files/file_contexts.local文件中多了一行：
+/web(/.*)?    system_u:object_r:httpd_sys_content_t:s0
+
+接下来运行：
+restorecon -R -v /web就可以递归地改变/web以及它里面文件的内容了。
+-R 递归
+[root@centos74 files]# restorecon -R -v /web
+restorecon reset /web context unconfined_u:object_r:default_t:s0->unconfined_u:object_r:httpd_sys_content_t:s0
+restorecon reset /web/file1 context unconfined_u:object_r:default_t:s0->unconfined_u:object_r:httpd_sys_content_t:s0
+restorecon reset /web/file2 context unconfined_u:object_r:default_t:s0->unconfined_u:object_r:httpd_sys_content_t:s0
+restorecon reset /web/file3 context unconfined_u:object_r:default_t:s0->unconfined_u:object_r:httpd_sys_content_t:s0
+
+删除一个自己添加的context：
+semanage fcontext -d "/web(/.*)?"
+上述命令删除一个selinux context。如果context是一个正则表达式，需要用引号包围它。
+[root@centos74 files]# more /etc/selinux/targeted/contexts/files/file_contexts.local
+# This file is auto-generated by libsemanage
+# Do not edit directly.
+
+/web(/.*)?    system_u:object_r:httpd_sys_content_t:s0
+[root@centos74 files]# semanage fcontext -d "/web(/.*)?"
+[root@centos74 files]# more /etc/selinux/targeted/contexts/files/file_contexts.local
+# This file is auto-generated by libsemanage
+# Do not edit directly.
+
+可以看到/etc/selinux/targeted/contexts/files/file_contexts.local的相应内容被删除。
+[root@centos74 files]# ls -dZ /web
+drwxr-xr-x. root root unconfined_u:object_r:httpd_sys_content_t:s0 /web
+[root@centos74 files]# ls -lZ /web
+-rw-r--r--. root root unconfined_u:object_r:httpd_sys_content_t:s0 file1
+-rw-r--r--. root root unconfined_u:object_r:httpd_sys_content_t:s0 file2
+-rw-r--r--. root root unconfined_u:object_r:httpd_sys_content_t:s0 file3
+[root@centos74 files]# restorecon -R -v /web
+restorecon reset /web context unconfined_u:object_r:httpd_sys_content_t:s0->unconfined_u:object_r:default_t:s0
+restorecon reset /web/file1 context unconfined_u:object_r:httpd_sys_content_t:s0->unconfined_u:object_r:default_t:s0
+restorecon reset /web/file2 context unconfined_u:object_r:httpd_sys_content_t:s0->unconfined_u:object_r:default_t:s0
+restorecon reset /web/file3 context unconfined_u:object_r:httpd_sys_content_t:s0->unconfined_u:object_r:default_t:s0
 
 
 
