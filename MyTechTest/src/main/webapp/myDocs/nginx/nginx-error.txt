@@ -22,6 +22,7 @@ type=AVC msg=audit(1477813047.641:1321): avc:  denied  { name_bind } for  pid=79
 http_port_t                    tcp      80, 81, 443, 488, 8008, 8009, 8443, 9000
 http_port_t端口类型定义了http server可以监听的端口。如果管理员在nginx的配置文件中定义了上述范围以外的端口，则无法启动。
 解决办法：
+安装semanage：yum -y install policycoreutils-python
 1、停掉selinux
 2、添加端口到selinux的配置中去：
 semanage port -a -t http_port_t -p tcp 8991

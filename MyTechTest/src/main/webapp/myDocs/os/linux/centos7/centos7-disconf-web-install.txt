@@ -6,9 +6,68 @@ mkdir -p /opt/disconf/disconf-rd/war
 cp * /opt/disconf/disconf-rd/online-resources/
 cd /opt/disconf/disconf-rd/online-resources/
 cp application-demo.properties application.properties
-然后修改各配置文件的配置信息
+然后修改各配置文件的配置信息，具体如下：
+[root@centos71 online-resources]# more application.properties 
 
-接下来安装：
+#
+# \u670d\u52a1\u5668\u7684domain
+#
+
+domain=disconf.com
+
+#
+# \u90ae\u7bb1\u8bbe\u7f6e
+#
+
+EMAIL_MONITOR_ON = true
+EMAIL_HOST = smtp.163.com
+EMAIL_HOST_PASSWORD = password
+EMAIL_HOST_USER = sender@163.com
+EMAIL_PORT = 25
+DEFAULT_FROM_EMAIL = disconf@163.com
+
+# 
+# \u5b9a\u65f6\u6821\u9a8c\u4e2d\u5fc3\u7684\u914d\u7f6e\u4e0e\u6240\u6709\u5ba2\u6237\u7aef\u914d\u7f6e\u7684\u4e00\u81f4\u6027
+#
+CHECK_CONSISTENCY_ON= true
+[root@centos71 online-resources]# more jdbc-mysql.properties 
+jdbc.driverClassName=com.mysql.jdbc.Driver
+
+jdbc.db_0.url=jdbc:mysql://192.168.56.75:3306/disconf?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=false
+jdbc.db_0.username=yinsl
+jdbc.db_0.password=Abcd_1234!
+
+jdbc.maxPoolSize=20
+jdbc.minPoolSize=10
+jdbc.initialPoolSize=10
+jdbc.idleConnectionTestPeriod=1200
+jdbc.maxIdleTime=3600
+[root@centos71 online-resources]# more redis-config.properties 
+redis.group1.retry.times=2
+
+redis.group1.client1.name=BeidouRedis1
+redis.group1.client1.host=192.168.56.75
+redis.group1.client1.port=6379
+redis.group1.client1.timeout=5000
+redis.group1.client1.password=foobared
+
+redis.group1.client2.name=BeidouRedis2
+redis.group1.client2.host=192.168.56.75
+redis.group1.client2.port=6380
+redis.group1.client2.timeout=5000
+redis.group1.client2.password=foobared
+
+redis.evictor.delayCheckSeconds=300
+redis.evictor.checkPeriodSeconds=30
+redis.evictor.failedTimesToBeTickOut=6
+[root@centos71 online-resources]# more zoo.properties 
+
+hosts=192.168.56.71:2181,192.168.56.72:2181,192.168.56.73:2181
+
+# zookeeper\u7684\u524D\u7F00\u8DEF\u5F84\u540D
+zookeeper_url_prefix=/disconf
+
+接下来安装部署disconf：
 ONLINE_CONFIG_PATH=/opt/disconf/disconf-rd/online-resources
 WAR_ROOT_PATH=/opt/disconf/disconf-rd/war
 export ONLINE_CONFIG_PATH
@@ -28,7 +87,40 @@ cd /root/downloads/disconf/disconf-web/sql
 修改server.xml文件，在Host结点下设定Context：
 <Context path="" docBase="/opt/disconf/disconf-rd/war"/>
 
+安装nginx并配置nginx
+vi /etc/nginx/conf.d/disconf.conf
+upstream disconf {
+    server 127.0.0.1:8080;
+}
 
+server {
 
+    listen   8081;
+    server_name disconf.com;
+    access_log /var/logs/disconf/access.log;
+    error_log /var/logs/disconf/error.log;
+
+    location / {
+        root /opt/disconf/disconf-rd/war/html;
+        if ($query_string) {
+            expires max;
+        }
+    }
+
+    location ~ ^/(api|export) {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://disconf;
+    }
+}
+
+#递归修改war目录的owner为nginx，因为nginx默认采用nginx用户来运行nginx worker进程。
+chown -R nginx:nginx /opt/disconf/disconf-rd/war 
+启动nginx后执行：
+curl http://localhost:8081/根据出来的信息，可以判断是否部署成功。
+打开firefox，输入：http://192.168.56.71:8081/可以出来登录页面，输入admin/admin登录，能够登录说明安装成功。
 
 
