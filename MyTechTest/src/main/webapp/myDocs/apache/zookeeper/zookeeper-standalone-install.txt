@@ -1,0 +1,5 @@
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+tar zxf zookeeper-3.4.9.tar.gz -C /usr/local
+cd /usr/local/zookeeper-3.4.9/conf
+cp zoo_sample.cfg zoo.cfg
+../bin/zkServer.sh start

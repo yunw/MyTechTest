@@ -1,0 +1,61 @@
+参考：http://www.cnblogs.com/xulb597/archive/2012/07/02/2573575.html
+
+yum -y install subversion
+svn --help
+
+[root@diancai_test01 ~]# mkdir svnroot
+[root@diancai_test01 ~]# cd svnroot
+[root@diancai_test01 svnroot]# svn checkout svn://svn.9now.cn/yunpos/prototype/server/trunk/alfred
+Authentication realm: <svn://svn.9now.cn:3690> /svn
+Password for 'root': 
+Authentication realm: <svn://svn.9now.cn:3690> /svn
+Username: yin.shunlin
+Password for 'yin.shunlin': 
+
+-----------------------------------------------------------------------
+ATTENTION!  Your password for authentication realm:
+
+   <svn://svn.9now.cn:3690> /svn
+
+can only be stored to disk unencrypted!  You are advised to configure
+your system so that Subversion can store passwords encrypted, if
+possible.  See the documentation for details.
+
+You can avoid future appearances of this warning by setting the value
+of the 'store-plaintext-passwords' option to either 'yes' or 'no' in
+'/root/.subversion/servers'.
+-----------------------------------------------------------------------
+Store password unencrypted (yes/no)? yes
+A    alfred/.classpath
+A    alfred/.project
+A    alfred/src
+A    alfred/src/test
+A    alfred/src/test/java
+A    alfred/src/main
+A    alfred/src/main/java
+A    alfred/eclipse.bat
+A    alfred/pom.xml
+A    alfred/install.bat
+A    alfred/.settings
+A    alfred/.settings/org.eclipse.jdt.core.prefs
+A    alfred/.settings/org.eclipse.m2e.core.prefs
+A    alfred/.settings/org.eclipse.core.resources.prefs
+Checked out revision 129861.
+
+
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-common
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-api
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-interface
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-persist
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-service
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-api
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-clound
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-clound-interface
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-clound-service
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-persist
+
+[root@diancai_test01 svnroot]# pwd
+/root/svnroot
+[root@diancai_test01 svnroot]# ls
+alfred      alfred-clound            alfred-clound-service  alfred-mobile-api        alfred-mobile-persist  alfred-persist
+alfred-api  alfred-clound-interface  alfred-common          alfred-mobile-interface  alfred-mobile-service

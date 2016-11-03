@@ -13,6 +13,9 @@ D:\apache\zookeeper\zookeeper-3.4.9\bin\zkServer
 
 alfred测试环境(5台)：
 10.0.21.123 E0y"FrgbkydBVr%h6Gn#    nginx(alfred-mobile-api.conf:http://10.0.21.123:8083/alfred-mobile-api alfred-api.conf:http://10.0.21.123:8083/alfred-api)
+                                    zookeeper
+                                    svnroot
+                                    
 10.0.21.124 Q/@jVolqr?iSj2adRb7V
 10.0.21.125 9Bq(Xku&Xv#vZzaevVe9
 10.0.21.51 +iGl8zjSrXgsg/i9A%Mh       activemq 
@@ -23,6 +26,10 @@ alfred测试环境(5台)：
 10.0.21.53 zookeeper
 10.0.21.62 zookeeper
 10.0.21.71 zookeeper disconf nginx
+
+自动发布：http://wk.9now.net/pages/viewpage.action?pageId=3102683
+url watcher: http://log.mwee.cn/look/ yinshunlin yinshunlin
+grafana: http://log.mwee.cn/grafana/
 
 10.0.21.112 redis(6386)
 10.0.21.131 redis(6385)
