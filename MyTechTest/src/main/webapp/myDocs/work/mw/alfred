@@ -93,6 +93,7 @@ environments
 target
 eclipse.bat
 install.bat
+src/resources/disconf.properties
 
 修改d:/svnToGit/alfred/pom.xml的modules部分，用下面的替换：
 <modules>
