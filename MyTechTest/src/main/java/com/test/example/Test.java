@@ -34,8 +34,18 @@ import org.apache.http.util.EntityUtils;
 import com.google.gson.Gson;
 
 public class Test {
+	
+	private static Object obj = new Object();
 
 	public static void main(String args[]) throws IOException {
+		int aa = new Double(Math.random() * 100).intValue();
+		synchronized (obj) {
+			if (aa == 50) {
+				return;
+			} else {
+				aa = 40;
+			}
+		}
 	    List<String> a = new ArrayList<String>();
 	    a.add("a0000000001");
 	    a.add("a0000003000");

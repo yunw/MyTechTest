@@ -45,3 +45,4 @@ maria
 statsd
 elk
 kvm
+缓存穿透、缓存雪崩 http://blog.csdn.net/zhang_red/article/details/50774834

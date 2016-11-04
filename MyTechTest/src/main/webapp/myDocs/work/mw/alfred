@@ -47,3 +47,24 @@ root.path=http://localhost:8081
 root.static.path=http://localhost:8081/static
 # alfred.api.path: no used
 alfred.api.path=http://localhost:8089
+
+
+
+
+
+svn co svn://svn.9now.cn/yunpos/prototype/server/trunk/alfred
+
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-common
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-api
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-interface
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-persist
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-mobile-all/alfred-mobile-service
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-api
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-clound
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-clound-interface
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-clound-service
+svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-all/alfred-persist
+
+
+https://github.com/hum1/mw_auto.git
+https://github.com/hum1/mw_auto_pages.git
