@@ -18,3 +18,11 @@ gradle -v
 windows:
 下载：
 https://services.gradle.org/distributions/gradle-3.1-bin.zip
+解压：
+c:\gradle-3.1
+加入环境变量：GRADLE_HOME=C:\gradle-3.1
+path变量：%GRADLE_HOME%/bin
+
+执行：gradle -v
+
+
