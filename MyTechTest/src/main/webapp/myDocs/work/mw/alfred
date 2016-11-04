@@ -68,3 +68,76 @@ svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-al
 
 https://github.com/hum1/mw_auto.git
 https://github.com/hum1/mw_auto_pages.git
+
+svn to git
+创建目录：d:/svnToGit
+checkout下面的项目到svnToGit目录(find/checkout as选项，自选目录)
+trunk/alfred
+branches/2.0.4.x/alfred-common
+branches/2.0.4.x/alfred-mobile-all/alfred-mobile-api
+branches/2.0.4.x/alfred-mobile-all/alfred-mobile-interface
+branches/2.0.4.x/alfred-mobile-all/alfred-mobile-persist
+branches/2.0.4.x/alfred-mobile-all/alfred-mobile-service
+branches/2.0.4.x/alfred-rest-all/alfred-api
+branches/2.0.4.x/alfred-rest-all/alfred-clound
+branches/2.0.4.x/alfred-rest-all/alfred-clound-interface
+branches/2.0.4.x/alfred-rest-all/alfred-clound-service
+branches/2.0.4.x/alfred-rest-all/alfred-persist
+
+删除各目录下的
+.svn
+.classpath
+bin
+environments
+.settings
+target
+eclipse.bat
+install.bat
+
+修改d:/svnToGit/alfred/pom.xml的modules部分，用下面的替换：
+<modules>
+	    <!-- 可以根据自身需要编译制定模块 -->
+		<module>alfred-api</module>
+ 		<module>alfred-clound</module>
+		<module>alfred-clound-interface</module>
+		<module>alfred-clound-service</module>
+		<module>alfred-common</module>
+		<module>alfred-mobile-api</module>
+		<module>alfred-mobile-interface</module>
+		<module>alfred-mobile-persist</module>
+		<module>alfred-mobile-service</module>
+		<module>alfred-persist</module>
+	 </modules>
+	 
+将
+alfred-common等10个项目拷贝到alfred项目下面
+
+在gitlib（http://git.9now.net:10080/u/yin.shunlin）上新建项目alfred：
+ssh://git@git.9now.net:10022/yin.shunlin/alfred.git
+
+在d:/svnToGit下新建toGit目录
+在d:/svnToGit/toGit目录下打开git bash
+执行：
+git clone ssh://git@git.9now.net:10022/yin.shunlin/alfred.git
+成功后会生成一个alfred目录。
+将d:/svnToGit/alfred下的内容拷贝到d:/svnToGit/toGit/alfred下
+
+在gitbash下执行（将所有文件加入暂存区）：
+git add --all
+
+执行(提交到本地仓库)：
+git commit -m "create project: first commit"
+
+执行（提交到远程master分支）：
+git push origin master:master
+
+创建完毕。
+
+最后。重新下载整个项目，导入eclipse，编译工程并修改.gitignore文件并提交。
+
+
+
+
+
+
+
