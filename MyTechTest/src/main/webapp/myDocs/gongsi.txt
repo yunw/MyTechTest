@@ -6,7 +6,7 @@ https://item.jd.com/10355832209.html
 192.168.56.71 activemq（5.14.0） http://192.168.56.71:8161/admin admin/admin
 
 笔记本（华硕）：
-192.168.56.71 zookeeper
+192.168.56.71 zookeeper disconf
 192.168.56.72 zookeeper
 192.168.56.73 zookeeper
 192.168.56.74 nginx confd

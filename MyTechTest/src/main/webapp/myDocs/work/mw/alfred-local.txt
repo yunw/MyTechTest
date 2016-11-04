@@ -1,0 +1,4 @@
+192.168.56.71 zookeeper disconf(admin/admin) nginx
+192.168.56.72 zookeeper
+192.168.56.73 zookeeper
+192.168.56.75 mysql redis

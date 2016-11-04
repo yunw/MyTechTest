@@ -1,4 +1,5 @@
-参考：http://www.cnblogs.com/xulb597/archive/2012/07/02/2573575.html
+参考：
+http://www.cnblogs.com/xulb597/archive/2012/07/02/2573575.html
 
 yum -y install subversion
 svn --help
@@ -59,3 +60,6 @@ svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-al
 [root@diancai_test01 svnroot]# ls
 alfred      alfred-clound            alfred-clound-service  alfred-mobile-api        alfred-mobile-persist  alfred-persist
 alfred-api  alfred-clound-interface  alfred-common          alfred-mobile-interface  alfred-mobile-service
+
+更新：
+svn update

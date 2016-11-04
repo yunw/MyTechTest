@@ -1,3 +1,12 @@
+环境：
+192.168.56.71：disconf-web nginx zookeeper
+192.168.56.72 zookeeper
+192.168.56.73 zookeeper
+192.168.56.75 mysql redis
+
+#############################################################################
+#                     on 192.168.56.71:                                     #
+#############################################################################
 cd /root/downloads
 git clone https://github.com/knightliao/disconf.git
 cd /root/downloads/disconf/disconf-web/profile/rd
@@ -53,7 +62,7 @@ redis.group1.client1.password=foobared
 
 redis.group1.client2.name=BeidouRedis2
 redis.group1.client2.host=192.168.56.75
-redis.group1.client2.port=6380
+redis.group1.client2.port=6379
 redis.group1.client2.timeout=5000
 redis.group1.client2.password=foobared
 
@@ -121,6 +130,9 @@ server {
 chown -R nginx:nginx /opt/disconf/disconf-rd/war 
 启动nginx后执行：
 curl http://localhost:8081/根据出来的信息，可以判断是否部署成功。
-打开firefox，输入：http://192.168.56.71:8081/可以出来登录页面，输入admin/admin登录，能够登录说明安装成功。
+打开firefox(microsofte edge打不开)，输入：http://192.168.56.71:8081/可以出来登录页面，输入admin/admin登录，能够登录说明安装成功。
 
-
+错误：502 Bad Gateway
+错误：connect() to 127.0.0.1:8080 failed (13: Permission denied) while connecting to upstream
+ 解决方案：setsebool -P httpd_can_network_connect 1
+原因：在selinux为Enforcing模式下，nignx默认不具备网络连接的权限。

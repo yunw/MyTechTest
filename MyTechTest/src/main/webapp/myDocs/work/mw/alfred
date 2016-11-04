@@ -15,9 +15,10 @@ alfred测试环境(5台)：
 10.0.21.123 E0y"FrgbkydBVr%h6Gn#    nginx(alfred-mobile-api.conf:http://10.0.21.123:8083/alfred-mobile-api alfred-api.conf:http://10.0.21.123:8083/alfred-api)
                                     zookeeper
                                     svnroot
+                                    alfred-clound
                                     
-10.0.21.124 Q/@jVolqr?iSj2adRb7V
-10.0.21.125 9Bq(Xku&Xv#vZzaevVe9
+10.0.21.124 Q/@jVolqr?iSj2adRb7V    alfred-clound-service
+10.0.21.125 9Bq(Xku&Xv#vZzaevVe9    alfred-mobile-service
 10.0.21.51 +iGl8zjSrXgsg/i9A%Mh       activemq 
                                       alfred-mobile-api(http://10.0.21.51:8083/alfred-mobile-api/) 
                                       alfred-api(http://10.0.21.51:8083/alfred-api/)
