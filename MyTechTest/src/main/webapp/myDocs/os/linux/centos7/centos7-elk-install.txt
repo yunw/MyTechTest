@@ -1,0 +1,55 @@
+官网：https://www.elastic.co/products
+wget https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-linux-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.0.tar.gz
+wget https://artifacts.elastic.co/downloads/logstash/logstash-5.0.0.tar.gz
+
+
+logstash rpm install：
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+vi /etc/yum.repos.d/logstash.repo
+[logstash-5.x]
+name=Elastic repository for 5.x packages
+baseurl=https://artifacts.elastic.co/packages/5.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+
+yum -y install java
+yum -y install logstash
+
+systemctl enable logstash
+systemctl start logstash
+systemctl status logstash
+
+elasticsearch install:
+tar zxf elasticsearch-5.0.0.tar.gz -C /usr/local
+于ElasticSearch可以接收用户输入的脚本并且执行，为了系统安全考虑，建议创建一个单独的用户用来运行ElasticSearch 
+groupadd elsearch
+useradd elsearch -g elsearch -p elasticsearch  #-p选项指定密码
+chown -R elsearch:elsearch /usr/local/elasticsearch-5.0.0
+su elsearch
+cd /usr/local/elasticsearch-5.0.0/bin
+./elasticsearch
+
+kibana rpm install:
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+vi /etc/yum.repos.d/kibana.repo
+[kibana-5.x]
+name=Kibana repository for 5.x packages
+baseurl=https://artifacts.elastic.co/packages/5.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+
+yum -y install kibana
+
+systemctl enable kibana
+systemctl start kibana
+systemctl status kibana
+
+
+

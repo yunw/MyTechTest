@@ -39,7 +39,7 @@ http://docs.ansible.com/ansible/intro_getting_started.html
 http://mp.weixin.qq.com/s?__biz=MzAwNjY4NTQ4MA==&mid=2651175052&idx=1&sn=1e35b631532126c73610097b3197b95b&chksm=80f88ecbb78f07dd2a1d892a816d87e1f3c814e38877a5c7a9d47b0fc8d563cb6ba8ecd83c82&mpshare=1&scene=1&srcid=10192hUAQhUgFIpGi4zxvZB1#rd
 
 urlcheck
-waf
+waf应用防火墙（）
 grafna
 maria
 statsd

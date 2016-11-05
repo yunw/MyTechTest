@@ -1,4 +1,10 @@
 192.168.56.71 zookeeper disconf(admin/admin) nginx
 192.168.56.72 zookeeper
 192.168.56.73 zookeeper
-192.168.56.75 mysql redis
+192.168.56.74 nginx confd
+192.168.56.75 mysql（disconf、alfred、alfred-mobile） redis
+192.168.56.76 elk
+
+
+
+
