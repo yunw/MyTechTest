@@ -1,0 +1,46 @@
+安装：
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-x86_64.rpm
+sudo rpm -vi filebeat-5.0.0-x86_64.rpm
+
+systemctl enable filebeat
+systemctl start filebeat
+systemctl status filebeat
+
+配置：
+vi /etc/filebeat/filebeat.yml
+filebeat.prospectors:
+- input_type: log
+  paths:
+    - /var/log/*.log
+#-------------------------- Elasticsearch output ------------------------------
+#output.elasticsearch:
+  # Array of hosts to connect to.
+  #hosts: ["192.168.56.76:9200"]
+#----------------------------- Logstash output --------------------------------
+output.logstash:
+  # The Logstash hosts
+  hosts: ["192.168.56.75:5044"]
+  
+注：registry_file默认在/usr/share/filebeat/bin/data目录下
+  
+测试配置：
+[root@centos75 bin]# /usr/share/filebeat/bin/filebeat -configtest -path.config=/etc/filebeat -e
+2016/11/07 02:00:57.231002 beat.go:264: INFO Home path: [/usr/share/filebeat/bin] Config path: [/etc/filebeat] Data path: [/usr/share/filebeat/bin/data] Logs path: [/usr/share/filebeat/bin/logs]
+2016/11/07 02:00:57.231032 beat.go:174: INFO Setup Beat: filebeat; Version: 5.0.0
+2016/11/07 02:00:57.231076 logstash.go:90: INFO Max Retries set to: 3
+2016/11/07 02:00:57.231118 outputs.go:106: INFO Activated logstash as output plugin.
+2016/11/07 02:00:57.231164 publish.go:291: INFO Publisher name: centos75
+2016/11/07 02:00:57.231365 async.go:63: INFO Flush Interval set to: 1s
+2016/11/07 02:00:57.231372 async.go:64: INFO Max Bulk Size set to: 2048
+Config OK
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

@@ -1,0 +1,488 @@
+wget https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-x86_64.rpm
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.0.rpm
+wget https://artifacts.elastic.co/downloads/logstash/logstash-5.0.0.rpm
+
+yum -y localinstall elasticsearch-5.0.0.rpm
+
+systemctl daemon-reload
+systemctl enable elasticsearch
+systemctl start elasticsearch
+systemctl status elasticsearch
+
+rpm -qc elasticsearch
+
+
+yum -y localinstall kibana-5.0.0-x86_64.rpm
+
+systemctl enable kibana
+systemctl start kibana
+systemctl status kibana
+
+rpm -qc kibana
+
+yum -y localinstall logstash-5.0.0.rpm
+
+systemctl enable logstash
+systemctl start logstash
+systemctl status logstash
+
+rpm -qc logstash
+
+修改配置：
+vi /etc/elasticsearch/elasticsearch.yml
+network.host: 192.168.56.76
+discovery.zen.minimum_master_nodes: 1
+其他属性不变
+
+vi /etc/kibana/kibana.yml
+server.port: 5601
+server.host: "192.168.56.76"
+elasticsearch.url: "http://192.168.56.76:9200"
+其他属性不变
+
+vi /etc/logstash/conf.d/logstash-log4j.conf
+input{
+    log4j{
+        host=>"192.168.56.75"
+        mode=>"server"
+        type=>"log4j-json"
+        port=>4560
+    }
+}
+output{
+    stdout{codec=>rubydebug}
+    elasticsearch{hosts=>["192.168.56.76:9200"]}
+}
+
+
+测试：
+1、logstash：
+[root@centos76 downloads]# cd /usr/share/logstash/
+[root@centos76 logstash]# bin/logstash --path.settings=/etc/logstash -e 'input { stdin { } } output { stdout {} }'
+OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
+Sending Logstash logs to /var/log/logstash which is now configured via log4j2.properties.
+The stdin plugin is now waiting for input:
+hello world
+2016-11-07T01:25:23.971Z centos76 hello world
+{
+    "@timestamp" => 2016-11-07T01:25:23.971Z,
+      "@version" => "1",
+          "host" => "centos76",
+       "message" => "hello world"
+}
+
+2、elasticsearch：
+第一步输出日志到控制台：
+vi /etc/filebeat/filebeat.yml
+filebeat.prospectors:
+- input_type: log
+  paths:
+    - /root/downloads/logstash-tutorial.log 
+output.logstash:
+  hosts: ["192.168.56.75:4560"]
+  
+运行：
+/usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish"
+
+vi /etc/logstash/conf.d/first-pipeline.conf
+input {
+    beats {
+        port => "4560"
+    }
+}
+
+output {
+    stdout { codec => rubydebug }
+}
+
+#测试文件合法性
+/usr/share/logstash/bin/logstash --path.settings=/etc/logstash -f /etc/logstash/conf.d/first-pipeline.conf --config.test_and_exit
+#运行
+/usr/share/logstash/bin/logstash --path.settings=/etc/logstash -f /etc/logstash/conf.d/first-pipeline.conf --config.reload.automatic
+......
+{
+    "@timestamp" => 2016-11-07T02:09:45.901Z,
+        "offset" => 24248,
+      "@version" => "1",
+    "input_type" => "log",
+          "beat" => {
+        "hostname" => "centos75",
+            "name" => "centos75",
+         "version" => "5.0.0"
+    },
+          "host" => "centos75",
+        "source" => "/root/downloads/logstash-tutorial.log",
+       "message" => "86.1.76.62 - - [04/Jan/2015:05:30:37 +0000] \"GET /reset.css HTTP/1.1\" 200 1015 \"http://www.semicomplete.com/projects/xdotool/\" \"Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20140205 Firefox/24.0 Iceweasel/24.3.0\"",
+          "type" => "log",
+          "tags" => [
+        [0] "beats_input_codec_plain_applied"
+    ]
+}
+......
+
+第二步添加grok过滤器：
+停止filebeat（ctrl-c），删除registry_file:
+rm -f /usr/share/filebeat/bin/data/registry
+修改配置:
+vi /etc/logstash/conf.d/first-pipeline.conf
+input {
+    beats {
+        port => "4560"
+    }
+}
+
+filter {
+    grok {
+        match => { "message" => "%{COMBINEDAPACHELOG}"}
+    }
+}
+
+output {
+    stdout { codec => rubydebug }
+}
+
+再次运行filebeat：
+/usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish"
+
+转到logstash控制台（logstash不用再次运行，因为配置了--config.reload.automatic，可以自动重新加载配置）：
+......
+{
+        "request" => "/blog/web/firefox-scrolling-fix.html",
+          "agent" => "\"Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)\"",
+         "offset" => 23786,
+           "auth" => "-",
+          "ident" => "-",
+     "input_type" => "log",
+           "verb" => "GET",
+         "source" => "/root/downloads/logstash-tutorial.log",
+        "message" => "66.249.73.135 - - [04/Jan/2015:05:30:06 +0000] \"GET /blog/web/firefox-scrolling-fix.html HTTP/1.1\" 200 8956 \"-\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)\"",
+           "type" => "log",
+           "tags" => [
+        [0] "beats_input_codec_plain_applied"
+    ],
+       "referrer" => "\"-\"",
+     "@timestamp" => 2016-11-07T03:07:07.768Z,
+       "response" => "200",
+          "bytes" => "8956",
+       "clientip" => "66.249.73.135",
+       "@version" => "1",
+           "beat" => {
+        "hostname" => "centos75",
+            "name" => "centos75",
+         "version" => "5.0.0"
+    },
+           "host" => "centos75",
+    "httpversion" => "1.1",
+      "timestamp" => "04/Jan/2015:05:30:06 +0000"
+}
+......
+
+第三步，进一步添加过滤器geoip，增强数据：
+停止filebeat（ctrl-c），删除registry_file:
+rm -f /usr/share/filebeat/bin/data/registry
+修改配置:
+vi /etc/logstash/conf.d/first-pipeline.conf
+input {
+    beats {
+        port => "4560"
+    }
+}
+
+filter {
+    grok {
+        match => { "message" => "%{COMBINEDAPACHELOG}"}
+    }
+    geoip {
+        source => "clientip"
+    }
+}
+
+output {
+    stdout { codec => rubydebug }
+}
+
+再次运行filebeat：
+/usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish"
+
+转到logstash控制台：
+......
+{
+        "request" => "/reset.css",
+          "agent" => "\"Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20140205 Firefox/24.0 Iceweasel/24.3.0\"",
+          "geoip" => {
+              "timezone" => "Europe/London",
+                    "ip" => "86.1.76.62",
+              "latitude" => 51.5167,
+        "continent_code" => "EU",
+             "city_name" => "Greenford",
+         "country_code2" => "GB",
+          "country_name" => "United Kingdom",
+              "dma_code" => nil,
+         "country_code3" => "GB",
+           "region_name" => "England",
+              "location" => [
+            [0] -0.3333,
+            [1] 51.5167
+        ],
+           "postal_code" => "UB6",
+             "longitude" => -0.3333,
+           "region_code" => "ENG"
+    },
+         "offset" => 24248,
+           "auth" => "-",
+          "ident" => "-",
+     "input_type" => "log",
+           "verb" => "GET",
+         "source" => "/root/downloads/logstash-tutorial.log",
+        "message" => "86.1.76.62 - - [04/Jan/2015:05:30:37 +0000] \"GET /reset.css HTTP/1.1\" 200 1015 \"http://www.semicomplete.com/projects/xdotool/\" \"Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20140205 Firefox/24.0 Iceweasel/24.3.0\"",
+           "type" => "log",
+           "tags" => [
+        [0] "beats_input_codec_plain_applied"
+    ],
+       "referrer" => "\"http://www.semicomplete.com/projects/xdotool/\"",
+     "@timestamp" => 2016-11-07T03:15:30.615Z,
+       "response" => "200",
+          "bytes" => "1015",
+       "clientip" => "86.1.76.62",
+       "@version" => "1",
+           "beat" => {
+        "hostname" => "centos75",
+            "name" => "centos75",
+         "version" => "5.0.0"
+    },
+           "host" => "centos75",
+    "httpversion" => "1.1",
+      "timestamp" => "04/Jan/2015:05:30:37 +0000"
+}
+......
+可以看到，事件现在包含了geoip的信息了。
+
+第四步，输出到elasticsearch：
+停止filebeat（ctrl-c），删除registry_file:
+rm -f /usr/share/filebeat/bin/data/registry
+修改配置:
+vi /etc/logstash/conf.d/first-pipeline.conf
+input {
+    beats {
+        port => "4560"
+    }
+}
+
+filter {
+    grok {
+        match => { "message" => "%{COMBINEDAPACHELOG}"}
+    }
+    geoip {
+        source => "clientip"
+    }
+}
+
+output {
+    #stdout { codec => rubydebug }
+    elasticsearch {
+        hosts => [ "192.168.56.76:9200" ]
+    }
+}
+
+再次运行filebeat：
+/usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish"
+
+测试：
+curl -XGET '192.168.56.76:9200/logstash-$DATE/_search?pretty&q=response=200' #$DATE的格式为：YYYY.MM.DD
+[root@centos75 conf.d]# curl -XGET '192.168.56.76:9200/logstash-2016.11.07/_search?pretty&q=response=200'
+......
+      {
+        "_index" : "logstash-2016.11.07",
+        "_type" : "log",
+        "_id" : "AVg8zfyhKT7Ve1GEJD6Z",
+        "_score" : 0.21871395,
+        "_source" : {
+          "request" : "/blog/tags/release",
+          "agent" : "\"Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)\"",
+          "geoip" : {
+            "timezone" : "Asia/Shanghai",
+            "ip" : "123.125.71.35",
+            "latitude" : 39.9289,
+            "continent_code" : "AS",
+            "city_name" : "Beijing",
+            "country_code2" : "CN",
+            "country_name" : "China",
+            "dma_code" : null,
+            "country_code3" : "CN",
+            "region_name" : "Beijing",
+            "location" : [
+              116.3883,
+              39.9289
+            ],
+            "postal_code" : null,
+            "longitude" : 116.3883,
+            "region_code" : "11"
+          },
+          "offset" : 11202,
+          "auth" : "-",
+          "ident" : "-",
+          "input_type" : "log",
+          "verb" : "GET",
+          "source" : "/root/downloads/logstash-tutorial.log",
+          "message" : "123.125.71.35 - - [04/Jan/2015:05:16:31 +0000] \"GET /blog/tags/release HTTP/1.1\" 200 40693 \"-\" \"Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)\"",
+          "type" : "log",
+          "tags" : [
+            "beats_input_codec_plain_applied"
+          ],
+          "referrer" : "\"-\"",
+          "@timestamp" : "2016-11-07T03:21:16.433Z",
+          "response" : "200",
+          "bytes" : "40693",
+          "clientip" : "123.125.71.35",
+          "@version" : "1",
+          "beat" : {
+            "hostname" : "centos75",
+            "name" : "centos75",
+            "version" : "5.0.0"
+          },
+          "host" : "centos75",
+          "httpversion" : "1.1",
+          "timestamp" : "04/Jan/2015:05:16:31 +0000"
+        }
+      },
+......
+注：索引中使用的日期是基于UTC的，不是logstash运行主机的时区。如果查询返回index_not_found_exception。请确认索引logstash-$DATE是正确的。
+可以用：curl '192.168.56.76:9200/_cat/indices?v'
+查询所有合法的索引：
+[root@centos75 conf.d]# curl '192.168.56.76:9200/_cat/indices?v'
+health status index               uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   .kibana             QnCsIS2uTDC_WZvxY-n7SQ   1   1          1            0      3.1kb          3.1kb
+yellow open   logstash-2016.11.07 FguDdiNyRTq3BY0FgAWLIA   5   1        106            0    284.1kb        284.1kb
+
+可以利用geoip信息进一步缩小查询范围：
+[root@centos75 conf.d]# curl -XGET '192.168.56.76:9200/logstash-2016.11.07/_search?pretty&q=geoip.city_name=Buffalo'
+......
+      {
+        "_index" : "logstash-2016.11.07",
+        "_type" : "log",
+        "_id" : "AVg8zfyhKT7Ve1GEJD7I",
+        "_score" : 2.7725887,
+        "_source" : {
+          "request" : "/?flav=rss20",
+          "agent" : "\"-\"",
+          "geoip" : {
+            "timezone" : "America/New_York",
+            "ip" : "108.174.55.234",
+            "latitude" : 42.9864,
+            "continent_code" : "NA",
+            "city_name" : "Buffalo",
+            "country_code2" : "US",
+            "country_name" : "United States",
+            "dma_code" : 514,
+            "country_code3" : "US",
+            "region_name" : "New York",
+            "location" : [
+              -78.7279,
+              42.9864
+            ],
+            "postal_code" : "14221",
+            "longitude" : -78.7279,
+            "region_code" : "NY"
+          },
+          "offset" : 21471,
+          "auth" : "-",
+          "ident" : "-",
+          "input_type" : "log",
+          "verb" : "GET",
+          "source" : "/root/downloads/logstash-tutorial.log",
+          "message" : "108.174.55.234 - - [04/Jan/2015:05:27:45 +0000] \"GET /?flav=rss20 HTTP/1.1\" 200 29941 \"-\" \"-\"",
+          "type" : "log",
+          "tags" : [
+            "beats_input_codec_plain_applied"
+          ],
+          "referrer" : "\"-\"",
+          "@timestamp" : "2016-11-07T03:21:16.433Z",
+          "response" : "200",
+          "bytes" : "29941",
+          "clientip" : "108.174.55.234",
+          "@version" : "1",
+          "beat" : {
+            "hostname" : "centos75",
+            "name" : "centos75",
+            "version" : "5.0.0"
+          },
+          "host" : "centos75",
+          "httpversion" : "1.1",
+          "timestamp" : "04/Jan/2015:05:27:45 +0000"
+        }
+      },
+......
+
+或者：
+[root@centos75 conf.d]# curl -XGET '192.168.56.76:9200/logstash-2016.11.07/_search?pretty&q=offset=22795'
+{
+  "took" : 5,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 1,
+    "max_score" : 2.4277482,
+    "hits" : [
+      {
+        "_index" : "logstash-2016.11.07",
+        "_type" : "log",
+        "_id" : "AVg8zfyhKT7Ve1GEJD7O",
+        "_score" : 2.4277482,
+        "_source" : {
+          "request" : "/blog/geekery/disabling-battery-in-ubuntu-vms.html?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+semicomplete%2Fmain+%28semicomplete.com+-+Jordan+Sissel%29",
+          "agent" : "\"Tiny Tiny RSS/1.11 (http://tt-rss.org/)\"",
+          "geoip" : {
+            "timezone" : "America/New_York",
+            "ip" : "198.46.149.143",
+            "latitude" : 42.9864,
+            "continent_code" : "NA",
+            "city_name" : "Buffalo",
+            "country_code2" : "US",
+            "country_name" : "United States",
+            "dma_code" : 514,
+            "country_code3" : "US",
+            "region_name" : "New York",
+            "location" : [
+              -78.7279,
+              42.9864
+            ],
+            "postal_code" : "14221",
+            "longitude" : -78.7279,
+            "region_code" : "NY"
+          },
+          "offset" : 22795,
+          "auth" : "-",
+          "ident" : "-",
+          "input_type" : "log",
+          "verb" : "GET",
+          "source" : "/root/downloads/logstash-tutorial.log",
+          "message" : "198.46.149.143 - - [04/Jan/2015:05:29:13 +0000] \"GET /blog/geekery/disabling-battery-in-ubuntu-vms.html?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+semicomplete%2Fmain+%28semicomplete.com+-+Jordan+Sissel%29 HTTP/1.1\" 200 9316 \"-\" \"Tiny Tiny RSS/1.11 (http://tt-rss.org/)\"",
+          "type" : "log",
+          "tags" : [
+            "beats_input_codec_plain_applied"
+          ],
+          "referrer" : "\"-\"",
+          "@timestamp" : "2016-11-07T03:21:16.433Z",
+          "response" : "200",
+          "bytes" : "9316",
+          "clientip" : "198.46.149.143",
+          "@version" : "1",
+          "beat" : {
+            "hostname" : "centos75",
+            "name" : "centos75",
+            "version" : "5.0.0"
+          },
+          "host" : "centos75",
+          "httpversion" : "1.1",
+          "timestamp" : "04/Jan/2015:05:29:13 +0000"
+        }
+      }
+    ]
+  }
+}
+之类的查询。
+

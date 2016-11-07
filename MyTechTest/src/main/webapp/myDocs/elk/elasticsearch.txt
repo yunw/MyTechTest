@@ -1,0 +1,31 @@
+网络设置：https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html#common-network-settings
+/usr/local/elasticsearch-5.0.0/config/elasticsearch.yml
+network.host:当前节点会绑定到该ip或hostname并且广播该ip到集群中的其他节点。
+
+
+
+
+
+
+
+
+
+
+遇到的问题：
+1、
+max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]
+解决办法（需要root权限）：
+临时修改
+sysctl -w vm.max_map_count=262144 #-w选项修改sysctl配置 
+永久修改：
+vi /etc/sysctl.conf
+vm.max_map_count=262144
+
+2、
+max file descriptors [4096] for elasticsearch process likely too low, increase to at least [65536]
+解决办法（需要root权限）：
+vi /etc/security/limits.conf
+@elsearch hard nofile 65536
+@elsearch soft nofile 65536
+
+

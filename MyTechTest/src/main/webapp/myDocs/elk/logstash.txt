@@ -1,0 +1,46 @@
+rpm package install:
+home:/usr/share/logstash
+bin:/usr/share/logstash/bin
+settings:/etc/logstash
+conf:/etc/logstash/conf.d
+logs:/var/log/logstash
+plugins:/usr/share/logstash/plugins
+
+logstash配置文件的结构：
+input {
+}
+
+filter {
+}
+
+output {
+}
+
+列出所有已经安装的插件：
+/usr/share/logstash/bin/logstash-plugin list
+
+列出所有属于一个组（这些组包含：input, filter, codec, output）的已经安装的插件：
+/usr/share/logstash/bin/logstash-plugin list --group output
+
+安装插件（公共仓库：RubyGems.org）：
+/usr/share/logstash/bin/logstash-plugin install logstash-output-kafka
+安装插件（本地）：
+bin/logstash-plugin install /path/to/logstash-output-kafka-1.0.0.gem
+
+更新插件：
+bin/logstash-plugin update #更新所有已经安装的插件
+bin/logstash-plugin update logstash-output-kafka #更新指定插件
+
+删除插件：
+bin/logstash-plugin remove logstash-output-kafka
+
+代理支持：
+如果必须通过代理上网，可以如下安装插件：
+export HTTP_PROXY=http://127.0.0.1:3128
+bin/logstash-plugin install logstash-output-kafka
+
+
+
+
+
+

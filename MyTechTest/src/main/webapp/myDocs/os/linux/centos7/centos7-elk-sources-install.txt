@@ -32,6 +32,34 @@ chown -R elsearch:elsearch /usr/local/elasticsearch-5.0.0
 su elsearch
 cd /usr/local/elasticsearch-5.0.0/bin
 ./elasticsearch
+验证：
+1、集群健康检查：
+[elsearch@centos76 config]$ curl -XGET 192.168.56.76:9200/_cat/health?v
+epoch      timestamp cluster       status node.total node.data shards pri relo init unassign pending_tasks max_task_wait_time active_shards_percent
+1478349229 20:33:49  elasticsearch yellow          1         1      1   1    0    0        1             0                  -                 50.0%
+2、节点列表：
+[elsearch@centos76 config]$ curl -XGET '192.168.56.76:9200/_cat/nodes?v&pretty'
+ip            heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+192.168.56.76            3          96   2    0.03    0.23     0.16 mdi       *      uL90v9o
+3、创建索引：
+[elsearch@centos76 config]$ curl -XPUT '192.168.56.76:9200/customer?pretty&pretty'
+{
+  "acknowledged" : true,
+  "shards_acknowledged" : true
+}
+4、显示索引列表：
+[elsearch@centos76 config]$ curl -XGET '192.168.56.76:9200/_cat/indices?v&pretty'
+health status index    uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   .kibana  Jc1r4pPORzaDV58Qviwetg   1   1          1            0      3.1kb          3.1kb
+yellow open   customer l6ZuGTomQ1-m6XBviYgXrQ   5   1          0            0       260b           260b
+
+
+
+curl -XPUT '192.168.56.76:9200/customer?pretty&pretty'
+curl -XGET '192.168.56.76:9200/_cat/indices?v&pretty'
+
+
+
 
 kibana rpm install:
 rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
