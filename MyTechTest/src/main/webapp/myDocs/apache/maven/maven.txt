@@ -1,5 +1,8 @@
 MAVEN_OPTS: http://juvenshun.iteye.com/blog/240257
 
+根据不同环境打包：
+mvn clean package -PprofileId
+
 settings.xml（http://maven.apache.org/settings.html）
 安装地点：
 1、$M2_HOME/conf/settings.xml   （全局设置）

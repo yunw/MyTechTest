@@ -13,3 +13,11 @@ pass:Pass1234
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtSSbVmwwqpM9+Ss0JRplCeej5RJsqTma6X1ZRwOvqaojL2Yl5cw2suieZxOWCbWNq/7qhvLoa56Yb1sPk0gRFtqeScwHKB55xMrBdaQUWHjWVm5GlaSjhPJHnytFVZWfxT3NI0AQknd0icmYdpShWZSchH4azxEK7OdAZswJL63nMknufaTOG+czr/fjzfb1B3/0KlvPqVRDKfD03bt+AlDAb0Wpdpnswcc4SDHcdNteIVcMveOw0VTJ5Unwvc4WzcK7LVQYz+cfzOJ73Sp/+Kq3eBOmhig+1vha716b5vL+4P1xaQBbAMMPxI1ytuQiL7TqE1/kQ7/+I+H1rp5Ep yin.shunlin@puscenen.com
 
 
+git sshkey:
+10.0.21.67
+git config --global user.name "yin.shunlin"
+git config --global user.email "yin.shunlin@puscene.com"
+cd ~/.ssh
+ssh-keygen -t rsa -C "yin.shunlin@puscene.com"  #直接回车，密码为空
+
+将生成的id_rsa.pub的内容拷贝到gitlib中的 sshkey中，就可以clone了。拷贝的时候不要用more命令，可能会有换行符，用vi打开编辑器然后拷贝。

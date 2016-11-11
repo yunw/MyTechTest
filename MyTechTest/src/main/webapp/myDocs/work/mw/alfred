@@ -10,6 +10,12 @@ D:\apache\activemq\apache-activemq-5.14.1\bin\activemq start
 zookeeper：
 D:\apache\zookeeper\zookeeper-3.4.9\bin\zkServer
 
+10.0.21.67 }$Wxvxo@gthchPZK4fM8
+10.0.21.68 &"xH7tsGBjifE{m5asKw
+10.0.21.84 d#teSZ*iYLEx0ubja>q9
+10.0.21.71 91Mwbyd!
+10.0.21.64 provider  root/91Mwbyd!  /data/service/
+10.0.21.73 provider  root/91Mwbyd!  /data/service/
 
 alfred测试环境(5台)：
 10.0.21.123 E0y"FrgbkydBVr%h6Gn#    nginx(alfred-mobile-api.conf:http://10.0.21.123:8083/alfred-mobile-api alfred-api.conf:http://10.0.21.123:8083/alfred-api)

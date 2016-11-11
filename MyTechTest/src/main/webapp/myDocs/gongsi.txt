@@ -37,4 +37,6 @@ http://114.80.88.52:9001/nexus/#welcome
 Disconf - 分布式配置管理平台 admin/mwee.cn http://10.0.21.71:8079/
 Commits at dev_cat - 杨俊明 / mwee_paidui_soa | GitLab http://git.9now.net:10080/yangjunming/mwee_paidui_soa/commits/dev_cat
 
-http://auto.mwee.cn/pages/index.html yinshunlin/Pass1234
+http://auto.mwee.cn/pages/index.html yinshunlin/Pass1234 
+
+禅道：http://zentao.9now.net/index.php?m=product&f=browse

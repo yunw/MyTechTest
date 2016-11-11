@@ -45,4 +45,10 @@ maria
 statsd
 elk
 kvm
+CMDB（Configuration Management Database）
+TSP（Telematics Service Provider）汽车远程服务提供商
 缓存穿透、缓存雪崩 http://blog.csdn.net/zhang_red/article/details/50774834
+
+redis管理系统：https://www.oschina.net/p/cachecloud-Redis
+
+wiki系统：https://www.oschina.net/news/63011/confluence-5-8
