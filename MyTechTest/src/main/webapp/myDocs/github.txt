@@ -88,7 +88,24 @@ git branch <新分支名称>
 git push origin <本地分支名称>:<远程分支名称>
 
 更新代码到本地：
-git pull origin dev_cat
+git pull [options] [<repository> [<refspec>…​]]
+<repository>:
+1、 GIT URLS:包含了传输协议，远程服务器地址，仓库路径。
+例如：
+ssh://[user@]host.xz[:port]/path/to/repo.git/
+http[s]://host.xz[:port]/path/to/repo.git/
+2、REMOTES：下面列出的其中一个的名称，可以代替<repository>：
+a：git配置文件：$GIT_DIR/config中的remote
+b：$GIT_DIR/remotes下的一个文件
+c：$GIT_DIR/branches下的一个文件
+在命令行中使用REMOTES可以允许忽略<refspec>，因为都有一个默认的<refspec>
+
+<refspec>：
+格式：<src>:<dist>
+src:远程仓库ref
+dist：本地仓库
+例如：
+git pull origin dev:dev
 
 
 

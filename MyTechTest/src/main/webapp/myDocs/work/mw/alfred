@@ -75,6 +75,8 @@ svn co svn://svn.9now.cn/yunpos/prototype/server/branches/2.0.4.x/alfred-rest-al
 https://github.com/hum1/mw_auto.git
 https://github.com/hum1/mw_auto_pages.git
 
+svn：svn://svn.9now.cn/yunpos yin.shunlin=c4dwpqUrbcr]'"Qx9YGL
+
 svn to git
 创建目录：d:/svnToGit
 checkout下面的项目到svnToGit目录(find/checkout as选项，自选目录)
@@ -143,8 +145,39 @@ git push origin master:master
 最后。重新下载整个项目，导入eclipse，编译工程并修改.gitignore文件并提交。
 
 
+百度：
+jdbc.url=jdbc:mysql://10.10.10.222:3306
+jdbc.username=root
+jdbc.password=058858
+
+114.80.110.162
+4433
+yang.junming@puscene.com
+xRe9ca4qh+jf0jgdwkVf
 
 
 
 
+http://localhost:8180/alfred-api/api/takeaway/baidu/order/create
 
+工理回调：
+http://wk.9now.net/pages/viewpage.action?pageId=3089872
+ThirdOrderController
+
+
+百度外卖开发者账号
+账号  13524443304
+密码   zgc123456
+合作方帐号：65093
+密钥：2d83eec2de6f45f4
+
+百度商户ID 1816920572   
+合作方商户ID 7039 
+百度测试店：http://waimai.baidu.com/waimai/shop/1816920572
+百度商户ID 1817141092   
+合作方商户ID 7040
+百度测试店： http://waimai.baidu.com/waimai/shop/1817141092
+
+百度商户ID 1818489023   
+合作方商户ID 7041
+百度测试店： http://waimai.baidu.com/waimai/shop/1818489023

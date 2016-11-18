@@ -1,0 +1,27 @@
+reference: http://www.cnblogs.com/yjmyzz/p/activemq-ha-using-networks-of-brokers.html
+http://www.cnblogs.com/leihenqianshang/articles/5623858.html
+
+服务器地址：
+192.168.56.72 /usr/local/apache-activemq-5.14.1/
+192.168.56.76 /usr/local/apache-activemq-5.14.1/
+
+192.168.56.72
+/usr/local/apache-activemq-5.14.1/conf/activemq.xml
+修改brokername：activemq72
+添加下列配置：
+<networkConnectors>
+    <networkConnector uri="static:(tcp://192.168.56.76:61616)" duplex="true"/>
+</networkConnectors>
+其它配置不动
+
+192.168.56.76
+/usr/local/apache-activemq-5.14.1/conf/activemq.xml
+修改brokername：activemq76
+其它配置不动
+
+测试：
+发送文本消息（192.168.56.72）：
+bin/activemq producer --message "My message" --messageCount 1
+
+消费消息（192.168.56.76）：
+bin/activemq consumer --transacted true

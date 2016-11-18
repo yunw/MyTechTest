@@ -1,6 +1,8 @@
 db中间件：
 Sharding-JDBC： 透明化数据库分库分表访问
 https://github.com/dangdangdotcom/sharding-jdbc
+数据库客户端工具
+sqllog navicat mysql-workbench
  
 mycat： 数据库分库分表中间件
 https://github.com/MyCATApache/Mycat-download/tree/master/1.6-RELEASE
@@ -48,7 +50,14 @@ kvm
 CMDB（Configuration Management Database）
 TSP（Telematics Service Provider）汽车远程服务提供商
 缓存穿透、缓存雪崩 http://blog.csdn.net/zhang_red/article/details/50774834
+深入计算机系统
+响应式设计
 
 redis管理系统：https://www.oschina.net/p/cachecloud-Redis
 
 wiki系统：https://www.oschina.net/news/63011/confluence-5-8
+
+异地多活：
+http://servers.pconline.com.cn/721/7215376.html
+http://blog.csdn.net/u010942020/article/details/51914719
+同城异地双活：数据库步长为2， 1在一个机房2在另一个机房，数据库主从复制。根据用户（商户）id路由到数据库（mycat集群）。

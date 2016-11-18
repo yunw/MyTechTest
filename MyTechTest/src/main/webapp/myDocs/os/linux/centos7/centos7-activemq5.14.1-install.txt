@@ -14,11 +14,13 @@ firewall-cmd --permanent --query-port=61614/tcp
 firewall-cmd --permanent --query-port=61616/tcp
 firewall-cmd --permanent --query-port=61617/tcp
 
-wget https://archive.apache.org/dist/activemq/5.13.0/apache-activemq-5.13.0-bin.tar.gz
-tar zxf apache-activemq-5.13.0-bin.tar.gz -C /usr/local/
-cd /usr/local/apache-activemq-5.13.0
+wget https://archive.apache.org/dist/activemq/5.14.1/apache-activemq-5.14.1-bin.tar.gz
+tar zxf apache-activemq-5.14.1-bin.tar.gz -C /usr/local/
+cd /usr/local/apache-activemq-5.14.1
 bin/activemq start
 
 测试：
 http://192.168.56.71:8161/admin/
 user/password: admin/admin
+
+bin/activemq stop
