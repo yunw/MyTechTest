@@ -1,3 +1,5 @@
+solr运行端口默认为8983
+
 solr5.2.1部署
 1、下载：solr-5.2.1.zip，解压到：d:/solr-5.2.1
 拷贝D:\solr-5.2.1\server\webapps\solr.war到tomcat的webapps目录下

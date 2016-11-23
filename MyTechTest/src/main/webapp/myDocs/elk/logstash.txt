@@ -1,3 +1,5 @@
+yinsl/elasticsearch123
+
 rpm package install:
 home:/usr/share/logstash
 bin:/usr/share/logstash/bin

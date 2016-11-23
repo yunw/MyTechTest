@@ -1,0 +1,79 @@
+服务器：192.168.56.74
+
+firewall-cmd --zone=public --add-port=8983/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=8983/tcp
+
+wget http://mirror.bit.edu.cn/apache/lucene/solr/6.3.0/solr-6.3.0.tgz
+
+tar zxf solr-6.3.0.tgz -C /usr/local
+cd /usr/local/solr-6.3.0
+
+#获取帮助：
+bin/solr start -help
+
+#后台方式运行：
+bin/solr start
+
+#前台方式运行：
+bin/solr start -f
+
+#以指定端口运行：
+bin/solr start -p 8984
+ 
+#停止solr：前台运行方式可以ctrl+c，后台方式必须指定端口，也可以指定所有端口-all
+bin/solr stop -p 8983
+bin/solr stop -all
+
+create acore：
+创建一个core以用于索引和搜索：
+bin/solr create -c <name>
+该命令创建一个数据驱动的schema（data-driven schema），它会猜测正确的域类型（field type），当你将文档加入索引的时候。
+bin/solr create -c gettingstarted
+[root@centos74 solr-6.3.0]# bin/solr create -c gettingstarted -force
+
+Copying configuration to new core instance directory:
+/usr/local/solr-6.3.0/server/solr/gettingstarted
+
+Creating new core 'gettingstarted' using command:
+http://localhost:8983/solr/admin/cores?action=CREATE&name=gettingstarted&instanceDir=gettingstarted
+
+{
+  "responseHeader":{
+    "status":0,
+    "QTime":2855},
+
+要查看创建core的所有选项，可以执行：
+bin/solr create -help
+
+添加文档：
+solr建立文件匹配查询。solr的架构（solr's schema）提供了一种让内容结构化的方式，但是没有文件，就无法找到任何东西。solr在做事情之前需要提供一个输入。
+语法：post -c <collection> [OPTIONS] <files|directories|urls|-d ["...",...]>
+collection：集合的名称
+
+bin/post -c gettingstarted example/exampledocs/*.xml 
+
+查询：
+现在有了经过索引的文档，可以执行查询了。最简单的方式是构建一个包含查询参数的url。例如，下面的url查询所有的文档域：video
+http:://localhost:8983/solr/gettingstarted/select?q=video
+
+一旦你掌握了查询的基本思想，很容易添加增强的查询语法。下面的这个url和上面的一样，但在返回的文档结果中只包含id，name，price。如果你不指定field那么返回所有的。
+http://localhost:8983/solr/gettingstarted/select?q=video&fl=id,name,price
+
+#范围搜索
+http://192.168.56.74:8983/solr/gettingstarted/select?q=price:[0%20TO%20400]&fl=id,name,price
+
+平面浏览（Faceted browsing）是solr的一个关键特征。它允许用户以对程序有意义的方式缩小搜索结构的范围。例如，一个购物网站可以提供平面搜索来缩小范围，只返回厂商和价格。
+http://192.168.56.74:8983/solr/gettingstarted/select?q=price:[0%20TO%20400]&fl=id,name,price&facet=true&facet.field=cat
+
+http://192.168.56.74:8983/solr/gettingstarted/select?q=price:0%20TO%20400&fl=id,name,price&facet=true&facet.field=cat&fq=cat:software
+
+
+
+
+
+
+
+
+
+

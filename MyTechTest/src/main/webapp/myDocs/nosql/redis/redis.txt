@@ -21,7 +21,7 @@ redis每秒10次执行如下步骤：
 slave连接到master上不会独立的删除过期key（但是会等待来自master的del命令）；他们会保存数据集中所有过期key的全部状态。
 因此，当一个slave被选为master后，他能像master一样独立删除过期key。
 
-LRU（Least Recently Used）算法：最近最久未使用算法。
+LRU（Least Recently Used）算法：最近最最少使用算法。 refrence：http://flychao88.iteye.com/blog/1977653
 
 redis内存回收算法：
 redis在内存到达极限的时候，采用的内存淘汰算法是LRU算法（其实是一种近似算法）。有6种策略：

@@ -1,0 +1,39 @@
+http://www.pstips.net/powershell-online-tutorials/
+
+打开powershell：
+1、窗口键+R打开运行窗口，输入powershell可以打开
+2、在命令行窗口输入：powershell可以打开
+
+get-command:
+可以查看有多少cmdlet命令
+
+get-help get-process -detail
+查看get-process命令的详细帮助文档
+
+Get-Service | Where-Object {$_.Status -eq "Running"}
+查看当前正在运行的服务
+
+Get-Service "wmi*"
+查看服务名以wmi开头的服务
+
+
+下面的命令为启动停止服务的系列命令：
+PS C:\WINDOWS\system32> get-service "filebeat"
+Status   Name               DisplayName
+------   ----               -----------
+Stopped  filebeat           filebeat
+
+PS C:\WINDOWS\system32> start-service -name "filebeat"
+
+PS C:\WINDOWS\system32> get-service "filebeat"
+Status   Name               DisplayName
+------   ----               -----------
+Running  filebeat           filebeat
+
+PS C:\WINDOWS\system32> stop-service "filebeat"
+
+PS C:\WINDOWS\system32> get-service "filebeat"
+
+Status   Name               DisplayName
+------   ----               -----------
+Stopped  filebeat           filebeat

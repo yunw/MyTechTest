@@ -1,0 +1,98 @@
+1、sentinel（哨兵）
+sentinel的功能：
+a、监控：哨兵经常检查你的主和从实例是否按期望的那样工作。
+b、通知：哨兵可以通知系统管理员，另一个计算机程序，通过api，正在监控的某个redis实例出错了。
+c、自动故障转移：如果一个master不按期望那样的工作，哨兵就会启动一个故障转移进程，将一个slave升级为master，其他的slave会重新配置为使用这个新的maseter，并且在使用该redis服务的应用连接上来的时候，会告诉他连接到新的地址上。
+d、提供配置程序：哨兵是服务发现的一个权威来源：客户端连接到哨兵是为了询问当前可用的master redis的地址。如果故障转移了，哨兵会报告新的地址。
+
+sentinel是天然分布式的：
+redis sentinel是一个分布式系统：
+sentinel自身被设计成一个有多个sentinel进程相互合作的配置中。多个sentinel进程合作的优势如下：
+1、当多个sentinel都同意某个给定的master不可用这一个事实后，故障检测才执行，这降低了误报率。
+2、即使有些sentinel进程已经不能工作，整个sentinel也能很好的工作。这提高了系统对故障的鲁棒性。
+
+运行sentinel：
+redis-sentinel /path/to/sentinel.conf
+redis-server /path/to/sentinel.conf --sentinel
+这两种方式是相同的。在运行sentinel的时候配置文件是必须的。系统会使用这个文件存储当前状态，在重启的时候会使用。如果文集没有指定或不可写，sentinel会直接拒绝运行。
+sentinel默认监听26379端口。
+
+在部署之前必须了解sentinel的基本状况：
+1、进行鲁棒部署至少需要三个sentinel节点
+2、三个sentinel放在三个机器或vm上，必须保证他们的失败是独立的。
+3、sentinel + redis 不能保证在故障期间已经确认的写被保留，因为redis使用的是异步复制。然而，有一些方法来部署sentinel，来讲写丢失窗口限制在一个可接受的范围。
+4、sentinel必须能接受你的客户端，流行的客户端都支持，但不是所有。
+5、sentinel在docker中使用要注意。
+
+配置sentinel：
+一个典型的最小配置如下：
+sentinel monitor mymaster 127.0.0.1 6379 2
+sentinel down-after-milliseconds mymaster 60000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1
+
+sentinel monitor resque 192.168.1.3 6380 4
+sentinel down-after-milliseconds resque 10000
+sentinel failover-timeout resque 180000
+sentinel parallel-syncs resque 5
+你只要指定master来监控，给每个master一个不同的名字。不需要指定slave，他们会被自动发现。sentinel会更新配置文件来添加slave的信息。每次一个slave升级为master以及每次
+发现一个新的sentinel，配置文件都会被更新一次。
+
+上面的配置中，监控了两套redis实例。一个叫mymaster拎一个叫resque。
+
+sentinel monitor语句的含义如下：
+sentinel monitor <master-group-name> <ip> <port> <quorum>
+为了清晰起见，一行一行的分析配置的含义：
+第一行告诉redis监控一个叫mymaster的master节点。它的地址是127.0.0.1端口是6379，法定人数（quorum ）为2。
+法定人数（quorum）的含义：
+quorum是同意一个master不可达 的sentinel的数量，为了真正的标记这个master节点失败，在必要的时候启动故障转移程序。
+quorum仅仅用于决定失败。为了真正执行故障转移，某个sentinel需要被选举为leader来做故障转移。这只发生在大多数sentinel的投票过程中
+例如，你有5个sentinel进程，并且一个给定的master节点的quorum被设定为2，那么：
+a、如果两个sentinel同事同意该master不可达，这两个中的一个将试图启动故障转移。
+b、如果至少有三个sentinel可达，故障转移将被授权并真正地开始。
+
+其他的sentinel选项：
+sentinel <option_name> <master_name> <option_value>
+down-after-milliseconds：一个sentinel认为实例不可达（不能响应ping或响应错误的信息）的毫秒时间。
+parallel-syncs：设置在故障转移后，可以同时刷新配置使用新的master的slave数量。数量越低，就需要越多的时间来结束故障转移进程。然而，如果slave被配置为可以用老数据提供服务，你也许不希望让
+所有的slave都同时更新配置指向新的master。虽然复制过程对slave来说是非阻塞的，到它停止从master加载数据仍然有一段时间，这段时间slave是不可达的。也许你只希望同一时间只有一个slave不可达，可以将它设为1.
+
+sentinel部署实例：M1--master S1--sentinel   R1--slave   C1--cient
+
+       +----+
+       | M1 |
+       | S1 |
+       +----+
+          |
++----+    |    +----+
+| R2 |----+----| R3 |
+| S2 |         | S3 |
++----+         +----+
+Configuration: quorum = 2
+如果M1失效，S2和S3可以同意这个失效并授权故障转移，使得客户端可以继续运行。
+
+严重的问题：
+         +----+
+         | M1 |
+         | S1 | <- C1 (writes will be lost)
+         +----+
+            |
+            /
+            /
++------+    |    +----+
+| [M2] |----+----| R3 |
+| S2   |         | S3 |
++------+         +----+
+如果网络分区隔离了老的master：M1。结果R2升级为M2。那么客户端，例如c1，与M1在一个分区，有可能继续写数据到M1，这些数据将永久丢失，即使M1从分区中恢复，这个M1强被重新
+配置为新master的一个slave，忽略了它的数据集。
+这个问题通过下面的配置可以减缓：
+min-slaves-to-write 1
+min-slaves-max-lag 10
+包含上面配置的redis，如果作为一个master，将停止接受写入，如果它无法写入一个slave。由于复制是异步的，如果不能写，意味着slave是断开的，或者它不能发送给我们异步确认消息超过max-lag指定的秒数。
+
+上面的配置中，M1在10秒中后就会变的不可用。当网络分区恢复后，sentinel配置会聚集到新的M2上去，客户端c1会发现新的合法的配置并用心的master继续使用下去。
+
+slave优先级：
+redis实例有个配置参数叫slave-priority。这个信息被slave实例在他们的info输出中暴露出来。sentinel用它来挑选可以用来在故障转移中升级为master的slave：
+1、如果slave priority被设置为0，它永远不可能升级为master
+2、slave proiority数字小的优先被sentinel选择。

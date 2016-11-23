@@ -1,6 +1,7 @@
 wget https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-x86_64.rpm
 wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.0.rpm
 wget https://artifacts.elastic.co/downloads/logstash/logstash-5.0.0.rpm
+wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.1-x86_64.rpm
 
 yum -y localinstall elasticsearch-5.0.0.rpm
 
@@ -28,9 +29,20 @@ systemctl status logstash
 
 rpm -qc logstash
 
+yum -y localinstall filebeat-5.0.1-x86_64.rpm
+
+systemctl enable filebeat
+systemctl start filebeat
+systemctl status filebeat
+
+rpm -qc filebeat
+
+
 修改配置：
 vi /etc/elasticsearch/elasticsearch.yml
 network.host: 192.168.56.76
+http.port: 9200   #http请求入口，可以是一个值或一个范围。如果是一个范围，将绑定第一个合法的端口。默认范围：9200-9300
+#transport.tcp.port #两个节点之间的通信端口，可以是一个值或一个范围。如果是一个范围，将绑定第一个合法的端口。默认范围：9300-9400
 discovery.zen.minimum_master_nodes: 1
 其他属性不变
 

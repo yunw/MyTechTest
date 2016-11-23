@@ -1,0 +1,14 @@
+下载：
+https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.1-windows-x86_64.zip
+解压到C:\Program Files目录下，将目录名改为：filebeat
+以管理员身份运行powershell。
+PS > cd 'C:\Program Files\Filebeat'
+PS C:\Program Files\Filebeat> .\install-service-filebeat.ps1
+
+修改配置文件：
+C:\Program Files\Filebeat\filebeat.yml
+
+启动服务：
+用管理员身份打开powershell：
+start-service -name "filebeat"
+

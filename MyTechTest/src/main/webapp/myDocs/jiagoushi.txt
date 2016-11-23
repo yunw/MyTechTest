@@ -1,3 +1,10 @@
+近期目标：solr 站内搜索
+
+工具：
+http://diff.hust.cc/ 在线文本比较
+http://www.bejson.com/ 在线json格式化
+http://tool.chinaz.com/tools/md5.aspx 在线md5加密
+
 db中间件：
 Sharding-JDBC： 透明化数据库分库分表访问
 https://github.com/dangdangdotcom/sharding-jdbc

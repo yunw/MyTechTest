@@ -150,6 +150,11 @@ jdbc.url=jdbc:mysql://10.10.10.222:3306
 jdbc.username=root
 jdbc.password=058858
 
+dev
+jdbc.url=jdbc:mysql://10.0.21.66:3306
+jdbc.username=root
+jdbc.password=058858
+
 114.80.110.162
 4433
 yang.junming@puscene.com
@@ -181,3 +186,8 @@ ThirdOrderController
 百度商户ID 1818489023   
 合作方商户ID 7041
 百度测试店： http://waimai.baidu.com/waimai/shop/1818489023
+
+合作方商户ID：134460
+百度测试店： http://waimai.baidu.com/waimai/shop/1823349291
+
+http://log.mwee.cn/test/
