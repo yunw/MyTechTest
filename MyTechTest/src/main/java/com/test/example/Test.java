@@ -38,6 +38,9 @@ public class Test {
 	private static Object obj = new Object();
 
 	public static void main(String args[]) throws IOException {
+		System.out.println(Long.MAX_VALUE);
+		System.out.println(Integer.MAX_VALUE);
+		System.out.println("1459421593298753");
 		int aa = new Double(Math.random() * 100).intValue();
 		synchronized (obj) {
 			if (aa == 50) {

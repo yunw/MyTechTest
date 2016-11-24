@@ -1,28 +1,396 @@
 solr运行端口默认为8983
 
-solr5.2.1部署
-1、下载：solr-5.2.1.zip，解压到：d:/solr-5.2.1
-拷贝D:\solr-5.2.1\server\webapps\solr.war到tomcat的webapps目录下
-2、启动tomcat
-3、停止tomcat，修改webapps\solr\\WEB-INF\web.xml文件
-找到：
-<env-entry>
-       <env-entry-name>solr/home</env-entry-name>
-       <env-entry-value>/put/your/solr/home/here</env-entry-value>
-       <env-entry-type>java.lang.String</env-entry-type>
-    </env-entry>
-修改为：
-<env-entry>
-       <env-entry-name>solr/home</env-entry-name>
-       <env-entry-value>D:/solr-5.2.1/server/solr</env-entry-value>
-       <env-entry-type>java.lang.String</env-entry-type>
-    </env-entry>
-4、将：D:\solr-5.2.1\server\lib\ext下的jar包拷贝到tomcat的lib下面
-5、启动tomcat，在浏览器上输入：http://localhost:8080/solr就可以出现solr的界面了。
-
+document fields and schema
 
 document（文档）：solr最基本的信息单元是文档，它是描述某件事的一套数据。在solr的世界中，文档由字段（field）组成，字段是更详细的信息片段。
 字段可以包含不同种类的数据。
 你可以通过字段类型（field type）告诉solr一个字段包含了哪种类型的数据。字段类型告诉solr字段将如何解释和查询。
 当你添加一个文档，solr将信息加入到字段中并建立索引。当你执行查询的时候，solr会快速的查阅索引并返回匹配的文档。
 schema(模式)：告诉solr你要从输入的文档如何创建索引的地方。
+
+Field Analysis 告诉solr在建索引的时候应该对传入的数据如何处理。
+
+Solr's Schema File
+solr将关于field和field type有关的它想要理解的详情存储在一个schema文件中。这个文件的名称和地址取决于你如何初始化配置solr或你以后如何处理它。
+•managed-schema 是solr使用的schema文件的名字，默认支持运行时通过schema api或schemaless mode特性修改schema。
+•schema.xml 是schema文件的一个传统名字，它可以被用户用 ClassicIndexSchemaFactory手动编辑。
+•如果使用solrclound，你可能不能再本地文件系统中找到这些文件的名字。可能只能通过schema api查看schema，或者通过administrator ui的clound screen界面。
+
+如果你使用managed-schema，那么期望你仅仅使用schema api和这个文件交互，并且永远不要手动编辑。如果你不适用managed-schema，你只能手动编辑，schema api不支持任何改变。
+如果你用solrcloud但是不用schema api，你与schema.xml的交互需要用zookeeper的upconfig或downconfig命令来产生本地副本并上传改变。
+
+solr field type
+field type定义了solr将如何理解一个field中的数据以及这个field将被怎样查询。solr默认定义了许多field type。
+
+field type定义与属性
+field type定义包含四中类型的信息：
+1、field type的名称（必需）
+2、一个实现的类名（必需）
+3、如果field type是TextField，那么就是对这个字段类型的字段分析的描述
+4、字段类型属性：依赖于实现类，部分属性可能是必需的
+
+Field Type Definitions in schema.xml
+field type定义在schema.xml文件中，每个field type定义在一对fieldType元素之间。它们可选的被分组到types元素中。下面是一个叫text_general的field type的定义例子：
+<fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
+  <analyzer type="index">
+    <tokenizer class="solr.StandardTokenizerFactory"/>
+    <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+    <!-- in this example, we will only use synonyms at query time
+    <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+     -->
+    <filter class="solr.LowerCaseFilterFactory"/>
+  </analyzer>
+  <analyzer type="query">
+    <tokenizer class="solr.StandardTokenizerFactory"/>
+    <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+    <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+    <filter class="solr.LowerCaseFilterFactory"/>
+  </analyzer>
+</fieldType>
+实现类负责保证字段正确处理。schema.xml中的类名中的solr是org.apache.solr.schema或org.apache.solr.analysis的缩写。
+因此，solr.TextField其实是org.apache.solr.schema.TextField。
+
+Field Type Properties
+field type类决定了field type的绝大多数行为，但是也可以定义可选属性。例如，下面的定义，定义了一个date field type的两个属性：
+<fieldType name="date" class="solr.TrieDateField" sortMissingLast="true" omitNorms="true"/>
+
+Defining Fields
+field定义在schema.xml文件的fields元素中。一旦你定义了field type，定义field就很简单。例如：
+下面的例子定义了一个叫price的field，它的类型是float，默认值是0.0。indexed和stored属性被显式的设置为true，float中定义的其他属性都被继承。
+<field name="price" type="float" default="0.0" indexed="true" stored="true"/>
+
+Copying Fields
+你可能想以一种以上的方式解释文档字段。solr有一种产生field副本的机制，以便你可以将集中不同的field type应用到一个信息上。
+想要拷贝的field的名字是source，副本的名字是destination。
+<copyField source="cat" dest="text" maxChars="30000" />
+在这个例子中，将cat field拷贝到test field中。field拷贝在分析之前进行，意味着同一内容对应着两个field，但是我们使用不同的分析链并存储在不同的索引中。
+
+Dynamic Fields
+动态字段允许solr索引你没有在schema.xml中显式定义的字段。这是很有用的，如果你发现你忘记定义某些字段。动态字段可以减少程序的脆弱性。
+动态字段像一个正则字段。当你索引一个文档的时候，一个没有匹配上显式定义在schema文件中的字段的字段会匹配到动态字段上。
+例如：你用cost_i字段索引一个文档，但是cost_i没有在schema文件中显式定义。那么它将拥有*_i的field type和analysis。
+<dynamicField name="*_i" type="int" indexed="true" stored="true"/>
+建议在schema文件中包含基本的动态字段。
+
+Unique Key
+该元素指定哪个字段唯一标记一个文档。
+<uniqueKey>id</uniqueKey>
+
+Similarity
+相似性是一个lucene类，用于给一个搜索的文档打分。
+每个collection都有一个全局的similarity。默认情况下solr隐式地使用SchemaSimilarityFactory。默认行为可以被顶层元素<similarity/>覆盖。例如：
+<similarity class="solr.BM25SimilarityFactory"/>
+
+Schema API
+schema api提供了读写所有collection 的solr schema的能力。读所有的元素都是支持的。字段，动态字段，字段类型和字段副本规则都是可以添加删除和覆盖的。未来的版本可以提供更多可修改的元素。
+注意：修改了schema元素好要从新索引文档。修改schema不会修改已经索引过的文档，必须从新索引。
+
+未来让schema api能修改schema，schema必须是被管理并且是不可变的。
+api允许两种输出模式：json和xml
+api的基本地址是：http://<host>:<port>/solr/<collection_name>
+
+API Entry Points
+/schema：检索schema，或者修改schema，添加修改或覆盖字段，动态字段字段副本或字段类型。
+/schema/fields：检索所有定义的字段或指定名称的字段
+/schema: retrieve the schema, or modify the schema to add, remove, or replace fields, dynamic fields, copy
+fields, or field types
+/schema/fields: retrieve information about all defined fields or a specific named field
+/schema/dynamicfields: retrieve information about all dynamic field rules or a specific named dynamic rule
+/schema/fieldtypes: retrieve information about all field types or a specific field type
+/schema/copyfields: retrieve information about copy fields
+/schema/name: retrieve the schema name
+/schema/version: retrieve the schema version
+/schema/uniquekey: retrieve the defined uniqueKey
+/schema/similarity: retrieve the global similarity definition
+/schema/solrqueryparser/defaultoperator: retrieve the default operator
+
+Modify the Schema
+POST /collection/schema
+
+Add a New Field
+add-field命令添加一个新的field定义到schema。如果存在相同名称的field，抛出错误。
+例如：定义一个新的存储的字段，名称“sell-by”，类型“tdate”，可以发送下面的请求：
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "add-field":{
+ "name":"sell-by",
+ "type":"tdate",
+ "stored":true }
+}' http://192.168.56.74:8983/solr/gettingstarted/schema
+
+Delete a Field
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "delete-field" : { "name":"sell-by" }
+}' http://192.168.56.74:8983/solr/gettingstarted/schema
+
+Replace a Field
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "replace-field":{
+ "name":"sell-by",
+ "type":"date",
+ "stored":false }
+}' http://192.168.56.74:8983/solr/gettingstarted/schema
+
+
+Add a New Field Type
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "add-field-type" : {
+ "name":"myNewTxtField",
+ "class":"solr.TextField",
+ "positionIncrementGap":"100",
+ "analyzer" : {
+ "charFilters":[{
+ "class":"solr.PatternReplaceCharFilterFactory",
+ "replacement":"$1$1",
+ "pattern":"([a-zA-Z])\\\\1+" }],
+ "tokenizer":{ 
+ "class":"solr.WhitespaceTokenizerFactory" },
+ "filters":[{
+ "class":"solr.WordDelimiterFilterFactory",
+ "preserveOriginal":"0" }]}}
+}' http://192.168.56.74:8983/solr/gettingstarted/schema
+
+Multiple Commands in a Single POST
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "add-field-type":{
+ "name":"myNewTxtField",
+ "class":"solr.TextField",
+ "positionIncrementGap":"100",
+ "analyzer":{
+ "charFilters":[{
+ "class":"solr.PatternReplaceCharFilterFactory",
+ "replacement":"$1$1",
+ "pattern":"([a-zA-Z])\\\\1+" }],
+ "tokenizer":{ 
+ "class":"solr.WhitespaceTokenizerFactory" },
+ "filters":[{
+ "class":"solr.WordDelimiterFilterFactory",
+ "preserveOriginal":"0" }]}},
+ "add-field" : {
+ "name":"sell-by",
+ "type":"myNewTxtField",
+ "stored":true }
+}' http://192.168.56.74:8983/solr/gettingstarted/schema
+
+相同的命令可以用一个数组发送：
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "add-field":[
+ { "name":"shelf",
+ "type":"myNewTxtField",
+ "stored":true },
+ { "name":"location",
+ "type":"myNewTxtField",
+ "stored":true }]
+}' http://192.168.56.74:8983/solr/gettingstarted/schema
+
+Schema Changes among Replicas
+以solrcloud模式运行的时候，改变一个节点上的schema，将会传播到该collection的所有副本节点上。
+
+List Fields
+GET /collection/schema/fields
+GET /collection/schema/fields/fieldname
+
+List Dynamic Fields
+GET /collection/schema/dynamicfields
+GET /collection/schema/dynamicfields/name
+例如：http://192.168.56.74:8983/solr/gettingstarted/schema/dynamicfields?wt=json
+
+List Field Types
+GET /collection/schema/fieldtypes
+GET /collection/schema/fieldtypes/name
+
+Show Schema Name
+GET /collection/schema/name
+例如：http://192.168.56.74:8983/solr/gettingstarted/schema/name
+
+Show the Schema Version
+GET /collection/schema/version
+例如：http://192.168.56.74:8983/solr/gettingstarted/schema/version
+
+schema的顶层结构
+如下：
+<schema>
+ <types>
+ <fields>
+ <uniqueKey>
+ <copyField>
+</schema>
+
+
+Enabling DocValues
+<field name="manu_exact" type="string" indexed="false" stored="false" docValues="true" />
+docValue仅仅对指定的字段类型有效。这些类型的选择决定了底层的lucene docValue类型的使用。合法的字段类型有：
+StrField和UUIDField
+       如果字段是单值的（例如：multi-valued为false），lucene将使用sorted类型
+       如果字段是多值的，lucene将使用sorted_set类型
+任何Trie* 数字字段，date字段和EnumField
+      如果字段是单值的，lucene将使用numeric类型
+      如果字段是多值的，lucene将使用sorted_set类型
+这些lucene类型关系到值将如何存储和排序。
+
+Understanding Analyzers（分析器）, Tokenizers（分词）, and Filters（过滤）
+
+Analyzers
+分析器检查字段的文本并生成一个分词流。
+<fieldType name="nametext" class="solr.TextField">
+ <analyzer class="org.apache.lucene.analysis.core.WhitespaceAnalyzer"/>
+</fieldType>
+上面的例子中，一个单个的类：WhitespaceAnalyzer，负责分析指定的文本内容并生成对应的分词。对于简单的案例来说，例如一篇简单的英文散文，一个像这样的简单的分析器可能是足够的。
+但是往往需要对字段内容做更复杂的分析。
+即使是最复杂的分析要求，也可以被分解为离散的相对简单的处理步骤。solr有大量的分词器和过滤器，覆盖大多数你可能遇到的情况。建立一个分析链是非常简单的：指定一个简单的<analyzer>元素（没有类属性），
+它的子元素是给分词器和过滤器使用的工厂类。按照你想要的顺序运行。例如：
+<fieldType name="nametext" class="solr.TextField">
+ <analyzer>
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+ <filter class="solr.StandardFilterFactory"/>
+ <filter class="solr.LowerCaseFilterFactory"/>
+ <filter class="solr.StopFilterFactory"/>
+ <filter class="solr.EnglishPorterFilterFactory"/>
+ </analyzer>
+</fieldType>
+这里solr是org.apache.solr.analysis的简写。
+这里，没有在<analyzer>元素上指定分析器类，相反，一个更多的指定类的序列被连接在一起，作为这个字段的分析器。这个字段的文本通过这个列表的第一个元素（solr.StandardTokenizerFactory），
+最后，分词从列表的最后一个元素（solr.EnglishPorterFilterFactory）那里出来，成为一个表达式，它可以用于使用字段类型“nametext”的任何字段。
+
+Analysis Phases
+分析发生在两个上下文中。在索引期间，当一个字段被创建，从分词器中出来的分词流被添加到索引，并为这个字段定义了一套表达式（包括位置，大小等等）。在查询期间，对要搜索的值进行分析，并将分析结果与存储在字段中的索引进行匹配。
+在大多数情况下，相同的分析适用于这两个阶段。当你想进行精确的并且大小写不敏感的字符串匹配是，这是可取的。另外一些情况下，你可能在查询时使用与索引是有轻微不同的步骤。
+如果你对一个字段类型只提供一个 <analyzer>定义，像上面的例子一样，那么它就同时适用于索引与查询。如果你想将两个阶段分开，你需要定义两个 带有type属性的<analyzer>元素。例如：
+<fieldType name="nametext" class="solr.TextField">
+ <analyzer type="index">
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+ <filter class="solr.LowerCaseFilterFactory"/>
+ <filter class="solr.KeepWordFilterFactory" words="keepwords.txt"/>
+ <filter class="solr.SynonymFilterFactory" synonyms="syns.txt"/>
+ </analyzer>
+ <analyzer type="query">
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+ <filter class="solr.LowerCaseFilterFactory"/>
+ </analyzer>
+</fieldType>
+
+Analysis for Multi-Term Expansion：多表达式扩展分析
+某些类型的查询（例如：前缀、通配符、正则表达式等），用户提供的输入不是自然的用于分析的语言。像同义词或停止字符过滤这类东西在这些类型的查询中不能用一种合乎逻辑的方式运行。
+一种被称作MultiTermAwareComponents的分析工厂类可以在这些类型的查询（例如： Lowercasing, or Normalizing Factories）中运行。当solr需要执行多表达式扩展分析的时候，
+只有MultiTermAwareComponents被查询分析器使用，其它的被跳过。
+对大多数情况来说，这提供了最好的可能的行为，不过如果你想绝对控制这些类型的查询。你可以显式的定义多项分析器。例如：
+<fieldType name="nametext" class="solr.TextField">
+ <analyzer type="index">
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+ <filter class="solr.LowerCaseFilterFactory"/>
+ <filter class="solr.KeepWordFilterFactory" words="keepwords.txt"/>
+ <filter class="solr.SynonymFilterFactory" synonyms="syns.txt"/>
+ </analyzer>
+ <analyzer type="query">
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+ <filter class="solr.LowerCaseFilterFactory"/>
+ </analyzer>
+ <!-- No analysis at all when doing queries that involved Multi-Term expansion -->
+ <analyzer type="multiterm">
+ <tokenizer class="solr.KeywordTokenizerFactory" />
+ </analyzer>
+</fieldType>
+
+About Tokenizers
+分词器的工作是将一个文本流分割为分词，每个分词是这个文本字符的子序列。分析器了解它配置的字段，但分词器不了解。分词器从字符流中读取并产生一个分词对象（TokenStream）。
+输入流中的字符可能被丢弃，例如空格或分隔符。它们也可能被添加或替换，例如别名映射或缩写转为规范形式。一个分词包含多种元数据，除了它的文本值，例如分词在字段中的位置。因为一个分词器产生的分词
+可能偏离输入文本，你不能假定分词中的文本与原始文本相同，或它的长度与原始文本相同。可能有多个分词有相同的位置或在原始文本中有相同的偏移量。请记住这一点，如果你使用分词元数据对搜索结果进行语法高亮等操作的时候。
+
+About Filters
+像分词器、过滤器消耗输入产生分词流。过滤器也源自 org.apache.lucene.analysis.TokenStream。与分词器不同，过滤器的输入是一个TokenStream。过滤器的工作通常比分词器更容易。因为大多数情况下
+过滤器看着流中的每个分词并决定是让它通过，被修改或被放弃。
+因为过滤器消费一个分词流产生另一个分词流，他们可以一个接一个直到无限多。链中的每个过滤器处理它的前一个产生的分词流。因此指定过滤器的顺序是重要的，一般情况下，更通用的过滤器放在最前，更专业的放在最后。
+<fieldType name="text" class="solr.TextField">
+ <analyzer>
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+ <filter class="solr.StandardFilterFactory"/>
+ <filter class="solr.LowerCaseFilterFactory"/>
+ <filter class="solr.EnglishPorterFilterFactory"/>
+ </analyzer>
+</fieldType>
+这个例子以solr的标准分词器开始，它将字段文本打破产生分词。然后这些分词经过solr的标准过滤器，它从缩略语中去除点，并执行一些其它常见动作。接下来所有的分词被设置为小写，这将有助于在查询时不区分大小写匹配。
+最后一个过滤器是一个词干分析器，使用“porter”分词算法。词干基本上是一组映射规则，将一个单词的各种形式映射回基本形式。例如，英语单词“hugs”，“hugging”以及“hugged”都有一个词干“hug”。词干分析器将
+所有这些表达式用“hug”代替，它将被索引。这意味着一个“hug”的查询将匹配“hugged”而不是“huge”。反过来，应用词干分析器，你的查询表达式允许包含非词干条件的查询，例如“hugging”可以匹配文档中拥有相同词干的
+不同变体，例如“hugged”。这是因为索引器和查询都映射到相同的词干“hug”。词非常明显是语言相关的。solr包含几种语言相关的词干分析器。
+
+Standard Tokenizer
+这个分词器将文本字段分割为分词。用标点符号、空格做分隔符，分隔符将被丢弃，下列情况除外：
+1、句号（.)后面没有空格将作为分词的一部分，包括因特网域名
+2、@符号作为分词分割符号，因此电子邮件不作为单一标记
+注意：单词会被连字符（-）分割
+例如：
+<analyzer>
+ <tokenizer class="solr.StandardTokenizerFactory"/>
+</analyzer>
+In: "Please, email john.doe@foo.com by 03-09, re: m37-xq."
+Out: "Please", "email", "john.doe", "foo.com", "by", "03", "09", "re", "m37", "xq"
+
+
+Introduction to Solr Indexing
+solr可以从许多不同的来源接收数据，包括xml文件，逗号分隔值（CSV）文件，从数据库表中提取的数据，以及常见的文件格式如微软的word和excel。
+有三种常见的方式加载数据到solr索引：
+1、使用solr的cell框架获取二进制文件或结构化文件如office，word，pdf以及其他的专有格式。
+2、通过http请求上传xml文件到solr服务器
+3、编写自定义的java程序来获取数据，通过java client api。
+
+
+Post Tool
+solr包含了一个命令行工具来发布各种内容到solr服务器。这就是bin/post。
+例如：
+bin/post -c gettingstarted example/films/films.json
+这条命令将连接服务器localhost:8983。collection/core 名称是必需的。
+
+Indexing XML
+添加所有以.xml为扩展名的文件到 名称为“gettingstarted”的collection/core中。
+bin/post -c gettingstarted *.xml
+
+Standard Query Parser Parameters
+标准的查询分析支持下面的参数：
+参数                   描述
+q        定义一个查询使用标准的查询语法，该参数是必需的。
+q.op     指定查询表达式的默认操作符。覆盖schema中指定的默认操作符。可能的值是“AND”和“OR”
+df       指定一个默认字段，覆盖schema中指定的默认字段。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
