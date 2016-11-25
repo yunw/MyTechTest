@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -38,6 +39,7 @@ public class Test {
 	private static Object obj = new Object();
 
 	public static void main(String args[]) throws IOException {
+		System.out.println(UUID.randomUUID().toString().toUpperCase());
 		System.out.println(Long.MAX_VALUE);
 		System.out.println(Integer.MAX_VALUE);
 		System.out.println("1459421593298753");

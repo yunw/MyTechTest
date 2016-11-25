@@ -352,19 +352,102 @@ df       指定一个默认字段，覆盖schema中指定的默认字段。
 
 
 
+Uploading Structured Data Store Data with the Data Import Handler（DIH）
+许多搜素程序在一个结构化的数据存储例如关系数据库中存储被索引的内容。数据导入处理程序提供了一种机制从数据库导入内容并索引它。
+除了关系数据库，DIH还可以从基于http的数据源例如：RSS以及ATOM feeds，email仓库以及机构化的xml。
 
 
+Data Import Handler(DIH) with RDBMS
+为了使用这个handler，下面的步骤是必须的：
+1、定义一个data-config.xml并在solrconfig.xml的DataImportHandler章节指定该文件的位置。
+2、给定连接信息（如果你选择在solrconfig中指定datasource信息）
+3、打开DataImportHandler页面进行验证，链接：http://192.168.56.74:8983/solr/dataimport
+4、使用全量导入（full-import）命令从数据库全量导入数据并索引它
+5、使用增量导入（delta-import）命令做增量导入（获取新的添加/修改）并加入到solr索引中
+
+Configuring DataSources
+直接在dataConfig标签下添加dataSource标签：
+<dataSource type="JdbcDataSource" driver="com.mysql.jdbc.Driver" url="jdbc:mysql://localhost/dbname" user="db_username" password="db_password"/>
+1、数据源配置也可以在solrconfig.xml中配置
+2、属性type指定了实现类，可选，默认值为：JdbcDataSource
+3、属性name在有多个数据源的时候可以被使用
+
+Multiple DataSources
+<dataSource type="JdbcDataSource" name="ds-1" driver="com.mysql.jdbc.Driver" url="jdbc:mysql://db1-host/dbname" user="db_username" password="db_password"/>
+<dataSource type="JdbcDataSource" name="ds-2" driver="com.mysql.jdbc.Driver" url="jdbc:mysql://db2-host/dbname" user="db_username" password="db_password"/>
+在entities中：
+..
+<entity name="one" dataSource="ds-1" ...>
+   ..
+</entity>
+<entity name="two" dataSource="ds-2" ...>
+   ..
+</entity>
+..
+
+Configuring JdbcDataSource
+JdbcDataSource接受下面的属性：
+driver：必须
+url：必须
+user：
+password：
+jndiName：
+batchSize：
+convertType：true/false。默认false。自动读取目标Solr的数据类型的数据
+autoCommit：
+readOnly：
+transactionIsolation：
+
+Configuration in data-config.xml
+一个solr文档可以看作一个非规范化的schema，它的字段的值来自多张表。
+data-config.xml首先定义一个document元素。一个document元素代表一种类型的文档。一个文档包含一个或多个根实体（root entity）。一个根实体可以包含多个子实体，这些子实体还可以包含
+其它实体。一个实体就是一个关系数据库中的表/视图。每个实体都可以包含多个字段。每个字段对应的结果集的列在查询该实体时返回。对每个字段，在结果集中都会提及它的列名。如果列名不同于solr的字段名，
+那么另一个属性名会被提供。剩余的所需的属性例如类型可以从solr的schema.xml中推断出来（可以被覆盖）。
+为了从数据库中获取数据，我们的设计理念围绕着模板化sql（templatized sql）为用户输入的每个实体。如果用户需要，这给了他全部的sql能力。根实体是中心表，它的列可以用来连接此表与其它子实体。
+
+Schema for the data config
+dataconfig没有一个硬性规定的schema。在实体/字段中的属性是任意的，取决于处理器和转换器。
+
+一个实体的默认属性有：
+name(required)：标记一个实体的唯一名称
+processor：如果datasource不是rdbms时是必需的（默认为SqlEntityProcessor）
+transformer：
+dataSource：
+threads：
+pk：实体的主键，可选，增量导入时需要。
+rootEntity：
+onError：(abort|skip|continue)默认为abort
+preImportDeleteQuery：在全量导入前清除索引而不是用'*:*'。它只能用于<document>元素的直接子元素的实体。
+postImportDeleteQuery：全量导入后将用于清除索引<!>。只能用于<document>元素的直接子元素的实体。
+
+SqlEntityProcessor的属性：
+query(required)：
+deltaQuery：
+parentDeltaQuery：
+deletePkQuery：
+deltaImportQuery：
+
+Commands
+dih暴露了所有的api，通过http请求。下面就是可能的操作：
+full-import：全量导入可以用链接：http://<host>:<port>/solr/dataimport?command=full-import
+         这个操作将在一个新线程中开始，它的响应中的状态属性将显示忙
+         取决于数据集，这个操作将需要一些时间
+         当全量导入被执行，它存储操作的开始时间奥一个文件中，该文件为：conf/dataimport.properties（这个文件是可配置的）
+         这个时间戳在增量导入执行的时候会被用到
+         全量导入期间对solr的查询不会被阻塞
+         它有些扩展的参数：
+         entity：
+         clean：default true.开始索引前是否清除索引
+         commit：default true。操作完成后是否提交
+         optimize：default false。
+         debug：default false。以debug模式运行，该模式下文档不会自动提交。如果要自动提交，必须显式配置commit=true
+delta-import：http://<host>:<port>/solr/dataimport?command=delta-import，与full-import相同的配置项
+status：获取当前命令的状态， http://<host>:<port>/solr/dataimport
+reload-config：如果data-config被改变，你不想重启solr但是希望重新加载这个文件，http://<host>:<port>/solr/dataimport?command=reload-config 
+abort：终止一个正在处理的操作。 http://<host>:<port>/solr/dataimport?command=abort 
 
 
-
-
-
-
-
-
-
-
-
+         
 
 
 

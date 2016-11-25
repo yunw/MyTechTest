@@ -1,0 +1,106 @@
+参考：https://wiki.apache.org/solr/DIHQuickStart
+solr版本：6.3.0
+1、启动solr
+bin/solr start -force
+2、创建core
+bin/solr create -c mycore -force
+3、修改配置：
+cd /usr/local/solr-6.3.0/server/solr/mycore/conf
+vi solrconfig.xml
+添加配置：
+<requestHandler name="/dataimport" class="org.apache.solr.handler.dataimport.DataImportHandler">
+<lst name="defaults">
+  <str name="config">data-config.xml</str>
+</lst>
+</requestHandler>
+
+vi data-config.xml
+<dataConfig>
+  <dataSource type="JdbcDataSource" 
+              driver="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://192.168.56.76:3306/test" 
+              user="yinsl" 
+              password="Abcd_1234!"/>
+  <document>
+    <entity name="id" 
+            query="select id,name,description from mytest">
+    </entity>
+  </document>
+</dataConfig>
+
+4、确保managed-schema有id，name，description字段
+打开网页：
+http://192.168.56.74:8983/solr/#/mycore/schema
+添加field：name和description，他们的field type都是：text_general
+
+5、全量导入：
+a）copy jar
+cp /usr/local/solr-6.3.0/dist/solr-dataimporthandler-6.3.0.jar /usr/local/solr-6.3.0/server/solr-webapp/webapp/WEB-INF/lib/
+cp /usr/local/solr-6.3.0/dist/solr-dataimporthandler-extras-6.3.0.jar /usr/local/solr-6.3.0/server/solr-webapp/webapp/WEB-INF/lib/
+b）从网上下载mysql驱动程序：mysql-connector-java-6.0.5.jar也保存到目录/usr/local/solr-6.3.0/server/solr-webapp/webapp/WEB-INF/lib/下
+c）重启solr
+/usr/local/solr-6.3.0/bin/solr restart -force
+d）执行全量导入：
+打开网页：
+http://192.168.56.74:8983/solr/#/mycore/dataimport//dataimport
+e）执行查询：
+http://192.168.56.74:8983/solr/mycore/select?indent=on&q=id:*&fl=id,name,description&wt=json
+
+用不同的名称索引字段
+vi data-config.xml
+<dataConfig>
+  <dataSource type="JdbcDataSource" 
+              driver="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://192.168.56.76:3306/test" 
+              user="yinsl" 
+              password="Abcd_1234!"/>
+  <document>
+    <entity name="id" query="select id,name,desc from mytable">
+       <field column="id" name="solr_id"/>
+       <field column="id" name="id"/>
+       <field column="name" name="solr_name"/>
+       <field column="desc" name="solr_desc"/>
+    </entity>
+  </document>
+</dataConfig>
+
+打开网页：
+http://192.168.56.74:8983/solr/#/mycore/schema
+添加field：solr_id，solr_name和solr_description，他们的field type分别是：string，text_general，text_general
+
+
+
+
+多表索引：
+vi data-config.xml
+<dataConfig>
+  <dataSource type="JdbcDataSource"
+              driver="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://192.168.56.76:3306/test"
+              user="yinsl"
+              password="Abcd_1234!"/>
+  <document>
+    <entity name="mytest"
+            query="select id,name,description from mytest">
+       <field column="id" name="solr_id"/>
+       <field column="id" name="id"/>
+       <field column="name" name="solr_name"/>
+       <field column="desc" name="solr_desc"/>
+       <entity name="mytest_detail"
+               query="select name from mytest_detail where mytest_id ='${mytest.id}'">
+              <field column="name" name="solr_details"/>
+       </entity>
+    </entity>
+  </document>
+</dataConfig>
+打开网页：
+http://192.168.56.74:8983/solr/#/mycore/schema
+添加field：solr_details，他的field type分别是：text_general
+
+
+
+
+
+
+
+
