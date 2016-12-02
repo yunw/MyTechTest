@@ -17,6 +17,12 @@ D:\apache\zookeeper\zookeeper-3.4.9\bin\zkServer
 10.0.21.64 provider  root/91Mwbyd!  /data/service/
 10.0.21.73 provider  root/91Mwbyd!  /data/service/
 
+10.0.21.203 WQ2/(9jrccE;vcspFMvz     (alfred-mobile-service)
+10.0.21.204 Y83fzRnomHpgE%dl@tJ_   (alfred-clound-service)
+10.0.21.205 x*Ozpp9fLV;Qlxa;yzV5 (alfred-mapi)
+10.0.21.206 oja([Mx}iNYlSkx69mUz  (alfred-api)
+10.0.21.207 [ynQ6dY4i!q\RgxPnlJg  (alfred-clound)
+
 alfred测试环境(5台)：
 10.0.21.123 E0y"FrgbkydBVr%h6Gn#    nginx(alfred-mobile-api.conf:http://10.0.21.123:8083/alfred-mobile-api alfred-api.conf:http://10.0.21.123:8083/alfred-api)
                                     zookeeper
@@ -176,14 +182,14 @@ ThirdOrderController
 合作方帐号：65093
 密钥：2d83eec2de6f45f4
 
-百度商户ID 1816920572   
-合作方商户ID 7039 
+百度商户ID 1816920572
+合作方商户ID 7039
 百度测试店：http://waimai.baidu.com/waimai/shop/1816920572
-百度商户ID 1817141092   
+百度商户ID 1817141092
 合作方商户ID 7040
 百度测试店： http://waimai.baidu.com/waimai/shop/1817141092
 
-百度商户ID 1818489023   
+百度商户ID 1818489023
 合作方商户ID 7041
 百度测试店： http://waimai.baidu.com/waimai/shop/1818489023
 
@@ -193,3 +199,11 @@ ThirdOrderController
 http://log.mwee.cn/test/
 
 http://wk.9now.net/pages/viewpage.action?pageId=3101966#id-美团外卖订单抓包记录-4、日订单以及登录接口的必要参数以及模拟结果
+
+生产：
+http://yunpos.dc.mwee.cn/alfred-api/api/takeaway/baidu/order/create
+测试：
+http://dc.api.st.9now.net/alfred-api/api/takeaway/baidu/order/create
+
+美团盗链：
+http://localhost:8080/alfred-api/api/takeaway/meituan2/getMeituanToken

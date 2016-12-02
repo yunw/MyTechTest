@@ -70,15 +70,25 @@
 			<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
 		</dependency>
 		<dependency>
-    <groupId>org.apache.solr</groupId>
-    <artifactId>solr-solrj</artifactId>
-    <version>6.3.0</version>
-</dependency>
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>6.0.5</version>
-</dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-solrj</artifactId>
+			<version>6.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.igniterealtime.smack</groupId>
+			<artifactId>smack</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.igniterealtime.smack</groupId>
+			<artifactId>smackx</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>6.0.5</version>
+		</dependency>
 		<!-- <dependency> <groupId>org.ow2.asm</groupId> <artifactId>asm</artifactId> 
 			<version>5.1</version> </dependency> -->
 		<dependency>

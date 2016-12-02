@@ -1,0 +1,244 @@
+参考：http://www.mamicode.com/info-detail-877279.html
+    http://kafka.apache.org/documentation#security
+    https://segmentfault.com/a/1190000002554673
+
+
+1、为每个kafka broker生成证书和key
+keytool -keystore server.keystore.jks -alias localhost -validity {validity} -genkey
+上述命令有两个参数需要指定：
+a）keystore：keystore文件存储了证书。keystore文件存储了证书的私钥，因此需要安全地保存。
+b）validity：证书的有效时间，天数。
+[root@centos71 kafka_2.11-0.10.1.0]# keytool -keystore server.keystore.jks -alias localhost -validity 365 -genkey
+Enter keystore password:          #kafkatest
+Re-enter new password:            #kafkatest
+What is your first and last name?
+  [Unknown]:                      #直接回车
+What is the name of your organizational unit?
+  [Unknown]:                      #直接回车
+What is the name of your organization?
+  [Unknown]:                      #直接回车
+What is the name of your City or Locality?
+  [Unknown]:                      #直接回车
+What is the name of your State or Province?
+  [Unknown]:                      #直接回车
+What is the two-letter country code for this unit?
+  [Unknown]:                      #直接回车
+Is CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown correct?
+  [no]:  yes
+
+Enter key password for <localhost>
+        (RETURN if same as keystore password):  #直接回车
+        
+
+2、创建自己的CA
+第一步之后，集群的每台机器都有一个公-私秘钥对，以及一个标记这台机器的证书。这个证书，还没有签名，这意味着攻击者可以创建这样的证书来冒充任何机器。
+因此，防止伪造的证书是非常重要的。证书颁发机构（CA）负责签名证书。CA签名的证书，它的加密算法保证了被签名的证书是难以伪造的。因此，只要CA是真正的可以信任的权威，客户端就
+有很高的保证，它们连接的是正宗的机器。
+openssl req -new -x509 -keyout ca-key -out ca-cert -days 365
+生成的ca只是一个公-私密钥对和证书，它的目的是签署其它证书。
+[root@centos71 ~]# openssl req -new -x509 -keyout ca-key -out ca-cert -days 365
+Generating a 2048 bit RSA private key
+..............................+++
+......+++
+writing new private key to 'ca-key'
+Enter PEM pass phrase:                            #kafkatest
+Verifying - Enter PEM pass phrase:                #kafkatest
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:                          #直接回车
+State or Province Name (full name) []:                      #直接回车
+Locality Name (eg, city) [Default City]:                    #直接回车
+Organization Name (eg, company) [Default Company Ltd]:      #直接回车
+Organizational Unit Name (eg, section) []:                  #直接回车
+Common Name (eg, your name or your server's hostname) []:   #直接回车
+Email Address []:                                           #直接回车
+
+
+下一步是将生成的CA添加到“客户的信任库”，使客户可以信任这个CA：
+keytool -keystore client.truststore.jks -alias CARoot -import -file ca-cert
+[root@centos71 ~]# keytool -keystore client.truststore.jks -alias CARoot -import -file ca-cert
+Enter keystore password:                                      #kafkatest
+Re-enter new password:                                        #kafkatest
+Owner: O=Default Company Ltd, L=Default City, C=XX
+Issuer: O=Default Company Ltd, L=Default City, C=XX
+Serial number: e75dff2e92564aff
+Valid from: Mon Nov 28 16:23:09 CST 2016 until: Tue Nov 28 16:23:09 CST 2017
+Certificate fingerprints:
+         MD5:  08:4D:C8:32:1B:16:FB:B7:94:B5:40:91:A3:0E:FA:1A
+         SHA1: 51:0F:BC:6F:00:C2:18:ED:05:17:AE:A6:64:E5:EF:C2:46:5C:FC:94
+         SHA256: 65:CC:5E:05:4D:0C:A3:E7:C0:36:04:04:53:57:30:22:55:FD:3A:3D:91:9D:4D:89:38:BC:B0:8B:D6:EC:1A:F9
+         Signature algorithm name: SHA256withRSA
+         Version: 3
+
+Extensions: 
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: C5 AA E1 F7 E9 7B 80 5F   27 92 0D BC 40 6B 48 8C  ......._'...@kH.
+0010: FC F1 93 90                                        ....
+]
+]
+
+#2: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:true
+  PathLen:2147483647
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: C5 AA E1 F7 E9 7B 80 5F   27 92 0D BC 40 6B 48 8C  ......._'...@kH.
+0010: FC F1 93 90                                        ....
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+
+
+3、签名证书
+接下来是对第一步生成的所有证书用第二步中的CA证书进行签名（需要将第二步生成的CA证书：ca-cert和证书私钥：ca-key拷贝到要签名的机器上）。首先，需要从keystore中导出证书。
+keytool -keystore server.keystore.jks -alias localhost -certreq -file cert-file
+[root@centos71 ~]# keytool -keystore server.keystore.jks -alias localhost -certreq -file cert-file
+Enter keystore password:             #kafkatest
+[root@centos71 ~]# ls
+anaconda-ks.cfg  ca-cert  ca-key  cert-file  client.truststore.jks  downloads  server.keystore.jks
+
+接下来用CA签名：
+openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days {validity} -CAcreateserial -passin pass:{ca-password}
+[root@centos71 ~]# openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:kafkatest
+Signature ok
+subject=/C=Unknown/ST=Unknown/L=Unknown/O=Unknown/OU=Unknown/CN=Unknown
+Getting CA Private Key
+[root@centos71 ~]# ls
+anaconda-ks.cfg  ca-cert  ca-cert.srl  ca-key  cert-file  cert-signed  client.truststore.jks  downloads  server.keystore.jks
+
+最后，需要将签过名的证书和CA证书导入到keystore中：
+keytool -keystore server.keystore.jks -alias CARoot -import -file ca-cert
+keytool -keystore server.keystore.jks -alias localhost -import -file cert-signed
+[root@centos71 ~]# keytool -keystore server.keystore.jks -alias CARoot -import -file ca-cert
+Enter keystore password:                               #kafkatest
+Owner: O=Default Company Ltd, L=Default City, C=XX
+Issuer: O=Default Company Ltd, L=Default City, C=XX
+Serial number: e75dff2e92564aff
+Valid from: Mon Nov 28 16:23:09 CST 2016 until: Tue Nov 28 16:23:09 CST 2017
+Certificate fingerprints:
+         MD5:  08:4D:C8:32:1B:16:FB:B7:94:B5:40:91:A3:0E:FA:1A
+         SHA1: 51:0F:BC:6F:00:C2:18:ED:05:17:AE:A6:64:E5:EF:C2:46:5C:FC:94
+         SHA256: 65:CC:5E:05:4D:0C:A3:E7:C0:36:04:04:53:57:30:22:55:FD:3A:3D:91:9D:4D:89:38:BC:B0:8B:D6:EC:1A:F9
+         Signature algorithm name: SHA256withRSA
+         Version: 3
+
+Extensions: 
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: C5 AA E1 F7 E9 7B 80 5F   27 92 0D BC 40 6B 48 8C  ......._'...@kH.
+0010: FC F1 93 90                                        ....
+]
+]
+
+#2: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:true
+  PathLen:2147483647
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: C5 AA E1 F7 E9 7B 80 5F   27 92 0D BC 40 6B 48 8C  ......._'...@kH.
+0010: FC F1 93 90                                        ....
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+
+[root@centos71 ~]# keytool -keystore server.keystore.jks -alias localhost -import -file cert-signed
+Enter keystore password:             #kafkatest
+Certificate reply was installed in keystore
+
+签名完成
+--------------------------------------------------------------------------------------------------------------------------
+
+上述所有步骤可以用下面的脚本来完成：
+参数说明：
+1、keystore：keystore的路径
+2、ca-cert：CA的证书
+3、ca-key：CA的私钥
+4、ca-password：CA的密码
+5、cert-file：导出的未签名的服务器证书，也即证书申请文件（CSR：Cerificate Signing Request）内容包含了公钥以及部分个人身份信息。
+6、cert-signed：服务器的已签名证书
+#!/bin/bash
+#Step 1
+keytool -keystore server.keystore.jks -alias localhost -validity 365 -keyalg RSA -genkey
+#Step 2
+openssl req -new -x509 -keyout ca-key -out ca-cert -days 365
+keytool -keystore server.truststore.jks -alias CARoot -import -file ca-cert
+keytool -keystore client.truststore.jks -alias CARoot -import -file ca-cert
+#Step 3
+keytool -keystore server.keystore.jks -alias localhost -certreq -file cert-file
+openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:kafkatest
+keytool -keystore server.keystore.jks -alias CARoot -import -file ca-cert
+keytool -keystore server.keystore.jks -alias localhost -import -file cert-signed
+
+签名完成
+--------------------------------------------------------------------------------------------------------------------------
+
+接下来
+
+配置kafka broker：
+kafka broker支持从多个端口监听连接。需要在server.properties中配置listeners属性：
+如果ssl在broker之间的通信是关闭的，那么PLAINTEXT和SSL端口都是必须的：
+listeners=PLAINTEXT://host.name:port,SSL://host.name:port
+broker的下列配置也是需要的：
+ssl.keystore.location=/root/server.keystore.jks
+ssl.keystore.password=kafkatest
+ssl.key.password=kafkatest
+#ssl.truststore.location=/var/private/ssl/kafka.server.truststore.jks
+#ssl.truststore.password=kafkatest
+
+配置kafka客户端：
+ssl只支持新的kafka生产者和消费者，老的api不支持。
+生产者和消费者的ssl配置是相同的。
+
+如果broker不要求客户端认证，下面是客户端的最小配置：
+security.protocol=SSL
+ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
+ssl.truststore.password=kafkatest
+
+如果客户端也要求认证，那么也必须像第一步那样建立keystore，并且要加入下面的配置：
+ssl.keystore.location=/var/private/ssl/kafka.client.keystore.jks
+ssl.keystore.password=kafkatest
+ssl.key.password=kafkatest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

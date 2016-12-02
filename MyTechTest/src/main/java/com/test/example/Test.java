@@ -8,13 +8,12 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -39,37 +38,51 @@ public class Test {
 	private static Object obj = new Object();
 
 	public static void main(String args[]) throws IOException {
-		System.out.println(UUID.randomUUID().toString().toUpperCase());
-		System.out.println(Long.MAX_VALUE);
-		System.out.println(Integer.MAX_VALUE);
-		System.out.println("1459421593298753");
-		int aa = new Double(Math.random() * 100).intValue();
-		synchronized (obj) {
-			if (aa == 50) {
-				return;
-			} else {
-				aa = 40;
-			}
-		}
-	    List<String> a = new ArrayList<String>();
-	    a.add("a0000000001");
-	    a.add("a0000003000");
-	    a.add("b0000000001");
-	    a.add("b0001000000");
-	    a.add("a0000000070");
-	    a.add("b0000000600");
-	    for (String s : a) {
-	        System.out.println(s);
-	    }
-	    System.out.println("\n");
-	    Collections.sort(a, new Comparator<String>() {
-            public int compare(String arg0, String arg1) {
-                return arg0.compareTo(arg1);
-            }
-        });
-	    for (String s : a) {
-            System.out.println(s);
-        };
+		long aa = 1480561200;
+		System.out.println("long max value: "   + Long.MAX_VALUE);
+		Date d = new Date(aa * 1000);
+		System.out.println(d);
+		long a = 1480553557;
+		Date date = new Date(a * 1000);
+		Timestamp t = new Timestamp(a);
+		System.out.println(t);
+		System.out.println(date);
+		System.out.println("current: " + System.currentTimeMillis());
+		System.out.println("      a: " + a * 1000);
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("a", "b");
+		System.out.println(map);
+//		System.out.println(UUID.randomUUID().toString().toUpperCase());
+//		System.out.println(Long.MAX_VALUE);
+//		System.out.println(Integer.MAX_VALUE);
+//		System.out.println("1459421593298753");
+//		int aa = new Double(Math.random() * 100).intValue();
+//		synchronized (obj) {
+//			if (aa == 50) {
+//				return;
+//			} else {
+//				aa = 40;
+//			}
+//		}
+//	    List<String> a = new ArrayList<String>();
+//	    a.add("a0000000001");
+//	    a.add("a0000003000");
+//	    a.add("b0000000001");
+//	    a.add("b0001000000");
+//	    a.add("a0000000070");
+//	    a.add("b0000000600");
+//	    for (String s : a) {
+//	        System.out.println(s);
+//	    }
+//	    System.out.println("\n");
+//	    Collections.sort(a, new Comparator<String>() {
+//            public int compare(String arg0, String arg1) {
+//                return arg0.compareTo(arg1);
+//            }
+//        });
+//	    for (String s : a) {
+//            System.out.println(s);
+//        };
 //		System.out.println(System.getProperty("user.dir"));
 //		String url = "https://www.qq.com/aaa/bbb.html";
 //		int idx = url.indexOf("/", 8);

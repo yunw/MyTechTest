@@ -9,6 +9,11 @@ wget http://mirror.bit.edu.cn/apache/lucene/solr/6.3.0/solr-6.3.0.tgz
 tar zxf solr-6.3.0.tgz -C /usr/local
 cd /usr/local/solr-6.3.0
 
+创建solr用户：
+useradd -d /usr/local/solr-6.3.0 -s /sbin/false solr # -s /sbin/false 表示solr用户不能运行shell
+chown solr:solr -R /usr/local/solr-6.3.0
+# chown solr:solr -R /var/log/solr # if you use alternative folder for logs
+
 #获取帮助：
 bin/solr start -help
 

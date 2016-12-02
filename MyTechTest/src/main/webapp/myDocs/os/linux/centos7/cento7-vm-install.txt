@@ -1,0 +1,78 @@
+一、双网卡配置：
+1、nat：
+[root@centos77 ~]# cat /etc/sysconfig/network-scripts/ifcfg-enp0s3
+TYPE=Ethernet
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+NAME=enp0s3
+UUID=03a81255-85f8-4f68-8b3e-18f80c954ebc
+DEVICE=enp0s3
+ONBOOT=yes
+IPADDR=10.0.2.77
+NETMASK=255.255.255.255
+GATEWAY=10.0.2.2
+
+2、host-only
+[root@centos77 ~]# cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
+TYPE=Ethernet
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+NAME=enp0s8
+UUID=50a0323f-6bad-4545-a93b-3e7c55300bb8
+DEVICE=enp0s8
+ONBOOT=yes
+IPADDR=192.168.56.77
+NETMASK=255.255.255.0
+
+3、修改域名服务配置：
+[root@centos77 ~]# cat /etc/resolv.conf 
+nameserver 8.8.8.8
+nameserver 114.114.114.114
+
+4、重启网卡：
+systemctl restart network
+
+5、测试网络：
+ping -c 3 www.baidu.com
+[root@centos77 ~]# ping -c 3 www.baidu.com
+PING www.a.shifen.com (115.239.210.27) 56(84) bytes of data.
+64 bytes from 115.239.210.27: icmp_seq=1 ttl=49 time=6.28 ms
+64 bytes from 115.239.210.27: icmp_seq=2 ttl=49 time=6.64 ms
+64 bytes from 115.239.210.27: icmp_seq=3 ttl=49 time=6.05 ms
+
+--- www.a.shifen.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2004ms
+rtt min/avg/max/mdev = 6.051/6.326/6.643/0.243 ms
+
+二、安装防火墙：
+yum -y install firewalld
+systemctl enable firewalld
+systemctl start firewalld
+
+三、更新系统到最新：
+yum -y update
+
+四、删除旧内核
+[root@centos77 ~]# rpm -q kernel
+kernel-3.10.0-327.el7.x86_64
+kernel-3.10.0-327.36.3.el7.x86_64
+[root@centos77 ~]# uname -r
+3.10.0-327.el7.x86_64
+[root@centos77 ~]# rpm -e kernel-3.10.0-327.el7.x86_64
+[root@centos77 ~]# rpm -q kernel
+kernel-3.10.0-327.36.3.el7.x86_64
+
+五、安装wget等工具：
+yum -y install wget
+
+
+
+
+
+

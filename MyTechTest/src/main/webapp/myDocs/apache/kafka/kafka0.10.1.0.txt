@@ -1,0 +1,45 @@
+wget http://mirrors.hust.edu.cn/apache/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz
+tar zxf kafka_2.11-0.10.1.0.tgz -C /usr/local
+
+集群配置：
+节点：192.168.56.71 192.168.56.72 192.168.56.73
+必要配置：
+192.168.56.71
+config/server.properties
+borker.id=1
+zookeeper.connect=192.168.56.71:2181
+
+192.168.56.72
+config/server.properties
+borker.id=2
+zookeeper.connect=192.168.56.71:2181
+
+192.168.56.73
+config/server.properties
+borker.id=3
+zookeeper.connect=192.168.56.71:2181
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

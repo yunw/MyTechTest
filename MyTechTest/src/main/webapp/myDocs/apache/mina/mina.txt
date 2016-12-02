@@ -75,7 +75,40 @@ NioSocketAcceptor的accept方法会创建该连接的session。
 3、建立一个I/O hander。写业务逻辑，或处理不同的消息。
 4、绑定端口，接收请求。
 
+客户端架构：
+I/O Handler
+    |
+    |
+   \|/
+    V
+I/O Filter # 1
+    |
+    |
+   \|/
+    V
+I/O Filter # 2
+    |
+    |
+   \|/
+    V
+I/O Filter # 3
+    |
+    |
+   \|/
+    V
+I/O Connector
+    |
+    |
+   \|/
+    V
+  network
+  
 服务端架构：
+  network
+    |
+    |
+   \|/
+    V
 I/O Acceptor
     |
     |
@@ -98,4 +131,22 @@ I/O Filter # 3
     V
 I/O Handler
 
-客户端架构：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

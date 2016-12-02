@@ -1,0 +1,103 @@
+wget http://download.igniterealtime.org/openfire/openfire-4.0.3-1.i386.rpm
+
+准备工作：
+1、删除已经安装的openfire
+[root@centos77 downloads]# rpm -qa | grep openfire
+openfire-4.0.3-1.i386
+[root@centos77 downloads]# rpm -e openfire-4.0.3-1.i386
+Stopping openfire (via systemctl):                         [  OK  ]
+[root@centos77 downloads]# rpm -qa | grep openfire
+[root@centos77 logs]# 
+
+2、创建openfire数据库：
+CREATE DATABASE IF NOT EXISTS openfire DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+
+安装：
+yum -y install libstdc++.i686 #openfire 32位，因此要安装兼容包
+
+yum -y localinstall openfire-4.0.3-1.i386.rpm
+
+systemctl enable openfire
+systemctl start openfire
+systemctl status openfire
+
+打开openfire网页进行配置：
+http://192.168.56.77:9090/
+
+server settings：
+Domain：192.168.56.77
+Admin Console Port: 9090
+Secure Admin Console Port: 9091
+Property Encryption via: 	Blowflsh
+Property Encryption Key: 	abcd_1234
+
+database settings: Standard Database Connection
+
+Database Settings - Standard Connection 
+
+Database Driver Presets: mysql
+JDBC Driver Class: com.mysql.jdbc.Driver
+Database URL: jdbc:mysql://192.168.56.76:3306/openfire?rewriteBatchedStatements=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false
+Username: yinsl
+Password: Abcd_1234!
+Minimum Connections: 5
+Maximum Connections:25
+Connection Timeout: 1.0 Days
+
+Profile Settings 
+Default : Store users and groups in the server database. This is the best option for simple deployments. 
+
+Administrator Account 
+Admin Email Address: 	yin.shunlin@puscene.com
+New Password: 	Pass1234
+-------------------------------------------------
+设置完成：
+管理员账号：admin/Pass1234
+继续在网页上创建用户：yinsl/abcd_1234
+                 yin_slin/abcd1234
+
+firewall-cmd --zone=public --add-port=5222/tcp --permanent
+firewall-cmd --zone=public --add-port=9090/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=5222/tcp
+firewall-cmd --permanent --query-port=9090/tcp
+
+
+
+
+
+
+
+
+yum -y localinstall spark-2.8.2.rpm
+
+wget http://www.igniterealtime.org/downloads/download-landing.jsp?file=sparkweb/sparkweb_0_9_0.tar.gz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

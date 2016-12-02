@@ -43,9 +43,12 @@ c）重启solr
 d）执行全量导入：
 打开网页：
 http://192.168.56.74:8983/solr/#/mycore/dataimport//dataimport
+选择参数执行全量导入。也可以通过http直接执行命令：
+http://192.168.56.74:8983/solr/mycore/dataimport?command=full-import&verbose=false&clean=true&commit=true&optimize=false&core=mycore&name=dataimport
+ 
 e）执行查询：
 http://192.168.56.74:8983/solr/mycore/select?indent=on&q=id:*&fl=id,name,description&wt=json
-
+http://192.168.56.74:8983/solr/mycore/select?indent=on&q=id:id&fl=id,name,description&wt=json
 用不同的名称索引字段
 vi data-config.xml
 <dataConfig>
@@ -67,9 +70,33 @@ vi data-config.xml
 打开网页：
 http://192.168.56.74:8983/solr/#/mycore/schema
 添加field：solr_id，solr_name和solr_description，他们的field type分别是：string，text_general，text_general
+也可以执行命令添加：
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "add-field":{
+ "name":"solr_test2",
+ "type":"string",
+ "indexed":"true",
+ "stored":true }
+}' http://192.168.56.74:8983/solr/mycore/schema
 
+修改：
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "replace-field":{
+ "name":"solr_test2",
+ "type":"text_general",
+ "indexed":"true",
+ "required":"true",
+ "stored":true }
+}' http://192.168.56.74:8983/solr/mycore/schema
 
-
+删除：
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "delete-field" : { "name":"solr_test2" }
+}' http://192.168.56.74:8983/solr/mycore/schema
+删除多个：
+curl -X POST -H 'Content-type:application/json' --data-binary '{
+ "delete-field" : [{ "name":"solr_test" },{ "name":"solr_test2" }]
+}' http://192.168.56.74:8983/solr/mycore/schema
 
 多表索引：
 vi data-config.xml
@@ -96,6 +123,16 @@ vi data-config.xml
 打开网页：
 http://192.168.56.74:8983/solr/#/mycore/schema
 添加field：solr_details，他的field type分别是：text_general
+
+
+
+
+
+
+
+
+
+
 
 
 

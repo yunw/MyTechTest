@@ -4,6 +4,8 @@
 http://diff.hust.cc/ 在线文本比较
 http://www.bejson.com/ 在线json格式化
 http://tool.chinaz.com/tools/md5.aspx 在线md5加密
+https://redisdesktop.com/download redis desktop manager redis图形界面工具
+https://robomongo.org/download   mongodb可视化工具
 
 db中间件：
 Sharding-JDBC： 透明化数据库分库分表访问
@@ -67,4 +69,7 @@ wiki系统：https://www.oschina.net/news/63011/confluence-5-8
 异地多活：
 http://servers.pconline.com.cn/721/7215376.html
 http://blog.csdn.net/u010942020/article/details/51914719
-同城异地双活：数据库步长为2， 1在一个机房2在另一个机房，数据库主从复制。根据用户（商户）id路由到数据库（mycat集群）。
+同城异地双活：数据库步长为2， 1在一个机房2在另一个机房，数据库主从复制。根据用户（商户）id路由到数据库（mycat集群）。定时任务单机房操作（切换开关）
+
+xmpp：即使通讯
+openfire + spark ：http://www.igniterealtime.org/
