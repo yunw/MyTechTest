@@ -53,29 +53,28 @@ public class XmppSmackTest {
 			System.out.println("Groups: " + entry.getGroups() + ", Type: " + entry.getType() + ", Name: "
 					+ entry.getName() + ", Status: " + entry.getStatus() + ", User: " + entry);
 		}
-
-		/** 更改用户状态，available=true表示在线，false表示离线，status状态签名；当你登陆后，在Spark客户端软件中就可以看到你登陆的状态 */
-		Presence presence = new Presence(Presence.Type.available);
-		presence.setStatus("Q我吧");
-		connection.sendPacket(presence);
-		
-		Session session = new Session();
-		connection.sendPacket(session);
-		
-		Message message = new Message("yin_slin@" + server, Type.chat);
-		message.setBody("h!~ yin_slin, I'am is yinsl!");
-		connection.sendPacket(message);
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		
 		/** 获取当前登陆用户的聊天管理器 */
 		ChatManager chatManager = connection.getChatManager();
 		/** 为指定用户创建一个chat，MyMessageListeners用于监听对方发过来的消息 */
-//		Chat chat = chatManager.createChat("yinsl@" + server, new MyXmppMessageListeners());
+		Chat chat = chatManager.createChat("yin_slin@" + server, new XmppSmackTest().new MyXmppMessageListeners());
+		try {
+			/** 发送消息 */
+			chat.sendMessage("h!~ yin_slin……");
+
+			/** 用message对象发送消息 */
+			Message message = new Message();
+			message.setBody("message");
+			message.setProperty("color", "red");
+			chat.sendMessage(message);
+		} catch (XMPPException e) {
+			e.printStackTrace();
+		}
+		try {
+			Thread.sleep(1000 * 1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		connection.disconnect();
 	}
 	
@@ -93,14 +92,14 @@ public class XmppSmackTest {
 	 */
 	class MyXmppMessageListeners implements MessageListener {
 		public void processMessage(Chat chat, Message message) {
-//			try {
-//				/** 发送消息 */
-//				chat.sendMessage("dingding……" + message.getBody());
-//			} catch (XMPPException e) {
-//				e.printStackTrace();
-//			}
+			try {
+				/** 发送消息 */
+				chat.sendMessage("dingding……" + message.getBody());
+			} catch (XMPPException e) {
+				e.printStackTrace();
+			}
 			
-			System.out.println("From: " + message.getFrom() + ", To: " + message.getTo() + ", Type: "
+			System.out.println("From:::: " + message.getFrom() + ", To: " + message.getTo() + ", Type: "
 					+ message.getType() + ", Sub: " + message.toXML() + ", body: " + message.getBody());
 		}
 	}
