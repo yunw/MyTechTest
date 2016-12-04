@@ -71,6 +71,14 @@ kernel-3.10.0-327.36.3.el7.x86_64
 五、安装wget等工具：
 yum -y install wget
 
+六、安装ntp服务
+yum -y install ntp
+
+systemctl enable ntpd
+systemctl start ntpd
+
+ntpdate -u cn.pool.ntp.org
+
 
 
 

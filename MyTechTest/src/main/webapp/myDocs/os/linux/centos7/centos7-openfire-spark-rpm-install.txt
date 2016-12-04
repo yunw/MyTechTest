@@ -1,3 +1,7 @@
+安装环境：
+192.168.56.77 openfire
+192.168.56.76 mysql（openfire）
+
 wget http://download.igniterealtime.org/openfire/openfire-4.0.3-1.i386.rpm
 
 准备工作：
@@ -54,25 +58,69 @@ New Password: 	Pass1234
 设置完成：
 管理员账号：admin/Pass1234
 继续在网页上创建用户：yinsl/abcd_1234
-                 yin_slin/abcd1234
+               yin_slin/abcd1234
 
 firewall-cmd --zone=public --add-port=5222/tcp --permanent
+firewall-cmd --zone=public --add-port=5223/tcp --permanent
+firewall-cmd --zone=public --add-port=5229/tcp --permanent
+firewall-cmd --zone=public --add-port=5262/tcp --permanent
+firewall-cmd --zone=public --add-port=5263/tcp --permanent
+firewall-cmd --zone=public --add-port=5269/tcp --permanent
+firewall-cmd --zone=public --add-port=5275/tcp --permanent
+firewall-cmd --zone=public --add-port=5276/tcp --permanent
+firewall-cmd --zone=public --add-port=7070/tcp --permanent
+firewall-cmd --zone=public --add-port=7443/tcp --permanent
+firewall-cmd --zone=public --add-port=7777/tcp --permanent
 firewall-cmd --zone=public --add-port=9090/tcp --permanent
+firewall-cmd --zone=public --add-port=9091/tcp --permanent
 firewall-cmd --reload
 firewall-cmd --permanent --query-port=5222/tcp
+firewall-cmd --permanent --query-port=5223/tcp
+firewall-cmd --permanent --query-port=5229/tcp
+firewall-cmd --permanent --query-port=5262/tcp
+firewall-cmd --permanent --query-port=5263/tcp
+firewall-cmd --permanent --query-port=5269/tcp
+firewall-cmd --permanent --query-port=5275/tcp
+firewall-cmd --permanent --query-port=5276/tcp
+firewall-cmd --permanent --query-port=7070/tcp
+firewall-cmd --permanent --query-port=7443/tcp
+firewall-cmd --permanent --query-port=7777/tcp
 firewall-cmd --permanent --query-port=9090/tcp
+firewall-cmd --permanent --query-port=9091/tcp
 
 
 
+spark客户端使用windows版本
+sparkweb需要openfire企业版，这里就不安装了
+
+-----------------------------cluster------------------------------------------
+参考：http://www.igniterealtime.org/projects/openfire/plugins/hazelcast/readme.html
+openfire集群安装：
+至少需要两个openfire节点，内个节点都必须安装 Hazelcast plugin。该插件可以通过openfire的管理控制台的插件页面安装。或者直接将hazelcast.jar拷贝到 $OPENFIRE_HOME/plugins下面。
+备注：所有的openfire节点必须被配置为共享一个外部数据库（而不是嵌入式数据库）。
+所有的节点都安装好插件后，停止所有的openfire。然后修改配置文件：
+ $OPENFIRE_HOME/plugins/hazelcast/classes/hazelcast-cache-config.xml
+ 将配置文件中的：
+ <join>
+            <multicast enabled="true">
+                <multicast-group>224.2.2.3</multicast-group>
+                <multicast-port>54327</multicast-port>
+            </multicast>
+            <tcp-ip enabled="false"/>
+            <aws enabled="false"/>
+        </join>
+ 修改为：
+<join>
+            <multicast enabled="true"/>
+            <tcp-ip enabled="true"/>
+            <member>192.168.56.77:5701</member>
+      <member>192.168.56.78:5701</member>
+            </tcp-ip>
+            <aws enabled="false"/>
+        </join>
 
 
-
-
-
-yum -y localinstall spark-2.8.2.rpm
-
-wget http://www.igniterealtime.org/downloads/download-landing.jsp?file=sparkweb/sparkweb_0_9_0.tar.gz
-
+-------------------------------------------------------------------------------
 
 
 

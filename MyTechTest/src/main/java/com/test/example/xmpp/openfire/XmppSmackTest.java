@@ -11,18 +11,22 @@ import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
+import org.jivesoftware.smack.RosterGroup;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Message.Type;
-import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.Session;
 
 public class XmppSmackTest {
 
-	private final static String server = "192.168.56.77";
+	private final static String server = "192.168.56.78";
 
 	private final static int port = 5222;
+	
+	private final static String username="yinsl";
+	
+	private final static String password="abcd_1234";
+	
+	private final static String other_user = "yin_slin";
 
 	public static void main(String[] args) throws XMPPException {
 		ConnectionConfiguration config = new ConnectionConfiguration(server, port);
@@ -39,7 +43,7 @@ public class XmppSmackTest {
 		}
 
 		/** 用户登陆，用户名、密码 */
-		connection.login("yinsl", "abcd_1234");
+		connection.login(username, password);
 		System.out.println(connection.getUser());
 
 		/** 所有用户组 */
@@ -50,14 +54,17 @@ public class XmppSmackTest {
 		Iterator<RosterEntry> iter = rosterEntiry.iterator();
 		while (iter.hasNext()) {
 			RosterEntry entry = iter.next();
-			System.out.println("Groups: " + entry.getGroups() + ", Type: " + entry.getType() + ", Name: "
+			for (RosterGroup rg : entry.getGroups()) {
+				System.out.println("group name: " + rg.getName());
+			}
+			System.out.println("Type: " + entry.getType() + ", Name: "
 					+ entry.getName() + ", Status: " + entry.getStatus() + ", User: " + entry);
 		}
 
 		/** 获取当前登陆用户的聊天管理器 */
 		ChatManager chatManager = connection.getChatManager();
 		/** 为指定用户创建一个chat，MyMessageListeners用于监听对方发过来的消息 */
-		Chat chat = chatManager.createChat("yin_slin@" + server, new XmppSmackTest().new MyXmppMessageListeners());
+		Chat chat = chatManager.createChat( other_user + "@" + server, new XmppSmackTest().new MyXmppMessageListeners());
 		try {
 			/** 发送消息 */
 			chat.sendMessage("h!~ yin_slin……");

@@ -1,0 +1,7 @@
+参考：http://blog.csdn.net/ohmygirl/article/details/40385083
+　
+/dev/random和/dev/urandom是Linux系统中提供的随机伪设备，这两个设备的任务，是提供永不为空的随机字节数据流。很多解密程序与安全应用程序（如SSH Keys,SSL Keys等）需要它们提供的随机数据流。
+
+这两个设备的差异在于：
+/dev/random的random pool依赖于系统中断，因此在系统的中断数不足时，/dev/random设备会一直封锁，尝试读取的进程就会进入等待状态，直到系统的中断数充分够用,
+/dev/random设备可以保证数据的随机性。/dev/urandom不依赖系统的中断，也就不会造成进程忙等待，但是数据的随机性也不高。
