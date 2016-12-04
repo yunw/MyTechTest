@@ -40,8 +40,8 @@ public class Test {
 	public static void main(String args[]) throws IOException {
 		long aa = 1480561200;
 		System.out.println("long max value: "   + Long.MAX_VALUE);
-		Date d = new Date(aa * 1000);
-		System.out.println(d);
+		Date d = new Date(1480643882l * 1000);
+		System.out.println("d: " + d);
 		long a = 1480553557;
 		Date date = new Date(a * 1000);
 		Timestamp t = new Timestamp(a);

@@ -53,7 +53,7 @@ public class XmppSmackTest {
 			System.out.println("Groups: " + entry.getGroups() + ", Type: " + entry.getType() + ", Name: "
 					+ entry.getName() + ", Status: " + entry.getStatus() + ", User: " + entry);
 		}
-		
+
 		/** 获取当前登陆用户的聊天管理器 */
 		ChatManager chatManager = connection.getChatManager();
 		/** 为指定用户创建一个chat，MyMessageListeners用于监听对方发过来的消息 */
@@ -77,7 +77,7 @@ public class XmppSmackTest {
 		}
 		connection.disconnect();
 	}
-	
+
 	/**
 	 * <b>function:</b> 消息监听器，用户监听对方发送的消息，也可以想对方发送消息
 	 * 
@@ -92,15 +92,17 @@ public class XmppSmackTest {
 	 */
 	class MyXmppMessageListeners implements MessageListener {
 		public void processMessage(Chat chat, Message message) {
-			try {
-				/** 发送消息 */
-				chat.sendMessage("dingding……" + message.getBody());
-			} catch (XMPPException e) {
-				e.printStackTrace();
+			if (message.getBody() != null) {
+				try {
+					/** 发送消息 */
+					chat.sendMessage("dingding……" + message.getBody());
+				} catch (XMPPException e) {
+					e.printStackTrace();
+				}
+
+				System.out.println("From:::: " + message.getFrom() + ", To: " + message.getTo() + ", Type: "
+						+ message.getType() + ", Sub: " + message.toXML() + ", body: " + message.getBody());
 			}
-			
-			System.out.println("From:::: " + message.getFrom() + ", To: " + message.getTo() + ", Type: "
-					+ message.getType() + ", Sub: " + message.toXML() + ", body: " + message.getBody());
 		}
 	}
 
