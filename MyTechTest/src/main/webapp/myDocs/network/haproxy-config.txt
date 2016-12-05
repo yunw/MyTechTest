@@ -1,0 +1,44 @@
+参考：http://blog.csdn.net/kobejayandy/article/details/38276323
+#日志级别：local0~local7
+emerg 0 系统不可用
+alert 1 必须马上采取行动的事件
+crit 2 关键的事件
+err 3 错误事件
+warning 4 警告事件
+notice 5 普通但重要的事件
+info 6 有用的信息
+debug 7 调试信息
+1、日志：
+a、vi haproxy.cfg
+defaults
+  log global
+  option httplog
+  log 127.0.0.1 local6      
+  
+b、vi /etc/rsyslog.conf
+该文件默认有如下配置：
+# Include all config files in /etc/rsyslog.d/
+$IncludeConfig /etc/rsyslog.d/*.conf
+因此，在/etc/rsyslog.d目录下建立haproxy的独立配置文件
+vi /etc/rsyslog.d/haproxy.conf
+$ModLoad imudp
+$UDPServerRun 514
+local6.* /var/log/haproxy.log
+&~        #如果不加该配置则除了在/var/log/haproxy.log中写入日志外，也会写入message文件
+
+c、配置rsyslog的主配置文件，开启远程日志
+vi /etc/sysconfig/rsyslog
+SYSLOGD_OPTIONS="-c 2 -r -m 0" #-c 2 使用兼容模式，默认是 -c 5； -r 开启远程日志；  -m 0 标记时间戳。单位是分钟，为0时，表示禁用该功能
+
+
+
+
+
+
+
+
+
+
+
+
+

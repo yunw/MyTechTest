@@ -1,10 +1,13 @@
+192.168.56.50 VIP
 192.168.56.71 zookeeper disconf(admin/admin) nginx kafka
 192.168.56.72 zookeeper activemq kafka
 192.168.56.73 zookeeper kafka
-192.168.56.74 nginx confd solr 
-192.168.56.75 mysql（disconf、alfred、alfred-mobile, yinsl:Abcd_1234!） redis
+192.168.56.74 nginx confd solr keepalived haproxy
+192.168.56.75 mysql（disconf、alfred、alfred-mobile, yinsl:Abcd_1234!） redis keepalived haproxy
 192.168.56.76 elk filebeat mysql activemq
 192.168.56.77 openfire
+192.168.56.78 openfire
+
 
 72、76 activemq搭建了network of brokers
 71、72、73 zookeeper搭建了集群

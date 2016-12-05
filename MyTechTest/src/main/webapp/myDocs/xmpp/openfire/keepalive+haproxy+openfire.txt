@@ -1,0 +1,268 @@
+ha-master: 192.168.56.74
+ ha-slave: 192.168.56.75
+ openfire: 192.168.56.77 192.168.56.78
+      VIP: 192.168.56.50
+
+firewall-cmd --zone=public --add-port=5222/tcp --permanent
+firewall-cmd --zone=public --add-port=5223/tcp --permanent
+firewall-cmd --zone=public --add-port=5229/tcp --permanent
+firewall-cmd --zone=public --add-port=5262/tcp --permanent
+firewall-cmd --zone=public --add-port=5263/tcp --permanent
+firewall-cmd --zone=public --add-port=5269/tcp --permanent
+firewall-cmd --zone=public --add-port=5275/tcp --permanent
+firewall-cmd --zone=public --add-port=5276/tcp --permanent
+firewall-cmd --zone=public --add-port=7070/tcp --permanent
+firewall-cmd --zone=public --add-port=7443/tcp --permanent
+firewall-cmd --zone=public --add-port=7777/tcp --permanent
+firewall-cmd --zone=public --add-port=9090/tcp --permanent
+firewall-cmd --zone=public --add-port=9091/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=5222/tcp
+firewall-cmd --permanent --query-port=5223/tcp
+firewall-cmd --permanent --query-port=5229/tcp
+firewall-cmd --permanent --query-port=5262/tcp
+firewall-cmd --permanent --query-port=5263/tcp
+firewall-cmd --permanent --query-port=5269/tcp
+firewall-cmd --permanent --query-port=5275/tcp
+firewall-cmd --permanent --query-port=5276/tcp
+firewall-cmd --permanent --query-port=7070/tcp
+firewall-cmd --permanent --query-port=7443/tcp
+firewall-cmd --permanent --query-port=7777/tcp
+firewall-cmd --permanent --query-port=9090/tcp
+firewall-cmd --permanent --query-port=9091/tcp
+
+yum -y install haproxy keepalived
+
+rpm -qc haproxy
+which haproxy
+
+mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
+vi /etc/haproxy/haproxy.cfg
+global
+    maxconn 51200
+    chroot /usr/local/haproxy
+    uid 0
+    gid 0
+    nbproc 1
+    pidfile /var/run/haproxy.pid
+
+defaults
+    mode http
+    option redispatch
+    option abortonclose
+    balance roundrobin
+    timeout connect 10s
+    timeout client 1m
+    timeout server 1m
+    log global
+    option httplog
+    log 127.0.0.1 local6
+
+listen proxy_monitor  
+        bind 0.0.0.0:8888
+        option httplog
+        stats refresh 30s
+        stats uri /stats
+        stats realm Haproxy Manager
+        stats auth admin:admin
+        
+listen openfire_5222
+    bind 0.0.0.0:5222
+    mode tcp
+    option tcplog
+    log 127.0.0.1 local6
+    server centos77 192.168.56.77:5222 weight 1 maxconn 1500 inter 2000 check
+    server centos78 192.168.56.78:5222 weight 1 maxconn 1500 inter 2000 check
+
+listen openfire_5223
+    bind 0.0.0.0:5223
+    mode tcp
+    option tcplog
+    log 127.0.0.1 local6
+    server centos77 192.168.56.77:5223 weight 1 maxconn 1500 inter 2000 check
+    server centos78 192.168.56.78:5223 weight 1 maxconn 1500 inter 2000 check
+
+listen openfire_7070
+    bind 0.0.0.0:7070
+    mode tcp
+    option tcplog
+    log 127.0.0.1 local6
+    server centos77 192.168.56.77:7070 weight 1 maxconn 1500 inter 2000 check
+    server centos78 192.168.56.78:7070 weight 1 maxconn 1500 inter 2000 check
+
+listen openfire_7443
+    bind 0.0.0.0:7443
+    mode tcp
+    option tcplog
+    log 127.0.0.1 local6
+    server centos77 192.168.56.77:7443 weight 1 maxconn 1500 inter 2000 check
+    server centos78 192.168.56.78:7443 weight 1 maxconn 1500 inter 2000 check
+ 
+listen openfire_9090
+    bind 0.0.0.0:9090
+    mode tcp
+    option tcplog
+    log 127.0.0.1 local6
+    server centos77 192.168.56.77:9090 weight 1 maxconn 1500 inter 2000 check
+    server centos78 192.168.56.78:9090 weight 1 maxconn 1500 inter 2000 check
+   
+keepalived slave:
+mv /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak
+vi /etc/keepalived/keepalived.conf  
+! Configuration File for keepalived
+vrrp_script check_haproxy {
+    script "/etc/keepalived/check_haproxy.sh"
+    interval 2
+    weight 2
+}
+
+global_defs {
+    router_id slave_55
+}
+
+vrrp_instance openfire_lb {
+    state BACKUP
+    interface eth1
+    virtual_router_id 55
+    priority 99
+    authentication {
+        auth_type PASS
+        auth_pass 123456
+    }
+    virtual_ipaddress {
+        192.168.56.50
+    }
+    track_script {
+        check_haproxy
+    }
+}
+
+
+virtual_server 192.168.56.50 5222 {
+    delay_loop 6
+ #   persistence_timeout 5
+    lb_algo rr
+    lb_kind DR
+    protocol TCP
+    real_server 192.168.56.77 5222 {
+        weight 1
+        TCP_CHECK {
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 3
+            connect_port 5222
+        }
+    }
+    real_server 192.168.56.78 5222 {
+        weight 1
+        TCP_CHECK {
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 3
+            connect_port 5222
+        }
+    }
+}
+
+keepalived Master:
+mv /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak
+vi /etc/keepalived/keepalived.conf
+! Configuration File for keepalived
+vrrp_script check_haproxy {
+    script "/etc/keepalived/check_haproxy.sh"
+    interval 2
+    weight 2
+}
+    
+global_defs {
+    router_id master_55
+}
+
+vrrp_instance openfire_lb {
+    state MASTER
+    interface eth1
+    virtual_router_id 55
+    priority 100
+    authentication {
+        auth_type PASS
+        auth_pass 123456
+    }
+    virtual_ipaddress {
+        192.168.56.50
+    }
+    track_script {
+        check_haproxy
+    }
+}
+
+virtual_server 192.168.56.50 5222 {
+    delay_loop 6
+ #   persistence_timeout 5
+    lb_algo rr
+    lb_kind DR
+    protocol TCP
+    real_server 192.168.56.77 5222 {
+        weight 1
+        TCP_CHECK {
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 3
+            connect_port 5222
+        }
+    }
+    real_server 192.168.56.78 5222 {
+        weight 1
+        TCP_CHECK {
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 3
+            connect_port 5222
+        }
+    }
+}
+
+vi /etc/keepalived/check_haproxy.sh
+#!/bin/bash
+function check() {
+  if [ $1 != "" ]; then
+    return 0;
+  else
+    return 1;
+  fi
+}
+
+ps_haproxy='haproxy -f /etc/haproxy/haproxy.cfg'
+pid=`ps -ef | grep "$ps_haproxy" | grep -v 'grep' |awk '{print $2}'`
+check $pid
+if [ $? -eq 1 ];then
+  $ps_haproxy
+fi
+
+
+chmod +x /etc/keepalived/check_haproxy.sh
+
+启动：
+keepalived -f /etc/keepalived/keepalived.conf
+haproxy -f /etc/haproxy/haproxy.cfg
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

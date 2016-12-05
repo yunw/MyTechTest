@@ -18,14 +18,14 @@ import org.jivesoftware.smack.packet.Message;
 
 public class XmppSmackTest {
 
-	private final static String server = "192.168.56.78";
+	private final static String server = "192.168.56.50";
 
 	private final static int port = 5222;
-	
-	private final static String username="yinsl";
-	
-	private final static String password="abcd_1234";
-	
+
+	private final static String username = "yinsl";
+
+	private final static String password = "abcd_1234";
+
 	private final static String other_user = "yin_slin";
 
 	public static void main(String[] args) throws XMPPException {
@@ -52,19 +52,25 @@ public class XmppSmackTest {
 		/** 好友用户组，你可以用Spark添加用户好友，这样这里就可以查询到相关的数据 */
 		Collection<RosterEntry> rosterEntiry = roster.getEntries();
 		Iterator<RosterEntry> iter = rosterEntiry.iterator();
+		String userJID = null;
 		while (iter.hasNext()) {
 			RosterEntry entry = iter.next();
 			for (RosterGroup rg : entry.getGroups()) {
 				System.out.println("group name: " + rg.getName());
 			}
-			System.out.println("Type: " + entry.getType() + ", Name: "
-					+ entry.getName() + ", Status: " + entry.getStatus() + ", User: " + entry);
+			System.out.println("Type: " + entry.getType() + ", Name: " + entry.getName() + ", Status: "
+					+ entry.getStatus() + ", User: " + entry.getUser());
+			if (other_user.equals(entry.getName())) {
+				userJID = entry.getUser();
+				break;
+			}
+			
 		}
 
 		/** 获取当前登陆用户的聊天管理器 */
 		ChatManager chatManager = connection.getChatManager();
 		/** 为指定用户创建一个chat，MyMessageListeners用于监听对方发过来的消息 */
-		Chat chat = chatManager.createChat( other_user + "@" + server, new XmppSmackTest().new MyXmppMessageListeners());
+		Chat chat = chatManager.createChat(userJID, new XmppSmackTest().new MyXmppMessageListeners());
 		try {
 			/** 发送消息 */
 			chat.sendMessage("h!~ yin_slin……");
