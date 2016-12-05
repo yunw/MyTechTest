@@ -1,0 +1,74 @@
+参考：http://blog.csdn.net/xyang81/article/details/51502766
+    http://tomcat.apache.org/tomcat-8.0-doc/apr.html
+
+Tomcat支持三种接收请求的处理方式：BIO、NIO、APR 
+1、bio模式：阻塞式I/O操作，表示Tomcat使用的是传统Java I/O操作(即Java.io包及其子包)。Tomcat7以下版本默认情况下是以bio模式运行的，由于每个请求都要创建一个线程来处理，线程开销较大，不能处理高并发的场景，
+在三种模式中性能也最低。启动tomcat看到如下日志，表示使用的是BIO
+......
+信息: Starting ProtocolHandler ["http-bio-8080"]
+十二月 05, 2016 8:49:36 上午 org.apache.coyote.AbstractProtocol start
+信息: Starting ProtocolHandler ["ajp-bio-8009"]
+......
+
+2、NIO模式：是Java SE 1.4及后续版本提供的一种新的I/O操作方式(即java.nio包及其子包)。是一个基于缓冲区、并能提供非阻塞I/O操作的Java API，它拥有比传统I/O操作(bio)更好的并发运行性能。
+要让Tomcat以nio模式来运行比较简单，只需要在Tomcat安装目录/conf/server.xml文件中将如下配置：
+<Connector port="8080" protocol="HTTP/1.1"
+connectionTimeout="20000"
+redirectPort="8443" />
+修改成：
+<Connector port="8080" protocol="org.apache.coyote.http11.Http11NioProtocol"
+connectionTimeout="20000"
+redirectPort="8443" />
+注意：Tomcat8以上版本，默认使用的就是NIO模式，不需要额外修改 ：
+......
+05-Dec-2016 08:47:33.210 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+05-Dec-2016 08:47:33.246 INFO [main] org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector for servlet write/read
+05-Dec-2016 08:47:33.261 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["ajp-nio-8009"]
+......
+
+3、apr模式：简单理解，就是从操作系统级别解决异步IO问题，大幅度的提高服务器的处理和响应性能， 也是Tomcat运行高并发应用的首选模式。
+启用这种模式稍微麻烦一些，需要安装一些依赖库，下面以在CentOS7 mini版环境下apache-tomcat-8.5.6为例，介绍安装步聚：
+a、安装依赖库：
+yum -y install apr-devel openssl-devel gcc make
+注意：openssl库要求在1.0.2以上版本，APR要求在1.2以上版本，用rpm -qa | grep openssl检查本机安装的依赖库版本是否大于或等于apr要求的版本。
+
+b、安装apr动态库：
+在$TOMCAT_HOME/bin目录下，tomcat已经自带了tomcat-native.tar.gz压缩包。
+cd /usr/local/apache-tomcat-8.5.6/bin/
+tar tomcat-native.tar.gz
+cd /usr/local/apache-tomcat-8.5.6/bin/tomcat-native-1.2.10-src/native
+./configure && make && make install
+
+c、编辑$TOMCAT_HOME/bin/catalina.sh文件，在虚拟机启动参数JAVA_OPTS中添加java.library.path参数，指定apr库的路径
+JAVA_OPTS="$JAVA_OPTS -Djava.library.path=/usr/local/apr/lib"
+
+d、配置tomcat
+<Connector port="8080" protocol="org.apache.coyote.http11.Http11AprProtocol" maxThreads="200"
+connectionTimeout="20000" URIEncoding="UTF-8" redirectPort="8443" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

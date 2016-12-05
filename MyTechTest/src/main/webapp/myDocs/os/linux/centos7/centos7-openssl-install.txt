@@ -1,0 +1,77 @@
+openssl 1.0.2j安装
+yum -y update
+yum -y install gcc perl zlib-devel
+
+wget https://www.openssl.org/source/openssl-1.0.2j.tar.gz
+
+tar zxvf openssl-1.0.2j.tar.gz  
+cd openssl-1.0.2j
+./config --prefix=/usr/local/openssl
+make && make install
+mv /usr/bin/openssl /usr/bin/openssl.OFF
+mv /usr/include/openssl /usr/include/openssl.OFF
+ln -s /usr/local/openssl/bin/openssl /usr/bin/openssl
+ln -s /usr/local/openssl/bin/openssl /usr/local/bin/openssl
+ln -s /usr/local/openssl/include/openssl /usr/include/openssl
+echo "/usr/local/openssl/lib">>/etc/ld.so.conf
+ldconfig -v
+openssl version -a
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+wget https://www.openssl.org/source/openssl-1.1.0c.tar.gz
+tar zxf openssl-1.1.0c.tar.gz
+cd openssl-1.1.0c
+./config shared zlib
+make && make install
+
+openssl version
+
+[root@centos72 openssl-1.1.0c]# openssl version
+openssl: error while loading shared libraries: libssl.so.1.1: cannot open shared object file: No such file or directory
+报错是因为路径不对，建立软连接：
+ln -s /usr/local/lib64/libssl.so.1.1 /usr/lib64/libssl.so.1.1
+ln -s /usr/local/lib64/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
+
+再次查看：
+openssl version
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
