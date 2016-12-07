@@ -74,10 +74,12 @@ yum -y install wget
 六、安装ntp服务
 yum -y install ntp
 
+ntpdate -u cn.pool.ntp.org
+
 systemctl enable ntpd
 systemctl start ntpd
+systemctl status ntpd
 
-ntpdate -u cn.pool.ntp.org
 
 
 

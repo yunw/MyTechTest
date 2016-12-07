@@ -19,7 +19,7 @@ CREATE DATABASE IF NOT EXISTS openfire DEFAULT CHARSET utf8 COLLATE utf8_general
 安装：
 yum -y install libstdc++.i686 #openfire 32位，因此要安装兼容包
 
-yum -y localinstall openfire-4.0.3-1.i386.rpm
+rpm -ivh openfire-4.0.3-1.i386.rpm
 
 systemctl enable openfire
 systemctl start openfire
@@ -68,11 +68,13 @@ firewall-cmd --zone=public --add-port=5263/tcp --permanent
 firewall-cmd --zone=public --add-port=5269/tcp --permanent
 firewall-cmd --zone=public --add-port=5275/tcp --permanent
 firewall-cmd --zone=public --add-port=5276/tcp --permanent
+firewall-cmd --zone=public --add-port=5701/tcp --permanent
 firewall-cmd --zone=public --add-port=7070/tcp --permanent
 firewall-cmd --zone=public --add-port=7443/tcp --permanent
 firewall-cmd --zone=public --add-port=7777/tcp --permanent
 firewall-cmd --zone=public --add-port=9090/tcp --permanent
 firewall-cmd --zone=public --add-port=9091/tcp --permanent
+firewall-cmd --zone=public --add-port=54327/tcp --permanent
 firewall-cmd --reload
 firewall-cmd --permanent --query-port=5222/tcp
 firewall-cmd --permanent --query-port=5223/tcp
@@ -82,12 +84,13 @@ firewall-cmd --permanent --query-port=5263/tcp
 firewall-cmd --permanent --query-port=5269/tcp
 firewall-cmd --permanent --query-port=5275/tcp
 firewall-cmd --permanent --query-port=5276/tcp
+firewall-cmd --permanent --query-port=5701/tcp
 firewall-cmd --permanent --query-port=7070/tcp
 firewall-cmd --permanent --query-port=7443/tcp
 firewall-cmd --permanent --query-port=7777/tcp
 firewall-cmd --permanent --query-port=9090/tcp
 firewall-cmd --permanent --query-port=9091/tcp
-
+firewall-cmd --permanent --query-port=54327/tcp
 
 
 spark客户端使用windows版本
@@ -111,21 +114,44 @@ openfire集群安装：
         </join>
  修改为：
 <join>
-            <multicast enabled="true"/>
-            <tcp-ip enabled="true"/>
-            <member>192.168.56.77:5701</member>
-      <member>192.168.56.78:5701</member>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="true">
+                <member>192.168.56.77:5701</member>
+                <member>192.168.56.78:5701</member>
             </tcp-ip>
             <aws enabled="false"/>
         </join>
 
-
+新版本的openfire已经可以通过广播发现彼此。因此可以不用修改上述配置。直接在管理界面操作。
+注意如果开启了防火墙，需要打开54327端口。
+firewall-cmd --zone=public --add-port=54327/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=54327/tcp
 -------------------------------------------------------------------------------
 
+openfire 日志：
+log4j.xml在$openfire_home/lib目录下面
 
-
-
-
+openfire升级：
+http://download.igniterealtime.org/openfire/docs/3.10.0/documentation/upgrade-guide.html
+4.0.3 --> 4.0.4
+1.下载4.0.4
+wget http://download.igniterealtime.org/openfire/openfire-4.0.4-1.i386.rpm
+2、停止openfire
+systemctl stop openfire
+3、备份openfire安装目录：
+mv /opt/openfire /opt/openfire_4_0_3
+4、备份数据库
+mysqldump -u username -p dbname table1 table2 ... > BackupName.sql
+其中：
+p表示需要输入密码
+dbname参数表示数据库的名称；
+table1和table2参数表示需要备份的表的名称，为空则整个数据库备份；
+BackupName.sql参数表设计备份文件的名称，文件名前面可以加上一个绝对路径。通常将数据库被分成一个后缀名为sql的文件；
+例如：
+mysqldump -u yinsl -p openfire > /root/downloads/openfire_bak.sql
+5、升级openfire
+rpm -Uvf openfire-4.0.4-1.i386.rpm
 
 
 
