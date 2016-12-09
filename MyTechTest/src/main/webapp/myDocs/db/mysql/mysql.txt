@@ -2,6 +2,13 @@ sqllog过期：
 sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]
 或[HKEY_CURRENT_USER\Software\{FCE48CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了
 
+复合索引的最左前缀原则：
+例如：创建复合索引：(area, age, salary)的复合索引，那么其实相当于创建了(area,age,salary)、(area,age)、(area)三个索引，
+这被称为最佳左前缀特性。因此我们在创建复合索引时应该将最常用作限制条件的列放在最左边，依次递减。
+
+索引的选择性：
+在建立索引的时候，尽量在选择性高的字段上建立。什么是选择性高呢？所谓选择性高就是通过这个字段查出来的数据量少，
+比如按照名字查一个人的信息，查出来的数据量一般会很少，而按照性别查则可能会把数据库一半的数据都查出来，所以，名字是一个选择性高的字段，而性别是个选择性低的字段。
 
 死锁：
 输入：show engine innodb status \G;
@@ -143,6 +150,17 @@ describe table_name;
 
 #查看建表语句：
 show create table table_name;
+
+#查询当前时间：
+select CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP;
+CURRENT_DATE CURRENT_TIME CURRENT_TIMESTAMP
+2016-12-08	  00:07:57	   2016-12-08 00:07:57
+
+#查看表索引：
+show INDEX from table_name;
+table     non_unique  key_name   seq_in_index  cloumn_name collation  cardinality   null  index_type
+app_order	0	      PRIMARY	        1       	id	       A	       0				BTREE		
+app_order	1	      idx_app_order_1	1	        rest_id	   A	       0		YES	    BTREE		
 
 #建表使用utf8
 create table (

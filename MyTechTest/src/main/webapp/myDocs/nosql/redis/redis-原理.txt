@@ -96,3 +96,73 @@ slave优先级：
 redis实例有个配置参数叫slave-priority。这个信息被slave实例在他们的info输出中暴露出来。sentinel用它来挑选可以用来在故障转移中升级为master的slave：
 1、如果slave priority被设置为0，它永远不可能升级为master
 2、slave proiority数字小的优先被sentinel选择。
+
+
+redis cluster:
+Redirection and resharding
+MOVED Redirection
+一个客户端可以自由地发送查询（query）到集群中的每一个节点，包括slave节点。该节点将分析该查询，如果它是可接受的（查询中只涉及到单个key，或者多个key都属于相同的hash slot）
+它就会查看这个key或这些key所对应的hash slot属于哪个节点。如果属于本节点，查询就被处理。否则它就会做一个内部查询：hash slot到节点的映射，并返回客户端一个MOVED error。
+例如：
+GET x
+-MOVED 3999 127.0.0.1:6381
+上述错误包含key的hash slot以及存储该key的节点的ip:port。客户端需要重发查询到指定的ip和port。
+客户端需要记住hash slot：3999对应127.0.0.1:6381，这样一旦一个新的查询需要被发送，它可以计算目标key的hash slot，并可能直接选择正确的节点。
+另一种方法是，当接收到一个MOVED重定向指令时，使用CLUSTER NODES或CLUSTER SLOTS指令刷新客户端的整个集群布局。当遇到一个重定向指定时，很可能是多个hash slot被重新配置
+而不仅仅只是一个。因此尽快更新客户端配置可能是最好的策略。
+注意：当集群稳定时（配置上没有持续变化），最终所有的客户端都会获得一份hash slot到节点的映射。使得集群最高效。客户端会直接与正确的节点相连，没有重定向，代理或失效的单点。
+
+集群重构：
+redis集群支持在线加减节点。加减节点被抽象为相同的操作：从一个节点移动hash slot到另一个。这意味着相同的原理可以用来重新负载均衡，加减节点，等等：
+●添加节点：添加一个空节点，并从已经存在的节点中移动一些hash slot到新节点
+●删除节点：将该节点的hash slot移动到其他节点。
+●重新负载均衡：将hash slot在节点之间移动。
+核心能力是实现hash slot的移动。hash slot实际上是key的集合，因此redis集群做resharding其实就是将key从一个节点移动到另一个节点。移动一个hash slot意味着
+移动这个hash slot中的所有的key。
+为了理解这是如何工作的，需要了解下列命令的工作：
+●CLUSTER ADDSLOTS slot1 [slot2] ... [slotN]
+●CLUSTER DELSLOTS slot1 [slot2] ... [slotN]
+●CLUSTER SETSLOT slot NODE node
+●CLUSTER SETSLOT slot MIGRATING node
+●CLUSTER SETSLOT slot IMPORTING node
+前面的两个命令是分配（删除）hash slot到一个节点。当hash slot被分配后，将通过gossip协议在集群中传播。
+第三个指令用于分配hash slot到指定的node id。
+否则，slot可以被设置为两个指定的状态：MIGRATING、IMPORTING。这两个状态用于将hash slot从一个节点迁移到另一个节点。
+●当一个slot被设置为MIGRATING，该节点将接受所有有关该hash slot的查询，但仅限于key存在的查询。否则，查询将被使用一个-ASK重定向指令指向迁移的目标节点。
+●当一个slot被设置为IMPORTING，该节点将接受所有有关该hash slot的查询，但仅限于查询之前存在ASKING命令。如果客户端没有发出ASKING命令，查询被重定向到真实的hash slot，通过-MOVED error指令，这是一个正常的操作。
+举例：
+有两个redis master节点：A、B。现在需要把hash slot 8 从A迁移到B，因此，需要发出如下命令：
+●给B发送指令: CLUSTER SETSLOT 8 IMPORTING A
+●给A发送指令: CLUSTER SETSLOT 8 MIGRATING B
+其他的节点都会将有关hash slot 8的查询指向节点A，因此，下面的情形就会出现：
+●所有查询，如果key在A中存在，都被A处理
+●所有查询，如果key在A中不存在，都被B处理，因为A将客户端重定向到B
+这种方法，A中不在创建新key。在此期间，一个特定的程序：redis-trib将被使用：
+CLUSTER GETKEYSINSLOT slot count
+上述命令将返回指定hash slot里key的数量。每返回一个key，redis-trib给节点A一个MIGRATE指令，这将从A到B原子（两个实例都被锁定，通常是一个很短的时间）地迁移该key：
+MIGRATE target_host target_port key target_database id timeout
+MIGRATE将连接到目标实例，发送key的序列化版本，如果收到OK代码，将从它自己的数据集中删除老的key。从客户端看来，任何时候一个key要么在A要么在B。
+当迁移操作最终结束了，指令：SETSLOT <slot> NODE <node-id>指令被发送到涉及slot迁移的两个节点，将slot设置为正常的状态。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

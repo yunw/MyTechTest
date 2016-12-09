@@ -1,0 +1,201 @@
+参考： http://www.jb51.net/article/33941.htm
+     http://blog.csdn.net/chenfei_5201213/article/details/7798863
+
+
+wget http://ftp.isc.org/isc/bind9/9.11.0-P1/bind-9.11.0-P1.tar.gz
+yum -y install openssl-devel
+
+tar zxf bind-9.11.0-P1.tar.gz
+
+./configure sysconfdir=/etc
+make && make install
+
+mkdir -p /var/named
+touch /etc/named.conf
+touch /etc/rndc.conf
+rndc-confgen > /etc/rndc.conf
+
+vi /etc/named.conf
+options {
+  directory "/var/named";
+};
+zone "." {
+  type hint;
+  file "named.ca";
+};
+zone "localhost" {
+  type master;
+  file "named.local";
+};
+zone "test.com" {
+  type master;
+  file "test.com.zone";
+};
+zone "0.0.127.in-addr.arpa" {
+  type master;
+  file "127.0.0.zone";
+};
+zone "56.168.192.in-addr.arpa {
+  type master;
+  file "192.168.56.zone";
+};
+
+cat /etc/rndc.conf
+key "rndc-key" {
+        algorithm hmac-md5;
+        secret "mkTO2UXria4V83GmKR891g==";
+};
+
+options {
+        default-key "rndc-key";
+        default-server 127.0.0.1;
+        default-port 953;
+};
+# End of rndc.conf
+
+# Use with the following in named.conf, adjusting the allow list as needed:
+# key "rndc-key" {
+#       algorithm hmac-md5;
+#       secret "mkTO2UXria4V83GmKR891g==";
+# };
+# 
+# controls {
+#       inet 127.0.0.1 port 953
+#               allow { 127.0.0.1; } keys { "rndc-key"; };
+# };
+# End of named.conf
+
+#将/etc/rndc.conf的最后12行追加到/etc/named.conf文件的最后
+tail -12 /etc/rndc.conf >> /etc/named.conf
+vi /etc/named.conf
+options {
+  #默认的数据库文件目录
+  directory "/var/named";
+};
+#创建root域
+zone "." {
+  type hint;
+  file "named.ca";
+};
+#创建localhost域
+zone "localhost" {
+  type master;
+  file "named.local";
+};
+#创建test.com域
+zone "test.com" {
+  type master;
+  file "test.com.zone";
+};
+#localhost的反向解析
+zone "0.0.127.in-addr.arpa" {
+  type master;
+  file "127.0.0.zone";
+};
+#test.com的反向解析
+zone "56.168.192.in-addr.arpa {
+  type master;
+  file "192.168.56.zone";
+};
+
+# Use with the following in named.conf, adjusting the allow list as needed:
+ key "rndc-key" {
+        algorithm hmac-md5;
+        secret "mkTO2UXria4V83GmKR891g==";
+ };
+
+ controls {
+        inet 127.0.0.1 port 953
+                allow { 127.0.0.1; } keys { "rndc-key"; };
+ };
+# End of named.conf
+
+
+touch /var/named/named.ca
+touch /var/named/named.local
+touch /var/named/test.com.zone
+touch /var/named/127.0.0.zone
+touch /var/named/192.168.56.zone
+
+dig -t NS . > /var/named/named.ca
+
+vi /var/named/named.local
+$TTL 1D
+@ IN SOA localhost. root (
+         2007042801
+         1H
+         15M
+         1W
+         1D)
+  IN NS @
+  IN A 127.0.0.1
+
+vi /var/named/test.com.zone
+$TTL 1D
+@    IN    SOA     test.com.      root (
+                 2007042801
+                 1H
+                 15M
+                 1W
+                 1D )
+              IN   NS      ns.test.com.
+              IN   MX  10  mail.test.com.
+              IN   A       192.168.56.71
+www           IN   A       192.168.56.71
+db            IN   A       192.168.56.76
+ns            IN   A       192.168.56.79
+mail          IN   A       192.168.56.73
+shop          IN   A       192.168.56.74
+*.shop        IN   A       192.168.56.77
+news          IN   CNAME   www
+
+vi /var/named/127.0.0.zone
+$TTl 1D
+@   IN     SOA   @     root.localhost. (
+                       2007042801
+                       1H
+                       15M
+                       1W
+                       1D
+                            )
+        IN NS              localhost.
+1       IN PTR             localhost.
+
+vi /var/named/192.168.56.zone
+$TTL 1D
+@            IN    SOA           @            root.test.com.  (
+                                 2007042801
+                                 1H
+                                 15M
+                                 1W
+                                 1D  )
+            IN     NS            test.com.
+125         IN     PTR           test.com.
+125         IN     PTR           www.test.com.
+124         IN     PTR           db.test.com.
+126         IN     PTR           ns.test.com.
+251         IN     PTR           mail.test.com.
+
+
+启动：
+named -c /etc/named.conf
+
+test:
+dig www.test.com
+
+host 192.168.56.76
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

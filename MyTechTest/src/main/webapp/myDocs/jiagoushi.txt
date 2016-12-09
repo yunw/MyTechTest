@@ -62,6 +62,8 @@ TSP（Telematics Service Provider）汽车远程服务提供商
 深入计算机系统
 响应式设计
 
+云计算：http://soft.chinabyte.com/367/12804867.shtml
+
 redis管理系统：https://www.oschina.net/p/cachecloud-Redis
 
 wiki系统：https://www.oschina.net/news/63011/confluence-5-8
@@ -73,3 +75,5 @@ http://blog.csdn.net/u010942020/article/details/51914719
 
 xmpp：即使通讯
 openfire + spark ：http://www.igniterealtime.org/
+
+惊群效应：http://blog.163.com/yichangjun1989@126/blog/static/1319720282014758021641/

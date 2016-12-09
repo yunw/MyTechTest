@@ -4,14 +4,14 @@ yum -y install gcc perl zlib-devel
 
 wget https://www.openssl.org/source/openssl-1.0.2j.tar.gz
 
-tar zxvf openssl-1.0.2j.tar.gz  
+tar zxvf openssl-1.0.2j.tar.gz
 cd openssl-1.0.2j
 ./config --prefix=/usr/local/openssl
 make && make install
 mv /usr/bin/openssl /usr/bin/openssl.OFF
 mv /usr/include/openssl /usr/include/openssl.OFF
 ln -s /usr/local/openssl/bin/openssl /usr/bin/openssl
-ln -s /usr/local/openssl/bin/openssl /usr/local/bin/openssl
+# ln -s /usr/local/openssl/bin/openssl /usr/local/bin/openssl
 ln -s /usr/local/openssl/include/openssl /usr/include/openssl
 echo "/usr/local/openssl/lib">>/etc/ld.so.conf
 ldconfig -v
@@ -31,18 +31,15 @@ openssl version -a
 
 
 
-
-
-
-
-
-
-
 wget https://www.openssl.org/source/openssl-1.1.0c.tar.gz
 tar zxf openssl-1.1.0c.tar.gz
 cd openssl-1.1.0c
-./config shared zlib
+# ./config shared zlib
+./config --prefix=/usr/local/openssl
 make && make install
+
+ln -s /usr/local/openssl/bin/openssl /usr/bin/openssl
+ln -s /usr/local/openssl/include/openssl /usr/include/openssl
 
 openssl version
 
