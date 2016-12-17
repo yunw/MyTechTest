@@ -1,0 +1,6 @@
+同步退款接口逻辑修改：
+http://wk.9now.net/pages/viewpage.action?pageId=4228542
+com/alfred/constant/PayConstant.java PAY_BACK_SOURCE_KEY_MAP_PROD
+涉及接口：
+AlipayOrderController dianPayQuery() //订单查询接口
+BaseOrderRefundController refund()   //退款

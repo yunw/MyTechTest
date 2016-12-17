@@ -19,3 +19,6 @@ com.alibaba.dubbo.rpc.cluster.support.AbstractClusterInvoker获取loadbalance策
 com.alibaba.dubbo.rpc.cluster.support.FailoverClusterInvoker
 
 dubbo的客户端请求最终通过netty发送出去。
+
+解析dubbo对象：
+com.alibaba.dubbo.config.spring.schema.DubboBeanDefinitionParser

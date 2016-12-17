@@ -87,6 +87,10 @@ git branch <新分支名称>
 创建远程分支
 git push origin <本地分支名称>:<远程分支名称>
 
+关联远程分支：
+git push --set-upstream origin <远程分支>
+该命令将本地分支和远程分支建立关联
+
 更新代码到本地：
 git pull [options] [<repository> [<refspec>…​]]
 <repository>:

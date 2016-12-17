@@ -1,3 +1,20 @@
+测试环境：
+堡垒机：10.0.21.55 root/91Mwbyd!
+代码路径：/opt/deploy/alfred
+发布流程：
+git checkout dev
+git pull
+./build.sh test
+
+10.0.21.203 WQ2/(9jrccE;vcspFMvz   (alfred-mobile-service)
+10.0.21.204 Y83fzRnomHpgE%dl@tJ_   (alfred-clound-service)
+10.0.21.205 x*Ozpp9fLV;Qlxa;yzV5   (alfred-mapi)
+10.0.21.206 oja([Mx}iNYlSkx69mUz   (alfred-api)
+10.0.21.207 [ynQ6dY4i!q\RgxPnlJg   (alfred-clound)
+
+收银助手：
+MwtydZdgcPad，MwtydZdgcBkPad，MwtydZdgcZfPad，MwtydZdgcCyPad，mwtydzdgcpos1/12345678
+
 启动服务：
 alfred-mobile-service
 mvn jetty:run
@@ -160,7 +177,10 @@ dev
 jdbc.url=jdbc:mysql://10.0.21.66:3306
 jdbc.username=root
 jdbc.password=058858
+jdbc.username=9now_dev
+jdbc.password=9now.321
 
+vpn:
 114.80.110.162
 4433
 yang.junming@puscene.com
@@ -207,3 +227,160 @@ http://dc.api.st.9now.net/alfred-api/api/takeaway/baidu/order/create
 
 美团盗链：
 http://localhost:8080/alfred-api/api/takeaway/meituan2/getMeituanToken
+
+
+收银助手过滤前一天的订单：
+测试链接：
+http://localhost:8080/alfred-mobile-api/api/dcb/order/v2/syncPayementList.json?shopId=1&notifyStatus=1&updateTime=0
+http://localhost:8080/alfred-mobile-api/api/dcb/order/v2/syncPayementList.json?shopId=1&notifyStatus=1&updateTime=1481707351438
+
+秒付打印小票：
+alter table glb_para_info modify column para_value1 varchar(3000) ;
+alter table glb_para_info modify column para_value2 varchar(3000) ;
+ insert into glb_para_info (para_type, para_value1,para_value2) 
+ values(1002100, 
+ 'tableName;;memberNo;;orderId;;payTypeName;;tradeTime;;total;;merchantReceipt;;paidAmount;;memberDiscount;;couponAmount;;valueCardDiscountGive;;paidValueCardDiscount;;mwDiscount;;shopDiscount;;extDiscount;;aliDiscount;;privilegeDiscount;;receiptName',
+'桌号;;会员;;订单号;;支付方式;;支付时间;;订单金额;;商户实收金额;;用户实付金额;;积分抵扣;;会员优惠券;;会员储值优免;;储值卡支付;;美味优惠金额;;美味商家优惠金额;;支付宝（微信）商家优惠金额;;阿里优惠金额;;特权折扣金额;;发票抬头');
+
+http://localhost:8480/alfred-mobile-api/api/base/pay/v2_1/pay.json
+{
+    "bizType": "12",
+    "orderId": 31861322,
+    "payType": "1",
+    "payee": "1",
+    "paySourceId": 126,
+    "sysPayId": 128813329,
+    "tradeNo": "4004802001201612132685152856",
+    "paySuccessTime": "2016-12-13 17:50:07",
+    "buyerUsername": "oWT18jqmz97L0z2u1-Jv2TCcWvuA",
+    "amount": "164.00",
+    "payPrice": "164.00",
+    "merchantIncomeAmount": "164.00",
+    "payName": "西贝莜面村(武汉天地壹方店)",
+    "couponAmount": 0,
+    "extDiscount": 0,
+    "aliDiscount": 0,
+    "platformTotalDiscount": 0,
+    "platformMerchantDiscount": 0,
+    "platformDiscount": 0,
+    "meiweiFee": 0,
+    "thirdpartyFee": 0,
+    "memberNo": "243535328675",
+    "awardAmount": 0,
+    "memberDiscount": 0,
+    "memberScore": 0,
+    "valueCardDiscount": 0,
+    "valueCardDiscountGive": 0
+}
+
+收银统计
+@RequestMapping(value = "v3/shopStatisticsReceipt.json", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> shopStatisticsReceipt_v3(HttpServletRequest request,
+            @RequestParam(required = true) Integer shopId,
+            @RequestParam(required = false) String deviceId,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime) {
+    	Map<String, Object> resultMap = shopStatistics_V3(request, shopId, deviceId, date, startTime, endTime);
+    	int errno = (int) resultMap.get("errno");
+    	if (errno == 0) {
+    		Map<String, Object> errmsg = (Map<String, Object>) resultMap.get("errmsg");
+    		List<DiscountInfo> disCountList = (List<DiscountInfo>) errmsg.get("disCountList");
+            errmsg.get("payee");
+            int payee_alipay = (int) errmsg.get("payee_alipay");
+            int payee_wechat = (int) errmsg.get("payee_wechat");
+            int payee_baifubao = (int) errmsg.get("payee_baifubao");
+            int payee_unionPay = (int) errmsg.get("payee_unionPay");
+            errmsg.get("payee_memberCardPay");
+            errmsg.get("payee_otherPay");
+            errmsg.get("needPay");
+            errmsg.get("all");
+            BigDecimal alipay = (BigDecimal) errmsg.get("alipay");
+            BigDecimal wechat = (BigDecimal) errmsg.get("wechat");
+            BigDecimal baifubao = (BigDecimal) errmsg.get("baifubao");
+            BigDecimal unionPay = (BigDecimal) errmsg.get("unionPay");
+            BigDecimal memberCardPay = (BigDecimal) errmsg.get("memberCardPay");
+            errmsg.get("otherPay");
+            BigDecimal alipayt = (BigDecimal) errmsg.get("alipayt");
+            BigDecimal wechatt = (BigDecimal) errmsg.get("wechatt");
+            BigDecimal baifubaot = (BigDecimal) errmsg.get("baifubaot");
+            BigDecimal unionPayt = (BigDecimal) errmsg.get("unionPayt");
+            BigDecimal memberCardPayt = (BigDecimal) errmsg.get("memberCardPayt");
+            errmsg.get("otherPayt");
+            BigDecimal subsidies = (BigDecimal) errmsg.get("subsidies");
+            BigDecimal companySubsidies = (BigDecimal) errmsg.get("companySubsidies");
+            errmsg.get("allnum");
+            errmsg.get("allback");
+            int alipaycount = (int) errmsg.get("alipaycount");
+            int wechatcount = (int) errmsg.get("wechatcount");
+            int baifubaocount = (int) errmsg.get("baifubaocount");
+            int unionPaycount = (int) errmsg.get("unionPaycount");
+            int memberCardPaycount = (int) errmsg.get("memberCardPaycount");
+            errmsg.get("otherPaycount");
+            BigDecimal extDiscounts = (BigDecimal) errmsg.get("extDiscounts");
+            BigDecimal aliDiscounts = (BigDecimal) errmsg.get("aliDiscounts");
+            BigDecimal memberDiscount = (BigDecimal) errmsg.get("memberDiscount");
+            BigDecimal couponAmount = (BigDecimal) errmsg.get("couponAmount");
+            BigDecimal privilegeDiscount = (BigDecimal) errmsg.get("privilegeDiscount");
+            BigDecimal paidValueCardDiscount = (BigDecimal) errmsg.get("paidValueCardDiscount");
+            BigDecimal valueCardDiscountGive = (BigDecimal) errmsg.get("valueCardDiscountGive");
+            
+    		// 收款总额
+    		BigDecimal gatheringTotal = alipay.subtract(alipayt).add(wechat).subtract(wechatt).add(baifubao)
+                    .subtract(baifubaot).add(unionPay).subtract(unionPayt).add(memberCardPay).subtract(memberCardPayt);
+    		// 补贴总额
+    		BigDecimal subsidyTotal = subsidies.add(companySubsidies).add(extDiscounts).add(aliDiscounts).add(memberDiscount).add(couponAmount).add(paidValueCardDiscount)
+    				.add(valueCardDiscountGive);
+    		// 订单总额
+    		BigDecimal orderTotal = gatheringTotal.add(subsidyTotal);
+    		if (orderTotal.compareTo(BigDecimal.ZERO) < 0) {
+    			orderTotal = BigDecimal.ZERO;
+    		}
+    		
+    		Map<String, Object> orderMsg = new HashMap<String, Object>();
+    		orderMsg.put("amount", orderTotal);
+    		orderMsg.put("title", "订单总额");
+    		StringBuilder orderDetail = new StringBuilder();
+    		orderDetail.append("支付宝(" + alipaycount + "）单").append("\n")
+    		.append("- 支付宝收款：" + alipay).append("\n")
+    		.append("- 支付宝退款：" + alipayt).append("\n")
+    		.append(getRemind(payee_alipay)).append("\n")
+    		.append("微信（" + wechatcount + "）单").append("\n")
+    		.append("- 微信收款：" + wechat).append("\n")
+    		.append("- 微信退款：" + wechatt).append("\n")
+    		.append(getRemind(payee_wechat)).append("\n")
+    		.append("百度钱包（" + baifubaocount + "）单").append("\n")
+    		.append("- 百度钱包收款：" + baifubao).append("\n")
+    		.append("- 百度钱包退款：" + baifubaot).append("\n")
+    		.append(getRemind(payee_baifubao)).append("\n")
+    		.append("银联（" + unionPaycount + "）单").append("\n")
+    		.append("- 银联收款：" + unionPay).append("\n")
+    		.append("- 银联退款：" + unionPayt).append("\n")
+    		.append(getRemind(payee_unionPay)).append("\n")
+    		.append("会员储值消费（" + memberCardPaycount + "）单").append("\n")
+    		.append("- 储值消费金额：" + memberCardPay).append("\n")
+    		.append("*无需结算").append("\n")
+    		.append("-----------------------------").append("\n");
+    		orderMsg.put("desc", orderDetail);
+    		
+    		Map<String, Object> subsidyMsg = new HashMap<String, Object>();
+    		subsidyMsg.put("amount", subsidyTotal);
+    		subsidyMsg.put("title", "补贴总额");
+    		StringBuilder subsidyDetail = new StringBuilder();
+    		subsidyDetail.append("- 美味补贴：" + subsidies).append("\n")
+    		.append("  （其他补贴）").append("\n")
+    		.append("- 美味商户补贴：" + companySubsidies).append("\n")
+    		.append("- 支付平台商户补贴：" + extDiscounts).append("\n")
+    		.append("- 支付宝补贴：" + aliDiscounts).append("\n")
+    		.append("- 会员积分补贴：" + memberDiscount).append("\n")
+    		.append("- 储值卡实付：" + paidValueCardDiscount).append("\n")
+    		.append("- 会员储值优免：" + valueCardDiscountGive).append("\n")
+    		.append("- 卡券支付金额：" + couponAmount).append("\n")
+    		.append("- 特权折扣金额：" + privilegeDiscount).append("\n")
+    		.append("-----------------------------").append("\n");
+    		subsidyMsg.put("desc", subsidyDetail);
+    		
+    	}
+    	return resultMap;
+    }

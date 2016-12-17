@@ -1,16 +1,45 @@
+docker machine是什么？
+是一个工具，让你可以在虚拟机上安装docker engine，并且用docker machine命令管理这些主机。可以用machine在mac或windows，或公司网络
+或数据中心，或云服务商像aws或Digital Ocean上安装docker主机。
+
+
+docker machine的用途：
+在mac或windows上安装、运行docker
+提供并管理多个远程docker主机
+提供swarm集群
+
+
+
 一、安装
-curl -L https://github.com/docker/machine/releases/download/v0.7.0/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine && \
+curl -L https://github.com/docker/machine/releases/download/v0.8.2/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine && \
 chmod +x /usr/local/bin/docker-machine
 
 docker-machine version
 
+[root@centos77 ~]# docker-machine version
+docker-machine version 0.8.2, build e18a919
+
+拷贝：https://github.com/docker/machine/tree/master/contrib/completion/bash下的三个脚本文件到：
+/etc/bash_completion.d目录下
+编辑~/.bashrc
+添加一行：
+PS1='[\u@\h \W$(__docker_machine_ps1)]\$ '
+之后就可以用tab键自动补全docker-machine的命令了
 
 二、创建一个machine
-1、产看可见的machine
+1、查看可见的machine列表
 docker-machine ls
-2、创建machine
+[root@centos77 ~]# docker-machine ls
+NAME   ACTIVE   DRIVER   STATE   URL   SWARM   DOCKER   ERRORS
+
+2、创建一个machine
+使用docker-machine create命令，通过--driver标记提供一个适当的driver，比如：virtualbox，并提供一个machine名称，比如：default
+docker-machine create --driver virtualbox default
+
+docker-machine create -d none --url=tcp://localhost:2375 vmware_docker01
 
 
+安装双系统
 
 
 

@@ -13,3 +13,12 @@
         <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>  
     </properties>  
 </profile>
+
+2、eclipse背景色修改：
+背景色目录：C:\eclipse\plugins\org.eclipse.ui.themes_1.1.200.v20160815-0536\css
+草绿色：
+色调       71   红177
+饱和度   64   绿205
+亮度       176  蓝169
+
+

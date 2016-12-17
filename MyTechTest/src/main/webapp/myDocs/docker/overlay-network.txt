@@ -1,0 +1,8 @@
+参考：http://www.tuicool.com/articles/6j2eiub
+
+覆盖网络：是建立在另一个网络之上的计算机网络。在覆盖网络中的节点可以被认为是通过虚拟或逻辑链路连接的。其中每个节点对应一个路径，在底层网络，可能通过许多物理链路。
+overlaynetwork的三种实现标准：
+VXLAN（虚拟可扩展局域网：virtual Extensible local area network）
+采用通用路由封装的网络虚拟化（NVGRE）
+无状态传输协议（SST）
+其中以VXLAN的支持厂商最为雄厚，可以说是Overlay网络的事实标准。

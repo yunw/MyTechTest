@@ -1,0 +1,6 @@
+网络配置文件大多保存在：/etc/sysconfig目录中。vpn、移动宽带以及PPPoE配置除外，这些配置保存在/etc/NetworkManager/子目录中。
+例如：接口的具体信息保存在：/etc/sysconfig/network-scripts/下的ifcfg文件中。
+
+在redhat中编辑ifcfg文件，NetworkManager不会意识到这个更改。可以用下列命令通知NetworkManager：
+nmcli connection reload
+

@@ -9,11 +9,18 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -38,78 +45,30 @@ public class Test {
 	private static Object obj = new Object();
 
 	public static void main(String args[]) throws IOException {
-		long aa = 1480561200;
-		System.out.println("long max value: "   + Long.MAX_VALUE);
-		Date d = new Date(1480643882l * 1000);
-		System.out.println("d: " + d);
-		long a = 1480553557;
-		Date date = new Date(a * 1000);
-		Timestamp t = new Timestamp(a);
-		System.out.println(t);
-		System.out.println(date);
-		System.out.println("current: " + System.currentTimeMillis());
-		System.out.println("      a: " + a * 1000);
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("a", "b");
-		System.out.println(map);
-//		System.out.println(UUID.randomUUID().toString().toUpperCase());
-//		System.out.println(Long.MAX_VALUE);
-//		System.out.println(Integer.MAX_VALUE);
-//		System.out.println("1459421593298753");
-//		int aa = new Double(Math.random() * 100).intValue();
-//		synchronized (obj) {
-//			if (aa == 50) {
-//				return;
-//			} else {
-//				aa = 40;
-//			}
-//		}
-//	    List<String> a = new ArrayList<String>();
-//	    a.add("a0000000001");
-//	    a.add("a0000003000");
-//	    a.add("b0000000001");
-//	    a.add("b0001000000");
-//	    a.add("a0000000070");
-//	    a.add("b0000000600");
-//	    for (String s : a) {
-//	        System.out.println(s);
-//	    }
-//	    System.out.println("\n");
-//	    Collections.sort(a, new Comparator<String>() {
-//            public int compare(String arg0, String arg1) {
-//                return arg0.compareTo(arg1);
-//            }
-//        });
-//	    for (String s : a) {
-//            System.out.println(s);
-//        };
-//		System.out.println(System.getProperty("user.dir"));
-//		String url = "https://www.qq.com/aaa/bbb.html";
-//		int idx = url.indexOf("/", 8);
-//		String a = url.substring(8, idx);
-//		System.out.println(a);
-//		httpProxyTest();
-//		JsTest();
-//		System.out.println(UUID.randomUUID());
-//		System.out.println(Integer.MAX_VALUE);
-//		System.out.println(new Date().getTime());
-//		int b = '\n';
-//		System.out.println(b);
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//		BigInteger bi = new BigInteger("s");
-//		int i = 2 << 1;
-//		System.out.println(i);
-//		//自动获取cup数量
-//		System.out.println(Runtime.getRuntime().availableProcessors());
-//		System.out.println("Hello World......");
-//		char c = '中';
-//		System.out.println(c);
-//		char c2 = '\uffff';
-//		System.out.println(c2);
-//		File file = new File("E:\\yinsl\\VM\\VMware-viewclient-x32-4.6.0-366101.rar");
-//		File target =new File("E:\\yinsl\\VM\\VMware-viewclient-x32-4.6.0-366101.rar.bak");
-//		copyFile(file, target);
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("errno", 0);
+		int errno = (int) resultMap.get("errno");
+		System.out.println(errno);
+		System.out.println(System.currentTimeMillis());
 	}
+	
+	/**
+     * 根据键值对填充字符串，如("hello ${name}",{name:"xiaoming"})
+     * 输出：
+     * @param content
+     * @param map
+     * @return
+     */
+    public static String renderString(String content, Map<String, String> map){
+        Set<Entry<String, String>> sets = map.entrySet();
+        for(Entry<String, String> entry : sets) {
+            String regex = "\\$\\{" + entry.getKey() + "\\}";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(content);
+            content = matcher.replaceAll(entry.getValue());
+        }
+        return content;
+    }
 	
 	@SuppressWarnings("unused")
     public static void httpProxyTest() {

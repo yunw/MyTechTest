@@ -1,11 +1,17 @@
 近期目标：solr 站内搜索
 
+dubbo: http://blog.csdn.net/yinwenjie/article/details/50193987
+
 工具：
+http://dillinger.io/ 在线md编辑器
 http://diff.hust.cc/ 在线文本比较
 http://www.bejson.com/ 在线json格式化
 http://tool.chinaz.com/tools/md5.aspx 在线md5加密
 https://redisdesktop.com/download redis desktop manager redis图形界面工具
 https://robomongo.org/download   mongodb可视化工具
+
+linux：
+http://mt.sohu.com/20160517/n449979876.shtml
 
 db中间件：
 Sharding-JDBC： 透明化数据库分库分表访问

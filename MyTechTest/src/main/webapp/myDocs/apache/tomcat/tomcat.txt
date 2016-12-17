@@ -75,3 +75,11 @@ $JAVA_HOME/bin/keytool -genkey -alias tomcat -keyalg RSA
                maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
                clientAuth="false" sslProtocol="TLS" keystoreFile="d:\keystore" keystorePass="tomcat123"/>
                
+tomcat docBase workDir:http://blog.csdn.net/diamondy/article/details/7472411
+在conf/server.xml的<host>节点中添加：
+<Context path="/confdAdmin" docBase="D:/tomcatdocbase/confdAdmin" workDir="D:/tomcatworkdir/confdAdmin"></Context>
+说明：
+path：context path。url必须以它开始才能访问该应用。该属性只能用于server.xml中静态部署一个context。
+              即使是静态部署，它也不能被设置，除非，docBase不在host的appBase下或者deployOnStartup和autoDeploy都是false，如果不满足，可能导致双部署。
+docBase：应用程序的物理路径。项目文件放在此处
+workDir：应用的工作目录，存放运行时生成的与应用相关的文件，例如jsp的编译文件。

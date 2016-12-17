@@ -1,3 +1,29 @@
+参考：http://it.sohu.com/20160906/n467840670.shtml
+
+swarm cluster：
+1、批量创建服务：
+1.12引擎中多了docker service命令，和之前的docker run命令类似，但不同的是它能同时对多主机中的容器进行管理操作。下面就以1台manager节点，5台worker节点的swarm集群来阐述这些特性。
+　　首先看下容器的创建：
+　　$ docker network create -d overlay mynet
+　　$ docker service create –replicas 3 –name frontend –network mynet –publish 80:80/tcp frontend_image:latest
+　　$ docker service create –name redis –network mynet redis:latest
+　　建立容器之前先创建一个overlay的网络，用来保证在不同主机上的容器网络互通的网络模式，后面两条命令用来在同一个名叫mynet的overlay网络里新建三个相同的web容器副本，和一个 redis副本，并且每个web容器都提供统一的端口映射关系。
+2、集群容错：
+既然是集群，当然难免会出现某几个节点故障的情况。当三个web副本中的其中两台web节点宕机后，cluster会根据自己的服务注册发现机制，以及之前设定的值–replicas 3，
+在集群中剩余的空闲节点上，重新拉起两个web副本。不难看出，docker service其实不仅仅是批量启动服务这么简单，而是在集群中定义了一种状态。Cluster会持续检测服务的健康状态并维护集群的高可用性。
+3、节点服务可扩展性：
+Swarm Cluster不光只是提供了优秀的高可用性，同时也提供了节点弹性扩展的功能。当web这个容器组想动态扩展至六个节点个数时，只需执行$ docker service scale frontend=6就能立刻复制出三个新的副本出来。
+眼尖的朋友可能注意到了，所有扩展出来的新web副本节点都run在原先的web节点下面，如果有需求想在每台节点上都run一个相同的副本有没有办法呢？答案也是肯定的：
+　　$ docker service create –mode=global –name extend_frontend frontend_image:latest
+　　一条命令分分钟搞定！
+4、调度机制：
+Docker1.12的调度机制也值得一提。
+　　所谓的调度其主要功能是cluster的server端去选择在哪个服务器节点上创建并启动一个容器实例的动作。它是由一个装箱算法和过滤器组合而成。每次通过过滤器（constraint）启动容器的时候，
+swarm cluster 都会调用调度机制筛选出匹配约束条件的服务器，并在这上面运行容器。
+　　还是拿刚刚那个例子来说，再加上–constraint参数，就能指定容器只run在服务器硬盘是SSD的节点上（前提是加入到cluster的节点，在启动daemon时，本身需要加上参数 --label com.example.storage=”ssd”）:
+　　$ docker service create –replicas 3 –name frontend –network mynet –publish 80:80/tcp –constraint engine.labels.com.example.storage=ssd frontend_image:lastest
+
+
 一、安装docker engine
 1、更新系统
 yum update -y
