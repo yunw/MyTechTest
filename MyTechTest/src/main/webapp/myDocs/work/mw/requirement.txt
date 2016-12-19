@@ -1,6 +1,29 @@
+测试环境：
+堡垒机  10.0.21.55
+用户名  root , 91Mwbyd!
+
+/opt/deploy/alfred
+git checkout dev
+git pull
+./build.sh test
+
+10.0.21.203 WQ2/(9jrccE;vcspFMvz   (alfred-mobile-service)
+10.0.21.204 Y83fzRnomHpgE%dl@tJ_   (alfred-clound-service)
+10.0.21.205 x*Ozpp9fLV;Qlxa;yzV5   (alfred-mapi)
+10.0.21.206 oja([Mx}iNYlSkx69mUz   (alfred-api)
+10.0.21.207 [ynQ6dY4i!q\RgxPnlJg   (alfred-clound)
+
+
+
 同步退款接口逻辑修改：
 http://wk.9now.net/pages/viewpage.action?pageId=4228542
 com/alfred/constant/PayConstant.java PAY_BACK_SOURCE_KEY_MAP_PROD
 涉及接口：
 AlipayOrderController dianPayQuery() //订单查询接口
 BaseOrderRefundController refund()   //退款
+
+添加支付退款定时任务（只发测试）：
+http://dc.mobile-api.test.9now.net/alfred-mobile-api/api/base/order/v2/refundStatusQry.json
+
+crontab(每分钟调用一次)：
+*/1 * * * * curl -X POST http://localhost:8080/alfred-mobile-api/api/base/order/v2/refundStatusQry.json

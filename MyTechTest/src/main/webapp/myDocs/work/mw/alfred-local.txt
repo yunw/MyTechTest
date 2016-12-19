@@ -8,7 +8,7 @@
 192.168.56.77 openfire docker-machine
 192.168.56.78 openfire
 192.168.56.79 bind9
-
+192.168.56.80 docker
 
 72、76 activemq搭建了network of brokers
 71、72、73 zookeeper搭建了集群

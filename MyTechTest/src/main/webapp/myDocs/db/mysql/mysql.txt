@@ -2,6 +2,11 @@ sqllog过期：
 sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]
 或[HKEY_CURRENT_USER\Software\{FCE48CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了
 
+ 
+
+InnoDB支持行级锁和表级锁，默认为行级锁。
+InnoDB行锁是通过给索引项加锁来实现的，即只有通过索引条件检索数据，InnoDB才使用行级锁，否则将使用表锁！
+
 复合索引的最左前缀原则：
 例如：创建复合索引：(area, age, salary)的复合索引，那么其实相当于创建了(area,age,salary)、(area,age)、(area)三个索引，
 这被称为最佳左前缀特性。因此我们在创建复合索引时应该将最常用作限制条件的列放在最左边，依次递减。
@@ -106,6 +111,21 @@ or table_options
 例如：
 alter table tbl_name add col_name varchar(50);
 alter table tbl_name modify col_name varchar(200);
+
+#查看mysql的自动提交状态：
+show variables like 'autocommit';
+或者
+select @@autocommit;
+
+#修改mysql的自动提交状态：
+关闭：
+set autocommit=off;
+或
+set autocommit=0;
+开启：
+set autocommit=on;
+或
+set autocommit=1;
 
 
 #关闭mysql的自动提交功能
