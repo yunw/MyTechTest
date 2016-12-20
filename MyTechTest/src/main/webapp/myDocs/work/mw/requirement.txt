@@ -21,6 +21,7 @@ com/alfred/constant/PayConstant.java PAY_BACK_SOURCE_KEY_MAP_PROD
 涉及接口：
 AlipayOrderController dianPayQuery() //订单查询接口
 BaseOrderRefundController refund()   //退款
+WPosOrderController: v3/{orderId}.json  v3/list.json
 
 添加支付退款定时任务（只发测试）：
 http://dc.mobile-api.test.9now.net/alfred-mobile-api/api/base/order/v2/refundStatusQry.json
