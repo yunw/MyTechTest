@@ -1,11 +1,247 @@
 1、列出本地镜像：
 docker images
+[root@centos76 bin]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              104bec311bcd        5 days ago          128.9 MB
+busybox             latest              e02e811dd08f        10 weeks ago        1.093 MB
+hello-world         latest              c54a2cc56cbb        5 months ago        1.848 kB
+docker/whalesay     latest              6b362a9f73eb        19 months ago       247 MB
+coreos/apache       latest              5a3024d885c8        2 years ago         294.4 MB
 
 2、查看容器：
 docker ps -a #查看所有的容器
 docker ps    #查看正在运行的容器
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+8adefedddcac        ubuntu              "/bin/sh -c 'while tr"   4 minutes ago       Up 4 minutes                            nauseous_brown
 
-3、创建镜像：
+3、停止容器：
+Usage:  docker stop [OPTIONS] CONTAINER [CONTAINER...]
+Options:
+      --help       Print usage
+  -t, --time int   Seconds to wait for stop before killing it (default 10)
+[root@centos76 bin]# docker logs 8adefedddcac   #<<<---容器id
+hello world
+......
+
+[root@centos76 bin]# docker logs nauseous_brown #<<<---容器name
+hello world
+......
+
+[root@centos76 bin]# docker stop 8adefedddcac
+8adefedddcac
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+53d6868decd3        ubuntu              "/bin/sh -c 'while tr"   4 seconds ago       Up 2 seconds                            adoring_feynman
+[root@centos76 bin]# docker stop adoring_feynman
+adoring_feynman
+
+docker client：
+docker程序称为docker client。你在客户端采取的没有动作都是一个带有一系列标志和参数的命令。
+Usage:  [sudo] docker [subcommand] [flags] [arguments] ..
+Example: docker run -i -t ubuntu /bin/bash
+
+docker version
+docker --help
+docker command --help
+
+在docker中运行web application：
+docker run -d -P training/webapp python app.py
+说明：
+-d标志让程序在后台运行，也叫守护进程。
+-P标志将容器中需要的任何网络端口映射到宿主机。这让你可以查看web应用。
+training/webapp参数是一个预编译的镜像，它包含了一个pathon flask框架的web应用。剩余的参数构成了容器内部运行的命令。python app.py命令启动web应用。
+
+查看web应用容器：
+docker ps -l
+-l标志只显示最后启动的容器的详情
+
+[root@centos76 bin]# docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+5d939285f528        training/webapp     "python app.py"     5 minutes ago       Up 5 minutes        0.0.0.0:32768->5000/tcp   cocky_brattain
+上面的PORTS列的值：
+0.0.0.0:32768->5000/tcp
+表明将容器的5000端口映射到宿主机的32768端口上。
+网络端口绑定是可配置的：
+-P标志是-p 5000的缩写，它将容器的5000端口映射到本地docker主机的一个端口（这个端口的范围是：32768~61000）。
+-p 80:5000将容器的5000端口映射到本地docker主机的指定端口80上。
+
+访问web应用：
+curl http://localhost:32768
+[root@centos76 bin]# curl http://localhost:32768
+Hello world!
+
+查看端口映射有专门的命令：
+docker port [containerId|containerName] containerPort
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+5d939285f528        training/webapp     "python app.py"     18 minutes ago      Up 18 minutes       0.0.0.0:32768->5000/tcp   cocky_brattain
+[root@centos76 bin]# docker port cocky_brattain 5000
+0.0.0.0:32768
+
+查看web应用的日志：
+docker logs -f cocky_brattain
+[root@centos76 bin]# docker logs -f cocky_brattain
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+172.17.0.1 - - [21/Dec/2016 01:30:04] "GET / HTTP/1.1" 200 -
+-f标志的行为和tail -f的行为类似，可以滚动查看最新的标准输出。
+
+查看web应用容器的进程：
+docker top cocky_brattain
+[root@centos76 bin]# docker top cocky_brattain
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                9852                9838                0                   09:14               ?                   00:00:00            python app.py
+[root@centos76 bin]# docker top cocky_brattain -x
+PID                 TTY                 STAT                TIME                COMMAND
+9852                ?                   Ss                  0:00                python app.py
+可以看到python app.py是容器中唯一的进程。
+
+检查web应用容器：
+docker inspect cocky_brattain #返回一个包含指定容器的配置和状态信息的json文档
+[root@centos76 bin]# docker inspect cocky_brattain
+[
+    {
+        "Id": "5d939285f52894736239e4a44d69c4667cc8eb82deed4b31edde56ed722a2015",
+        "Created": "2016-12-21T01:14:29.978805451Z",
+        "Path": "python",
+        "Args": [
+            "app.py"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 9852,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2016-12-21T01:14:32.642024482Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+......
+
+也可以通过请求特定元素缩小返回的信息，例如返回容器的IP地址，可以：
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cocky_brattain
+-f标志表示按指定的Go语言的模板输出信息
+[root@centos76 bin]# docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cocky_brattain
+172.17.0.2
+
+停止容器：
+docker stop cocky_brattain
+启动容器：
+docker start cocky_brattain
+[root@centos76 bin]# docker stop cocky_brattain
+cocky_brattain
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+[root@centos76 bin]# docker start cocky_brattain
+cocky_brattain
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+5d939285f528        training/webapp     "python app.py"     37 minutes ago      Up 5 seconds        0.0.0.0:32769->5000/tcp   cocky_brattain
+
+删除web应用容器：
+docker rm cocky_brattain
+[root@centos76 bin]# docker rm cocky_brattain
+Error response from daemon: You cannot remove a running container 5d939285f52894736239e4a44d69c4667cc8eb82deed4b31edde56ed722a2015. Stop the container before attempting removal or use -f
+[root@centos76 bin]# docker stop cocky_brattain
+cocky_brattain
+[root@centos76 bin]# docker rm cocky_brattain
+cocky_brattain
+
+创建自己的镜像：
+docker镜像是容器的基础。每次运行docker run命令，你都告诉它哪个镜像是你想要的。
+列出docker主机上的镜像：
+docker images
+[root@centos76 bin]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              104bec311bcd        5 days ago          128.9 MB
+busybox             latest              e02e811dd08f        10 weeks ago        1.093 MB
+hello-world         latest              c54a2cc56cbb        5 months ago        1.848 kB
+docker/whalesay     latest              6b362a9f73eb        19 months ago       247 MB
+training/webapp     latest              6fae60ef3446        19 months ago       348.7 MB
+coreos/apache       latest              5a3024d885c8        2 years ago         294.4 MB
+docker仓库可能存有一个镜像的多个变体。每个变体都由一个标签来标志，你可以引用一个带标签的镜像，例如：
+ubuntu:latest
+因此，你可以用带标签的镜像来运行容器，例如：
+docker run -t -i ubuntu:14.04 /bin/bash
+如果不带标签，那么会使用默认标签：latest
+注：最好指定标签，这样就可以明确知道使用的是哪个镜像的变体。这在查问题或调试的时候特别有用。
+
+获取新镜像：
+虽然运行容器的时候会自动下载镜像，但这会增加运行容器的时间，如果想预先下载镜像，可以用命令：
+docker pull
+例如：
+docker pull centos
+会将centos镜像下载到本地。
+
+搜索镜像：
+1、web搜索：https://hub.docker.com/
+2、命令搜索：
+docker search sinatra
+该命令会搜索出所有包含术语sinatra的镜像：
+[root@centos76 bin]# docker search sinatra
+NAME                                         DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
+erikap/ruby-sinatra                          Docker for hosting Sinatra apps                 12                   [OK]
+semtech/mu-sinatra-template                  Template for running Ruby/Sinatra microser...   2                    [OK]
+zyio/sinatra                                 Tiny-ish Sinatra Dockerfile                     1                    [OK]
+samlet/microservices-sinatra-products        microservices with sinatra                      1                    [OK]
+lucymhdavies/sinatra-boilerplate             Docker image with my boilerplate for Sinat...   1                    [OK]
+thomastanmin/sinatra                         This is the docker example with auto build...   1                    [OK]
+tdiary/rpaproxy-sinatra                                                                      1                    [OK]
+convox/sinatra                               Convox base image for Sinatra                   0                    [OK]
+zhenkyle/sinatra                             Build my own automated build `sinatra` exa...   0                    [OK]
+khwada/sinatra                               sinatra for hands on of aws-docker-fluentd-s3   0                    [OK]
+mdzhang/docker-sinatra-hello-world           (WIP) Hello World web app using Docker, Si...   0                    [OK]
+welldoer/sinatra                             Sinatra webapp                                  0                    [OK]
+gwjjeff/sinatra                                                                              0                    [OK]
+shaoheshan/sinatra                                                                           0                    [OK]
+gk727/sinatra                                this is my sinatra                              0                    [OK]
+jaxxstorm/example-sinatra-site               An example sinatra site with versions           0                    [OK]
+jeremypruitt/docker-sinatra                  Alpine 3 with ruby, rspec, and sinatra          0                    [OK]
+下载你想要的镜像：
+docker pull erikap/ruby-sinatra
+
+创建自己的镜像：
+方式：
+1、从一个镜像运行一个容器，然后修改这个容器，提交容器为一个新的镜像
+2、使用dockerfile来指定指令创建镜像。
+
+更新并提交镜像：
+[root@centos76 bin]# docker ps -a
+CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS                           PORTS               NAMES
+ce565e996fe4        erikap/ruby-sinatra:latest   "/bin/bash"              3 minutes ago       Exited (2) 22 seconds ago                            gigantic_hawking
+508147b817e0        ubuntu                       "/bin/bash"              19 minutes ago      Exited (127) 17 minutes ago                          mad_kilby
+edc02c57ee68        ubuntu:14.04                 "/bin/bash"              47 minutes ago      Exited (0) 47 minutes ago                            adoring_hawking
+81e2abe9c424        ubuntu:14.04                 "/bin/bash"              50 minutes ago      Exited (0) 48 minutes ago                            cocky_saha
+53d6868decd3        ubuntu                       "/bin/sh -c 'while tr"   About an hour ago   Exited (137) About an hour ago                       adoring_feynman
+8adefedddcac        ubuntu                       "/bin/sh -c 'while tr"   2 hours ago         Exited (137) About an hour ago                       nauseous_brown
+7ac3d366d0a7        busybox                      "/bin/sh -c 'while tr"   19 hours ago        Exited (137) 19 hours ago                            busybox1
+6801b45b148c        docker/whalesay              "cowsay boo-boo"         20 hours ago        Exited (0) 20 hours ago                              cranky_galileo
+d64041bb2120        docker/whalesay              "cowsay boo"             20 hours ago        Exited (0) 20 hours ago                              goofy_agnesi
+9220a2cd03aa        hello-world                  "/hello"                 20 hours ago        Exited (0) 20 hours ago                              gigantic_yonath
+769fa63d0bde        hello-world                  "/hello"                 21 hours ago        Created                                              berserk_payne
+c9c5409ac3bb        hello-world                  "/hello"                 21 hours ago        Created                                              modest_perlman
+[root@centos76 bin]# docker commit -m "create test image from a updated container" -a "yinsl" ce565e996fe4 dockeruserabcd/sinatra:v2
+sha256:01fbc769ba82d69c091834ce4845bbacbfa931eb7da6ff1afccc222b7465c9f8
+从容器ce565e996fe4        erikap/ruby-sinatra:latest创建镜像：dockeruserabcd/sinatra:v2
+-m标志允许你指定提交信息。类似git的提交
+-a标志允许你指定该更新的作者
+[root@centos76 bin]# docker images
+REPOSITORY               TAG                 IMAGE ID            CREATED             SIZE
+dockeruserabcd/sinatra   v2                  01fbc769ba82        16 minutes ago      729 MB
+ubuntu                   latest              104bec311bcd        5 days ago          128.9 MB
+ubuntu                   14.04               3f755ca42730        5 days ago          187.9 MB
+busybox                  latest              e02e811dd08f        10 weeks ago        1.093 MB
+hello-world              latest              c54a2cc56cbb        5 months ago        1.848 kB
+erikap/ruby-sinatra      latest              b33bf12b86a8        6 months ago        729 MB
+
+2、从dockerfile构建镜像
 mkdir mydockerbuild #该目录为构建的上下文环境，意味着该目录包含了构建镜像需要的所有东西。
 cd mydockerbuild
 vi Dockerfile

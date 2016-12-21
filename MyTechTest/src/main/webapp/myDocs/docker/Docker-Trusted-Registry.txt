@@ -1,0 +1,76 @@
+参考：https://docs.docker.com/datacenter/ucp/1.1/installation/install-production/
+
+一、安装cs docker engine（Commercially Supported Docker Engine）：
+1、为cs包添加docker公钥
+rpm --import "https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e"
+2、安装yum工具包
+yum install -y yum-utils
+3、添加docker仓库：
+yum-config-manager --add-repo https://packages.docker.com/1.12/yum/repo/main/centos/7
+#注：这个命令添加了最新的docker engine仓库。
+4、安装docker cs engine：
+yum install docker-engine
+5、配置设备映射（Configure devicemapper），参考下面链接：
+https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/#/for-a-direct-lvm-mode-configuration
+6、docker后台进程开机启动：
+systemctl enable docker
+systemctl start docker
+7、确认docker守护进程在运行：
+docker info
+8、可选步骤：添加一个non-sudo访问docker socket用户到docker组：
+useradd -g docker docker  #添加用户docker并将其加入docker用户组，这样docker用户就可以执行docker指令而不用使用sudo来获取超级权限了。
+
+二、安装UCP
+1、在所有节点安装cs docker engine（安装方法参考第一步）
+2、自定义命名卷
+Universal Control Plane（UCP）使用命名卷来持久化数据。下面是需要的卷列表：
+节点			卷名称							主机目录 (/var/lib/docker/volumes/) 	描述
+all			ucp-client-root-ca				ucp-client-root-ca/_data 			UCP根CA的证书和key。如果使用自己的证书就不用创建这个卷
+all			ucp-cluster-root-ca 			ucp-cluster-root-ca/_data 			swarm根CA的证书和key
+all			ucp-controller-client-certs 	ucp-controller-client-certs/_data 	当前节点的ucp控制器客户端证书
+all			ucp-controller-server-certs 	ucp-controller-server-certs/_data 	ucp控制器web服务的控制器证书
+controller 	ucp-kv 							ucp-kv/_data 						key/value持久化存储
+all			ucp-kv-certs 					ucp-kv-certs/_data 					当前节点的swarm kv客户端证书（复制到集群的每个节点）
+all			ucp-node-certs 					ucp-node-certs/_data 				当前节点的swarm证书（复制到集群的每个节点）
+-----------------------------------------------------------------------------------------------------------------------------------
+如果在安装UCP之前你不创建这些卷，他们将用默认的卷驱动和标志创建。
+3、自定义服务器证书
+UCP集群使用TLS加密所有通信。需要两个CA（Certificate Authorities）：
+a、集群root CA：为加入集群的新节点生成证书并管理用户绑定。
+b、客户端root CA：生成非管理用户的绑定。
+可以自定义UCP使用外部CA签署的证书。这些证书可以代替那些由客户端root CA生成的证书，这样你就可以使用你的浏览器和客户端都信任的CA签署的证书。
+如果你想使用你自己的证书：
+1）登录你打算安装UCP的主机
+2）创建一个命名卷：ucp-controller-server-certs
+3）在目录：/var/lib/docker/volumes/ucp-controller-server-certs/_data/下加入下列文件：
+ca.pem 		你的root CA证书
+cert.pem 	Your signed UCP controller certificate followed by any intermediate certificates.
+key.pem 	你的UCP控制器的私钥
+4、安装UCP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

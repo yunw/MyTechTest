@@ -1,0 +1,90 @@
+搭建本地仓库（192.168.56.80）：
+1、下载镜像
+docker pull registry
+2、启动容器
+docker run -d -p 5000:5000 registry
+默认情况下，镜像存储在容器的/tmp/registry目录下，如果容器被删除，镜像也被删除了，所以需要将一个本地目录挂在到容器的/tmp/registry下：
+docker run -d -p 5000:5000 -v /opt/data/registry:/tmp/registry registry
+
+测试（192.168.56.76）：
+1、下载测试镜像
+docker pull busybox
+2、给下载的镜像一个新的标签：
+docker tag busybox 192.168.56.80:5000/busybox
+[root@centos76 bin]# docker images
+REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE
+centos                       latest              67591570dd29        5 days ago          191.8 MB
+ubuntu                       latest              104bec311bcd        5 days ago          128.9 MB
+ubuntu                       14.04               3f755ca42730        5 days ago          187.9 MB
+tomcat                       latest              47bd812c12f6        6 days ago          355.2 MB
+192.168.56.80:5000/busybox   latest              e02e811dd08f        10 weeks ago        1.093 MB
+busybox                      latest              e02e811dd08f        10 weeks ago        1.093 MB
+hello-world                  latest              c54a2cc56cbb        5 months ago        1.848 kB
+docker/whalesay              latest              6b362a9f73eb        19 months ago       247 MB
+training/webapp              latest              6fae60ef3446        19 months ago       348.7 MB
+coreos/apache                latest              5a3024d885c8        2 years ago         294.4 MB
+
+3、把打了标签的镜像上传的本地仓库：
+docker push 192.168.56.80:5000/busybox
+4、删除本地busybox镜像：
+[root@centos76 bin]# docker rmi e02e811dd08f
+Untagged: 192.168.56.80:5000/busybox:latest
+Deleted: sha256:e02e811dd08fd49e7f6032625495118e63f597eb150403d02e3238af1df240ba
+Deleted: sha256:e88b3f82283bc59d5e0df427c824e9f95557e661fcb0ea15fb0fb6f97760f9d9
+[root@centos76 bin]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+centos              latest              67591570dd29        5 days ago          191.8 MB
+ubuntu              latest              104bec311bcd        5 days ago          128.9 MB
+ubuntu              14.04               3f755ca42730        5 days ago          187.9 MB
+tomcat              latest              47bd812c12f6        6 days ago          355.2 MB
+hello-world         latest              c54a2cc56cbb        5 months ago        1.848 kB
+docker/whalesay     latest              6b362a9f73eb        19 months ago       247 MB
+training/webapp     latest              6fae60ef3446        19 months ago       348.7 MB
+coreos/apache       latest              5a3024d885c8        2 years ago         294.4 MB
+5、从私有仓库中下载镜像：
+docker pull 192.168.56.80:5000/busybox
+
+6、查看私有仓库中的镜像列表：
+
+
+-----------------------------------------------------------------------------------------------------
+私有仓库v2：
+systemctl stop firewalld
+systemctl restart docker
+从https://hub.docker.com/上搜索registry的最新tag，然后下载：
+docker pull registry:2.5.1
+docker run -d -p 5000:5000 --restart=always -v /opt/registry:/var/lib/registry --name registry_v2 registry:2.5.1
+
+[root@centos710 ~]# curl http://192.168.56.80:5000/v2/_catalog
+{"repositories":["busybox"]}
+
+[root@centos710 ~]# curl http://192.168.56.80:5000/v2/busybox/tags/list
+{"name":"busybox","tags":["latest"]}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
