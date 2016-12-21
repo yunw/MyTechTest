@@ -1,0 +1,135 @@
+参考： https://coreos.com/docs/launching-containers/launching/getting-started-with-systemd/
+     https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+systemd是一个初始化系统，它为启动，停止和管理进程提供了许多强大的特性。在coreOS的世界里，你几乎会完全使用systemd来管理你的docker容器的生命周期。
+
+术语：
+systemd由两个主要概念组成：a unit、a target。
+A unit是一个配置文件，它描述了你想运行的进程的属性。这通常是docker运行命令或类似的什么东西。
+A target是一个分组机制，它允许systemd同时启动一组进程。在不同的运行水平，当进程启动的时候这都会发生。
+
+systemd是coreOS上第一个启动的进程，它读取不同的target并启动指定的进程。与你交互的target是multi-user.target，它持有所有的用于我们的容器的unit文件。
+每个target是一个到我们的unit文件的符号链接的集合。这是在unit文件中用WantedBy=multi-user.target指明的。
+运行：systemctl enable foo.service会创建符号链接到unit内部的multi-user.target.wants
+
+Unit File(unit文件)
+在coreOS中，unit文件的位置在/etc/systemd/system。
+下面是一个简单的unit文件，名字叫hello.service：
+[Unit]
+Description=MyApp
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill busybox1
+ExecStartPre=-/usr/bin/docker rm busybox1
+ExecStartPre=/usr/bin/docker pull busybox
+ExecStart=/usr/bin/docker run --name busybox1 busybox /bin/sh -c "while true; do echo Hello World; sleep 1; done"
+
+[Install]
+WantedBy=multi-user.target
+
+Description：描述信息，在systemd日志中和少数其它地方显示。可以写一些能够帮助你理解下面将要做的事情。
+After=docker.service and Requires=docker.service这意味着这个unit将在docker.service之后活动。可以定义许多类似的。
+ExecStart=允许你指定任何你想运行的命令，当unit启动的时候。pid被分配给这个进程，systemd将监控来确定进程是否崩溃。不要用-d参数来运行docker容器，这将阻止
+容器以这个pid的孩子来启动。systemd会认为这个进程已经存在并且，uint将被停止。
+WantedBy=是这个unit的一部分target
+
+要启动一个新的unit，需要告诉systemd创建符号链接然后启动这个文件：
+systemctl enable /etc/systemd/system/hello.service
+systemctl start hello.service
+
+要核实这个unit已经启动，可以查看运行的容器列表，使用docker ps命令。阅读unit的输出，使用：journalctl -f -u hello.service
+[root@centos76 bin]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+7ac3d366d0a7        busybox             "/bin/sh -c 'while tr"   31 seconds ago      Up 29 seconds                           busybox1
+[root@centos76 bin]# journalctl -f -u hello.service
+-- Logs begin at Tue 2016-12-20 13:57:26 CST. --
+Dec 20 15:31:45 centos76 docker[27809]: Hello World
+Dec 20 15:31:46 centos76 docker[27809]: Hello World
+Dec 20 15:31:47 centos76 docker[27809]: Hello World
+Dec 20 15:31:48 centos76 docker[27809]: Hello World
+^C
+
+Unit file的高级特性：
+这里有个列表，按它们在unit中的生命周期为顺序展示：
+ExecStartPre 	在ExecStart之前运行的命令
+ExecStart 	          运行这个unit的主命令。
+ExecStartPost 	ExecStart命令结束后将运行这个命令。
+ExecReload 	          通过systemctl reload foo.service重新加载这个unit的时候会运行这个命令。
+ExecStop 	          如果这个unit被认为失败或通过systemctl stop foo.service来停止这个unit的时候将运行这个命令。
+ExecStopPost 	ExecStop命令结束后将运行这个命令。
+RestartSec 	          重启一个服务之前沉睡的时间。在阻止失败的服务试图每100ms就重启服务的时候很有用。
+全量列表请参考：https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+让我们把这些概念联系起来注册一个新的unit，在etcd中。想象一下，我们有另一个运行的容器，它要从etcd中读取值并使用它们。
+我们可以用ExecStartPre擦洗现有容器的状态。docker kill命令将强制让这个容器之前的任何副本停止。这是有用的，如果我们重启这个unit但是docker因为某种原因没有停止这个容器。
+“=-”是systemd的语法，它忽略这个命令的错误。我们需要这么做因为docker将返回一个非零的状态码如果我们试图停止一个没有退出的容器。我们不认为这是一个错误（因为我们希望这个容器停止），因此我们告诉systemd忽略可能的错误。
+docker rm命令将删除容器
+docker pull将拉取最新的版本。你也可以用一个docker tag：coreos/apache:1.2.3来拉取指定的版本。
+ExecStart将启动容器，从我们上面拉取的镜像中。
+由于我们的容器在ExecStart命令中将被启动，ExecStartPost命令启动etcd来确保容器启动和运作是有意义的。
+当容器被告知要停止的时候，我们需要停止docker容器使用--name选项来运行命令。我们也需要用ExecStopPost命令清空etcd的key当容器退出或unit失败的时候。
+vi /etc/systemd/system/apacheTest.service
+[Unit]
+Description=My Advanced Service
+After=etcd.service
+After=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill apache1
+ExecStartPre=-/usr/bin/docker rm apache1
+ExecStartPre=/usr/bin/docker pull coreos/apache
+ExecStart=/usr/bin/docker run --name apache1 -p 8081:80 coreos/apache /usr/sbin/apache2ctl -D FOREGROUND
+ExecStartPost=/usr/bin/etcdctl set /domains/example.com/192.168.56.76:8081 running
+ExecStop=/usr/bin/docker stop apache1
+ExecStopPost=/usr/bin/etcdctl rm /domains/example.com/192.168.56.76:8081
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

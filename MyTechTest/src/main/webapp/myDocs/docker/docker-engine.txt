@@ -46,8 +46,9 @@ EOF
 yum install -y docker-engine
 
 4、启动docker engine
-systemctl start docker
 systemctl enable docker
+systemctl start docker
+systemctl status docker
 
 5、测试：
 docker run hello-world

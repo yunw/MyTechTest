@@ -4,15 +4,15 @@
 192.168.56.73 zookeeper kafka
 192.168.56.74 nginx confd solr keepalived haproxy tomcat(disconf)
 192.168.56.75 mysql（disconf、alfred、alfred-mobile, yinsl:Abcd_1234!） redis keepalived haproxy
-192.168.56.76 elk filebeat mysql activemq
-192.168.56.77 openfire docker-machine
-192.168.56.78 openfire
+192.168.56.76 elk filebeat mysql activemq etcd docker
+192.168.56.77 openfire docker-machine etcd
+192.168.56.78 openfire etcd
 192.168.56.79 bind9
 192.168.56.80 docker
 
 72、76 activemq搭建了network of brokers
 71、72、73 zookeeper搭建了集群
-
+76、77、78 搭建了etcd集群
 
 
 

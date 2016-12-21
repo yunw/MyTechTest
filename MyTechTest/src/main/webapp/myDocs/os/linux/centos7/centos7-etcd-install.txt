@@ -1,0 +1,98 @@
+参考： http://www.cnblogs.com/vipmint/p/5694114.html
+     https://github.com/coreos/etcd/releases
+
+集群安装：（192.168.56.76、77、78）
+ETCD_VER=v3.1.0-rc.1
+DOWNLOAD_URL=https://github.com/coreos/etcd/releases/download
+curl -L ${DOWNLOAD_URL}/${ETCD_VER}/etcd-${ETCD_VER}-linux-amd64.tar.gz -o /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+mkdir -p /opt/etcd && tar xzvf /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz -C /opt/etcd --strip-components=1
+/opt/etcd/etcd --version
+
+
+ln -s /opt/etcd/etcd /usr/bin/etcd
+ln -s /opt/etcd/etcdctl /usr/bin/etcdctl
+
+firewall-cmd --zone=public --add-port=2379/tcp --permanent
+firewall-cmd --zone=public --add-port=2380/tcp --permanent
+firewall-cmd --zone=public --add-port=4001/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=2379/tcp
+firewall-cmd --permanent --query-port=2380/tcp
+firewall-cmd --permanent --query-port=4001/tcp
+
+useradd etcd
+mkdir -p /var/lib/etcd/etcd01
+chown -R etcd /var/lib/etcd/etcd01
+
+更新配置文件：
+mkdir -p /etc/etcd
+tee /etc/etcd/etcd.conf <<-'EOF'
+ETCD_NAME=etcd01
+ETCD_DATA_DIR=/var/lib/etcd/etcd01
+ETCD_LISTEN_PEER_URLS=http://192.168.56.76:2380
+ETCD_LISTEN_CLIENT_URLS=http://192.168.56.76:2379,http://127.0.0.1:2379
+ETCD_INITIAL_ADVERTISE_PEER_URLS=http://192.168.56.76:2380
+ETCD_ADVERTISE_CLIENT_URLS=http://192.168.56.76:2379
+ETCD_INITIAL_CLUSTER_STATE=new
+ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster1
+ETCD_INITIAL_CLUSTER=etcd01=http://192.168.56.76:2380,etcd02=http://192.168.56.77:2380,etcd03=http://192.168.56.78:2380
+ETCD_ELECTION_TIMEOUT=1000
+EOF
+
+创建systemd服务：
+tee /etc/systemd/system/etcd.service <<-'EOF'
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+WorkingDirectory=/var/lib/etcd/
+EnvironmentFile=-/etc/etcd/etcd.conf
+User=etcd
+ExecStart=/usr/bin/etcd \
+              --name=${ETCD_NAME} \
+              --data-dir=${ETCD_DATA_DIR} \
+              --listen-client-urls=${ETCD_LISTEN_CLIENT_URLS} \
+              --listen-peer-urls=${ETCD_LISTEN_PEER_URLS} \
+              --advertise-client-urls=${ETCD_ADVERTISE_CLIENT_URLS} \
+              --initial-cluster-token=${ETCD_INITIAL_CLUSTER_TOKEN} \
+              --initial-cluster=${ETCD_INITIAL_CLUSTER} \
+              --initial-cluster-state=${ETCD_INITIAL_CLUSTER_STATE} \
+              --election-timeout=${ETCD_ELECTION_TIMEOUT}
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+启动
+systemctl daemon-reload
+systemctl enable etcd
+systemctl start etcd
+systemctl status etcd
+
+检查状态：
+etcdctl member list 
+etcdctl cluster-health
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
