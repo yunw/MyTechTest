@@ -1,4 +1,28 @@
 搭建本地仓库（192.168.56.80）：
+yum -y update
+reboot #重要，否则会出现各种诡异的问题
+---------------------------------------v2 start-----------------------------------------------------------------------
+私有仓库v2：
+firewall-cmd --zone=public --add-port=5000/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=5000/tcp
+
+从https://hub.docker.com/上搜索registry的最新tag，然后下载：
+docker pull registry:2.5.1
+docker run -d -p 5000:5000 --restart=always -v /opt/registry:/var/lib/registry --name registry_v2 registry:2.5.1
+
+[root@centos710 ~]# curl http://192.168.56.80:5000/v2/_catalog
+{"repositories":["busybox"]}
+
+[root@centos710 ~]# curl http://192.168.56.80:5000/v2/busybox/tags/list
+{"name":"busybox","tags":["latest"]}
+
+---------------------------------------v2 end-----------------------------------------------------------------------
+
+
+
+
+---------------------------------------v1 start-------------------------------------------------------------------------
 1、下载镜像
 docker pull registry
 2、启动容器
@@ -46,22 +70,7 @@ docker pull 192.168.56.80:5000/busybox
 
 6、查看私有仓库中的镜像列表：
 
-
------------------------------------------------------------------------------------------------------
-私有仓库v2：
-systemctl stop firewalld
-systemctl restart docker
-从https://hub.docker.com/上搜索registry的最新tag，然后下载：
-docker pull registry:2.5.1
-docker run -d -p 5000:5000 --restart=always -v /opt/registry:/var/lib/registry --name registry_v2 registry:2.5.1
-
-[root@centos710 ~]# curl http://192.168.56.80:5000/v2/_catalog
-{"repositories":["busybox"]}
-
-[root@centos710 ~]# curl http://192.168.56.80:5000/v2/busybox/tags/list
-{"name":"busybox","tags":["latest"]}
-
-
+---------------------------------------v1 end-------------------------------------------------------------------------
 
 
 

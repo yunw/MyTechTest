@@ -27,6 +27,7 @@ swarm cluster 都会调用调度机制筛选出匹配约束条件的服务器，
 一、安装docker engine
 1、更新系统
 yum update -y
+reboot
 
 #安装防火墙
 yum install -y firewalld

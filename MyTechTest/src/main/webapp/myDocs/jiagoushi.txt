@@ -83,3 +83,7 @@ xmpp：即使通讯
 openfire + spark ：http://www.igniterealtime.org/
 
 惊群效应：http://blog.163.com/yichangjun1989@126/blog/static/1319720282014758021641/
+
+
+文章：
+http://www.yunweipai.com/archives/10335.html
