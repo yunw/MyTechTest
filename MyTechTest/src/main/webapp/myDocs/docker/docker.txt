@@ -1,5 +1,7 @@
 docker hub account：dockeruserabcd/qqmail/abcd_1234
 
+docker提供了一种方式去运行程序，它被安全的隔离在一个容器中，将所有的依赖和包都打包好。
+
 docker namespace 6项隔离：
 系统调用参数              隔离内容                             
 UTS         CLONE_NEWUTS     主机名与域名
@@ -221,3 +223,178 @@ docker pull kubeguide/guestbook-php-frontend
 
 docker的启动配置文件：/usr/lib/systemd/system/docker.service
 其他配置文件：/etc/sysconfig/docker
+
+-------------------------------------------
+理解docker镜像、容器和存储驱动：
+为了有效地使用存储驱动，必须了解docker如何构建和存储镜像。然后，需要理解这些镜像如何被容器使用。
+
+镜像与层（images and layers）：
+每个镜像引用了一个只读层的列表，这些层代表了文件系统的差异。层堆积在彼此的顶部，形成一个容器的根文件系统的基础。下面的图形显示了ubuntu15.04镜像包含4个堆叠的镜像层。
+____________________________
+|91e54dfb1179          0 B  |
+|___________________________|
+|d74508fb6632     1.895 KB  |
+|___________________________|
+|c22013c84729     194.5 KB  |
+|___________________________|
+|d3a1f33e8a5a     188.1 MB  |
+|___________________________|
+     ubuntu:15.04 Image
+     
+docker存储驱动负责堆积这些层并提供一个统一的视图。
+当你创建一个新的容器。你添加了一个新的，薄的，可写的层在这个堆积层的顶部。这一层通常叫“容器层”。
+所有的变化都发生在运行的容器——例如写新文件，修改现有的文件以及删除文件——都发生在这个薄的可写容器层。
+下面的图描述了一个基于ubuntu:15.04镜像的容器：
+|---------------------------|
+|  UUID  Thin R/W layer     |   <<<--------- 容器层
+|---------------------------|
+    /\  
+    ||
+    \/
+_____________________________
+|91e54dfb1179          0 B  |
+|___________________________|
+|d74508fb6632     1.895 KB  |
+|___________________________|  <<<---------- 镜像层
+|c22013c84729     194.5 KB  |
+|___________________________|
+|d3a1f33e8a5a     188.1 MB  |
+|___________________________|
+    /\
+    ||
+   加密的内容哈希 
+
+内容可寻址存储（addressable storage）：
+docker1.10介绍了一种新的内容可寻址存储模式。这是一种彻底的新的方法来寻址磁盘上的镜像和层数据。以前，镜像和层数据使用随机生成的UUID来引用和存储。
+新模式使用了一种加密的内容哈希。
+新模式提升了安全性，提供了一种内置的方式以避免ID冲突，并保证数据拉取，上传，加载以及存储的完整性。这也能够更好地允许更多镜像自由地共享它们的层，即使它们来自不同的构建。
+容器ID仍然采用随机UUID生成。
+
+有几件事值得注意：
+1、迁移现存镜像
+2、镜像与层的文件系统结构
+现存的镜像，那些被更早版本的docker构建并拉取的，在他们能被新模式使用之前需要迁移。这种迁移在你第一次启动并更新docker守护进程的时候自动的进行，计算新的加密校验和。
+迁移结束后，所有的镜像和标签都已经绑定了新的加密ID。
+尽管迁移是自动并透明的。它是计算密集型的。这意味着如果你有大量的镜像数据，这需要时间。这段时间你的docker守护进程无法响应其它请求。
+存在一个迁移工具允许你在升级你的docker守护进程前迁移现存的镜像到新的模式。
+迁移工具由docker公司提供，作为一个容器运行。可以用docker search 查找，也可以下载：https://github.com/docker/v1.10-migrator/releases
+当运行“migrator”镜像，你需要暴露你的docker host的数据目录给容器。如果你使用默认的docker数据路径，运行容器的命令将类似下面的命令：
+ docker run --rm -v /var/lib/docker:/var/lib/docker docker/v1.10-migrator
+ 如果你使用devicemapper存储驱动，你需要包含--privileged选项，以便容器有权访问你的存储驱动。
+ 
+容器与层：
+容器与镜像的最主要的区别在最顶层的可写层。容器中所有的写：添加新的或修改现有的数据都存储在这个可写层。
+当容器被删除，可写层也被删除。
+因为每个容器都有自己的可写层，并且所有的变化都存储在这个容器层中，这意味着多个容器可以共享相同的底层镜像，并有自己的数据状态。
+Copy-on-Write策略（CoW）
+写时复制（CoW）策略是这样的：需要相同数据的系统进程共享拥有这些数据的实例而不是拥有他们自己的副本。在某个点上，如果一个进程需要修改或写入数据，
+操作系统需要做的只是为那个进程生成一份那个数据的副本，只有那个进程需要写那个数据副本。其它的进程继续使用原来的数据。
+docker使用CoW技术优化了镜像磁盘空间利用并且提高了容器启动性能。
+
+共享促成更小的镜像
+所有的镜像与容器层都存在于docker主机的本地存储区并被存储驱动管理。在linux系列的操作系统中，docker主机一般位于/var/lib/docker。
+所有版本的docker都允许镜像共享层。例如，如果你拉取一个镜像，它与一个已经拉取下来的镜像共享某些层，docker守护进程会意识到这一点，只会拉取本地还不存在的层。
+第二次拉取后，两个镜像将共享任何公共的镜像层。
+可以用一个例子来说明这一点。用unbuntu15.04为基础，改变它，建立一个新的镜像。一个办法是用Dockfile和docker build命令。
+1、用一个空的目录，创建一个Dockerfile文件，第一行如下：
+From ubuntu:15.04
+2、在镜像的/tmp目录下添加一个新文件叫“newfile”，并输入文本“Hello world”。
+RUN echo "Hello world" > /tmp/newfile
+3、保存并关闭文件
+4、在与你的Dockerfile相同目录的一个终端中，运行下面的命令：
+docker build -t changed-ubuntu .
+注：上述命令最后的句号（.）很重要，它告诉docker build命令使用当前目录作为构建上下文。
+5、运行docker images命令：
+[root@centos11 changed-ubuntu]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+changed-ubuntu      latest              ee307b2ede85        16 seconds ago      131.3 MB
+ubuntu              15.04               d1b55fd07600        11 months ago       131.3 MB
+6、运行docker history命令看看哪些镜像层用于构建这个changed-ubuntu镜像：
+[root@centos11 changed-ubuntu]# docker history changed-ubuntu
+IMAGE               CREATED              CREATED BY                                      SIZE                COMMENT
+ee307b2ede85        About a minute ago   /bin/sh -c echo "Hello world" > /tmp/newfile    12 B                
+d1b55fd07600        11 months ago        /bin/sh -c #(nop) CMD ["/bin/bash"]             0 B                 
+<missing>           11 months ago        /bin/sh -c sed -i 's/^#\s*\(deb.*universe\)$/   1.879 kB            
+<missing>           11 months ago        /bin/sh -c echo '#!/bin/sh' > /usr/sbin/polic   701 B               
+<missing>           11 months ago        /bin/sh -c #(nop) ADD file:3f4708cf445dc1b537   131.3 MB       
+可以看到，最上面的镜像层是新添加的，下面的4个镜像层是共享的。最上层仅仅使用了12字节的磁盘空间。这意味着changed-ubuntu镜像仅仅使用的docker主机12字节的磁盘空间。
+注1：在docker1.10的内容可寻址存储模式中，镜像历史数据不再是每个镜像一个配置文件。现在所有的镜像都存储在一个配置文件的一个文本字符串中。这导致某些镜像层
+在docker history命令中显示“missing”，这是正常的，可以忽略。
+注2：新的镜像changed-ubuntu并没有拥有每一个镜像层的副本。
+
+拷贝使得容器效率高
+所有的写发生在容器的薄层可写层。其它层都是只读镜像层。这使得多个容器可以安全地共享下层镜像。
+当容器中一个既存文件被修改，docker用存储驱动执行一个copy-on-write操作。这个指定的操作依赖于存储驱动。
+A）对AUFS和OverlayFS存储驱动，CoW操作类似下面的描述：
+•在整个镜像层搜索这个文件用于更新。从顶层开始，一次搜索一个层，直达底层。
+•在发现这个文件的第一个副本的时候执行一个“copy-up”操作。“copy-up”操作拷贝文件到容器自己的可写层。
+•在容器的可写层修改这个文件的副本。
+B）Btrfs，ZFS以及其它的驱动CoW是不一样的。
+
+“copy-up”操作会带来显著的性能开销。不同的存储驱动开销也不一样。但是，大文件，大量的层，和很深的目录树会使影响变得更显著。幸运的是，这个操作只
+在一个文件第一次被改变时发生，后续对同一文件的修改不会导致“copy-up”操作，可以直接在已经存在的副本上操作。
+
+数据卷与存储驱动：
+当容器被删除，任何写入容器的数据，如果没有存储在数据卷上都会被删除。
+数据卷是这个docker主机文件系统中的一个目录或文件，它被直接挂载到容器中。数据卷不被存储驱动控制。对数据卷的读写绕过了存储驱动并以本地主机速度执行。
+你可以挂载任意数量的数据卷到一个容器。多个容器也可以共享一个或多个数据卷。
+
+-------------------------------------------
+
+-------------------------------------------
+docker与devicemapper存储驱动：
+https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
+AUFS（advanced multi-layered unification filesystem：高级多层统一文件系统）的一个替代方案：
+起初docker运行在ubuntu和debian上并使用AUFS作为后端存储。当docker变得流行后，许多使用Red Hat Enterprise Linux（RHEL）的公司也想用它。
+不行的是，上游的linux主流内核不包含AUFS，RHEL也不使用AUFS。
+为了改变这种状况，Red Hat开发者研究将AUFS加入主流内核。最终，他们决定开发一个新的存储后端。另外，他们将用现存的device mapper技术做这一新的存储后端的基础。
+Red Hat和docker公司合作，捐赠了这个新驱动。作为这个合作的结果，docker的引擎被重新设计来让这个存储后端可以插入。因此，devicemapper变成了docker支持的第二个存储驱动。
+device mapper从2.6.9版本开始已经包含在主流的linux内核中。变成了RHEL发布家族的一个核心部分。这意味着devicemapper存储驱动是基于稳定代码的有许多现实世界的产品部署和强大的社区支持。
+
+镜像分层与共享：
+devicemapper驱动在它自己的虚拟设备上存储每个镜像和容器。这些设备是薄的CoW快照设备。device mapper技术工作在块级别而不是文件级别。
+devicemapper创建镜像的高层处理如下：
+1、devicemapper存储驱动创建一个薄的池（thin pool）。池是由块设备或循环挂载的稀疏文件创建的。
+2、接下来创建一个基本的设备。基本设备是一个薄的带文件系统的设备。你可以用docker info命令查看哪种文件系统被使用并检查背后的文件系统的值。
+3、每个新的镜像（以及镜像层）都是这个基本的设备的一个快照。
+这是薄的CoW快照。这意味着他们最初是空的，只在数据写入他们的时候才从池中消耗空间。
+容器层是创建他们的镜像的快照。容器快照存储了容器的所有更新。devicemapper在数据写入容器的时候从池中按需分配空间。
+
+配置docker的devicemapper：
+docker主机以默认配置模式：loop-lvm运行devicemapper存储驱动。这种模式使用稀疏文件建立薄池给镜像和容器快照使用。
+这种模式被设计为不需要添加额外配置的开箱即用（ out-of-the-box）。生产部署不应该使用loop-lvm模式。
+[root@centos11 changed-ubuntu]# docker info
+。。。。。。
+ Data loop file: /var/lib/docker/devicemapper/devicemapper/data
+ WARNING: Usage of loopback devices is strongly discouraged for production use. Use `--storage-opt dm.thinpooldev` to specify a custom block storage device.
+ Metadata loop file: /var/lib/docker/devicemapper/devicemapper/metadata
+ Library Version: 1.02.135-RHEL7 (2016-09-28)
+。。。。。。
+上述信息显示了docker主机以loop-lvm模式运行devicemapper存储驱动。
+Data loop file和Metadata loop file表明了这一点，他们是环回挂载稀疏文件。
+
+为生产环境配置direct-lvm模式：
+更适合生产环境的配置是direct-lvm模式。这种模式使用块设备创建薄池。
+下面的程序将创建一个逻辑卷，配置为薄池，用于存储池的备份。假设你有一个备用的块设备在/dev/xvdf，有足够的空间来完成任务。设备标识符和卷大小在你的环境中可能是不同的，在整个过程中你
+应该替换为自己的值。程序也也假设docker守护进程处于停止状态。
+
+-------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

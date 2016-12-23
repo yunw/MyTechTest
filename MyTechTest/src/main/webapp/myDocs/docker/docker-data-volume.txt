@@ -1,0 +1,140 @@
+Docker engine管理数据的两种方式：
+•数据卷（data volume）
+•数据卷容器（data volume container）
+
+数据卷：
+数据卷是一个特别设计的目录，它里面的一个或多个容器绕开了UFS（union file system）。数据卷为持久化或共享数据提供了几个有用的特性：
+•当一个容器创建的时候卷被初始化。如果容器的基础镜像在特定的挂载点包含数据，那些存在的数据在卷初始哈时被拷贝到新的卷中。（注意：挂载到主机目录不适用）。
+•数据卷可以在容器之间共享和重用
+•对数据卷的修改是立即生效的
+•更新镜像并不会更新数据卷
+•数据卷仍然存在即是容器本身被删除
+数据卷被设计为持久化数据，独立于容器的生命周期。
+
+添加一个数据卷
+可以用-v标志在docker create和docker run命令中为容器添加一个数据卷。可以多次使用-v挂载多个数据卷。现在，可以挂载一个卷到你的web应用容器：
+docker run -d -P --name web -v /webapp training/webapp python app.py
+这将在容器的/webapp下创建一个新的卷。
+
+定位一个卷（Locating a volume）：
+可以用docker inspect命令定位卷在主机上的位置：
+[root@centos11 ~]# docker inspect web
+。。。。。。
+        "Mounts": [
+            {
+                "Name": "27df11e2ea03b3636e867412e00a1874bf3d98ea7427ea4652c7807b9777fa32",
+                "Source": "/var/lib/docker/volumes/27df11e2ea03b3636e867412e00a1874bf3d98ea7427ea4652c7807b9777fa32/_data",
+                "Destination": "/webapp",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            }
+        ],
+。。。。。。
+
+挂载一个主机目录作为一个数据卷：
+docker run -d -P --name web -v /src/webapp:/webapp training/webapp python app.py
+这个命令挂载主机目录：/src/webapp到容器的/webapp。如果目录/webapp在容器的镜像中已经存在，/src/webapp挂载将覆盖但不删除已经存在的内容。
+一旦挂载被删除，这些内容就可以被访问了。
+容器路径必须是绝对路径例如/webapp。主机路径可以是绝对路径或一个名称值。如果主机路径使用的是绝对路径，docker绑定挂载到你指定的路径。
+如果你提供一个名字，docker用这个名字创建一个命名卷（默认在：/var/lib/docker/volumes目录下）。
+docker卷默认以读写模式挂载，也可设置为只读模式：
+docker run -d -P --name web -v /src/webapp:/webapp:ro training/webapp python app.py
+
+Mount a shared-storage volume as a data volume：
+除了挂载一个主机目录到你的容器，一些docker卷插件也允许你挂载共享存储，象iSSSI，NFS，FC等。
+共享卷的好处是他们独立于主机。
+使用卷驱动的一种方式是通过docker run命令。卷驱动通过名称创建卷，而不是通过目录。
+
+下面的命令创建了一个命名卷，叫：my-named-vloume，使用flocker卷驱动【flocker是一个插件用于多主机便携式卷】并使它在容器的/webapp下可见。
+运行这个命令之前，需要安装flocker，如果不想安装flocker，可以用local代替flocker，使用local驱动。
+docker run -d -P \
+  --volume-driver=flocker \
+  -v my-named-volume:/webapp \
+  --name web training/webapp python app.py
+
+docker run -d -P \
+  --volume-driver=local \
+  -v my-named-volume:/webapp \
+  --name web3 training/webapp python app.py
+可以看到（使用local驱动）新目录：/var/lib/docker/volumes/my-named-volume被创建了。
+
+也可以使用docker volume create命令在容器中使用它之前创建一个卷。
+docker volume create -d flocker --opt o=size=20GB my-named-volume
+docker run -d -P \
+  -v my-named-volume:/webapp \
+  --name web training/webapp python app.py
+  
+卷标（volume label）：
+标签系统像SELinux需要适当的标签放到卷内容上。没有标签，安全系统可能会阻止容器中运行的进程使用这些内容。默认情况下
+docker不会修改有OS设置的标签。
+要在容器上下文改变标签，可以添加两个后缀:z或者:Z到卷的挂载上。z选项告诉docker容器可以共享卷内容，所有容器都可以读写。
+Z选项告诉docker这是一个私有的卷，只有当前容器可以使用。
+docker run -d -P -v my-named-volume:/webapp:ro,z --name web4 training/webapp python app.py
+
+Mount a host file as a data volume
+-v标志也可以挂载一个文件：
+docker run --rm -it -v ~/.bash_history:/root/.bash_history ubuntu /bin/bash
+
+Creating and mounting a data volume container
+如果你有一些数据要在容器间分享，或者希望从非持久化的容器中使用。最好创建一个命名的数据卷容器，然后从它那里挂载数据。
+先创建一个命名的容器，它有一个卷用于分享数据。这个容器不运行应用。
+docker create -v /dbdata --name dbstore training/postgres /bin/true
+可以用--volumes-from标志挂载/dbdata卷到另一个容器：
+docker run -d --volumes-from dbstore --name db1 training/postgres
+以及另一个：
+docker run -d --volumes-from dbstore --name db2 training/postgres
+这个例子中，如果postgres镜像包含了一个/dbdata目录，那么从dbstore容器挂载的卷会隐藏/dbdata下的来自postgres镜像的文件。结果是只有来自dbstore容器的文件是可见的。
+你可以使用多个--volumes-from参数从多个容器组合数据卷。
+你也可以扩展挂载卷的链：
+docker run -d --name db3 --volumes-from db1 training/postgres
+如果你删除了挂载卷的容器，包括初始化dbstore的容器或者后学的容器db1和db2，卷都不会被删除。
+要从磁盘上删除卷，必须显式执行：docker rm -v，在最后一个引用这个卷的容器。这允许你升级或在容器间迁移数据卷。
+注：docker不会警告你当你删除容器而没有提供-v选项去删除它的卷的时候。如果你删除容器没有使用-v标志，你可能会以“dangling”卷的方式结束，这些卷不再被任何容器引用。可以用
+docker volume ls -f dangling=true来发现dangling卷。并使用
+docker volume rm <volume name>来删除不再使用的卷。
+[root@centos11 my-named-volume]# docker volume ls -f dangling=true
+DRIVER              VOLUME NAME
+local               27df11e2ea03b3636e867412e00a1874bf3d98ea7427ea4652c7807b9777fa32
+local               my-named-volume
+local               mywebapp
+[root@centos11 my-named-volume]# docker volume rm mywebapp
+mywebapp
+[root@centos11 my-named-volume]# docker volume ls -f dangling=true
+DRIVER              VOLUME NAME
+local               27df11e2ea03b3636e867412e00a1874bf3d98ea7427ea4652c7807b9777fa32
+local               my-named-volume
+
+
+Backup, restore, or migrate data volumes：
+备份，恢复，迁移数据卷：
+docker run --rm --volumes-from dbstore -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /dbdata
+这个命令我们发布了一个容器并从dbstore挂载了一个卷，然后我们讲本地主机的当前目录挂载到容器的/backup目录下。最后，
+执行tar命令将dbdata卷的内容备份到backup.tar文件，放在容器的/backup目录下。当命令执行完毕，容器停止后，就剩下了一个包含dbdata卷数据的备份。
+
+恢复：
+新建一个容器：
+docker run -v /dbdata --name dbstore2 ubuntu /bin/bash
+将备份文件恢复到新容器：
+docker run --rm --volumes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar --strip 1"
+使用上面的步骤，就可以实现备份，恢复和迁移数据了。
+
+Removing volumes
+你可以创建命名卷和匿名卷。命名卷在容器外有特定的资源格式，匿名卷没有指定的资源。当容器被删除的时候，你应该命令docker守护进程
+清除匿名卷。要做到这一点，需要用--rm选项。例如：
+docker run --rm -v /foo -v awesome:/bar busybox top
+这个命令创建了一个匿名卷/foo，一个命名卷：awesome。当容器被删除，docker引擎删除/foo卷但不会删除awesome卷。
+
+Important tips on using shared volumes
+多容器可以共享一个或多个数据卷。然而，多个容器写单个共享卷会导致数据腐败。确保你的应用被设计为写共享数据存储。
+
+
+
+
+
+
+
+
+
+

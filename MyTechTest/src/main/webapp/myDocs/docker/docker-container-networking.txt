@@ -1,0 +1,129 @@
+docker容器网络
+
+默认网络：
+在你安装docker后，它自动创建了三个网络：
+[root@centos11 ~]# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+c47b20ce67d1        bridge              bridge              local               
+a7a4e1b3debb        host                host                local               
+386557e5f3c3        none                null                local
+由于历史的原因，这三个网络是docker实现的一部分。当你运行容器你可以用--network标志指定你希望哪种网络运行在容器中。
+
+bridge网络代表了docker0网络，在所有的docker安装中。除非你指定其他的，用docker run --network=<NETWORK>选项，docker守护进程默认使用这个网络连接容器。
+none网络添加容器到一个容器指定的网络栈。该容器没有网络接口。
+host网络添加一个容器到主机的网络栈。你会发现容器内部的网络配置和主机完全相同。
+
+除了bridge网络之外，你真的不需要和这些默认网络交互。你不能删除他们，他们是docker安装必须的。然而，你可以添加你自己的用户定义的网络并在你不需要的时候删除他们。
+
+docker network inspect命令可以查看网络的信息：
+
+docker run命令自动添加新容器到这个网络。
+磨人的docker0桥接网络支持端口映射并且docker run --link允许容器在docker0网络上相互通信。这些技术设置繁琐容易出错。
+
+用户定义的网络：
+你可以定义自己的用户定义网络来更好的隔离容器。docker提供了一些默认的网络驱动来创建网络。你可以创建一个新的桥接网络（bridge network），overlay network（覆盖网络）
+或者macvlan network。
+你可以建立多个网络。你可以将一个容器加入多个网络。容器只能在网络中通信但不能跨越网络。链接到两个网络的容器可以与任一网络中的容器通信。当一个容器链接到多个网络，它的外部连通性
+是由第一个非内部网络提供的，按字典顺序。
+
+Bridge Network（桥接网络）：
+最简单的用户定义网络是建立一个桥接网络。
+docker network create --driver bridge isolated_nw
+[root@centos11 ~]# docker network create --driver bridge isolated_nw
+9a6c81ad1ea9d6b9fe732a0d56e323fd2c7d13868344c5c243bc1614d657ecf5
+[root@centos11 ~]# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+3869c8dd0f99        bridge              bridge              local               
+a7a4e1b3debb        host                host                local               
+9a6c81ad1ea9        isolated_nw         bridge              local               
+386557e5f3c3        none                null                local               
+[root@centos11 ~]# docker network inspect isolated_nw
+[
+    {
+        "Name": "isolated_nw",
+        "Id": "9a6c81ad1ea9d6b9fe732a0d56e323fd2c7d13868344c5c243bc1614d657ecf5",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1/16"
+                }
+            ]
+        },
+        "Internal": false,
+        "Containers": {},
+        "Options": {},
+        "Labels": {}
+    }
+]
+创建了网络之后，就可以使用这个网络发布容器了，通过：
+docker run --network=<NETWORK>
+[root@centos11 ~]# docker run --network=isolated_nw -itd --name=container3 busybox
+Unable to find image 'busybox:latest' locally
+latest: Pulling from library/busybox
+fdab12439263: Pull complete 
+Digest: sha256:f102731ae8898217038060081c205aa3a4ae3f910c2aaa7b3adeb6da9841d963
+Status: Downloaded newer image for busybox:latest
+93f49f5eac2f4e11f1ec6568bd1a8f2b6e53844b5a43ac18a88feb7470c4eb6e
+[root@centos11 ~]# docker network inspect isolated_nw
+[
+    {
+        "Name": "isolated_nw",
+        "Id": "9a6c81ad1ea9d6b9fe732a0d56e323fd2c7d13868344c5c243bc1614d657ecf5",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1/16"
+                }
+            ]
+        },
+        "Internal": false,
+        "Containers": {
+            "93f49f5eac2f4e11f1ec6568bd1a8f2b6e53844b5a43ac18a88feb7470c4eb6e": {
+                "Name": "container3",
+                "EndpointID": "5627a4e58ad92d7b4e19617fbfb8dc7edec4f11967358009ae11276bd7fd90c6",
+                "MacAddress": "02:42:ac:12:00:02",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {}
+    }
+]
+你发布到这个网络的容器必须驻留在相同的docker主机上。网络内部的容器可以马上相互通信。但是，网络本身将容器与外部网络隔离了。
+在用户定义的桥接网络内部，链接（linking）是不被支持的。你可以暴露容器的端口在网络内部。这是有用的如果你想让桥接网络的一部分在外部网络可见。
+
+The docker_gwbridge network：
+docker_gwbridge network是一个本地的桥接网络，下面两种情况下会被docker自动创建：
+•当你初始化或加入一个swarm，docker创建docker_gwbridge网络并使用它与在不同主机上的swarm主机通信。
+•当没有一个容器的网络可以提供外部连接，Docker连接到容器的docker_gwbridge网络，以便容器可以连接到外部网络或其它的swarm节点。
+你可以创建docker_gwbridge网络如果你需要自定义配置，否则docker将按需创建。下面是一个创建的例子：
+docker network create --subnet 172.30.0.0/16 \
+                        --opt com.docker.network.bridge.name=docker_gwbridge \
+			--opt com.docker.network.bridge.enable_icc=false \
+			docker_gwbridge
+当你使用overlay网络的时候，docker_gwbridge网络总是存在的。
+
+An overlay network with Docker Engine swarm mode：
+你可以创建一个覆盖网络在一个以swarm模式运行的管理节点上，不带额外的k/v存储（类似etcd）。
+这对swarm的覆盖网络对是哟用docker run命令启动的容器是不可见的。
+
+An overlay network with an external key-value store：
+如果你不是用swarm模式，覆盖网络需要一个合法的k/v存储服务。支持的k/v存储包括consul，etcd，和zookeeper。
+			
+
+
+
+
