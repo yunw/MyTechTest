@@ -1,3 +1,6 @@
+nsloop,dig在centos7中放在包bind-utils中
+
+
 [root@centos71 logs]# cat /proc/sys/kernel/sem
 250     32000   32      128
 第一列，表示每个信号集中的最大信号量数目。 

@@ -1,3 +1,5 @@
+学习资料：http://roclinux.cn/
+
 BSD(Berkeley Software Distribution):伯克利软件发布
 NFS(Network File System)：网络文件系统
 CDN(Content Delivery Network):内容分发网络

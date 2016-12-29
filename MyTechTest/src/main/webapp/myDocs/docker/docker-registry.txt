@@ -1,15 +1,51 @@
-搭建本地仓库（192.168.56.80）：
+http://blog.csdn.net/felix_yujing/article/details/51564739
+https://github.com/docker/docker/blob/f7d48d74a3dd44171d5e9dbcf33ba6de40baa08a/docs/reference/commandline/dockerd.md#daemon-configuration-file
+https://github.com/docker/distribution/blob/master/docs/spec/api.md
+
+搭建本地仓库（192.168.56.72）：
 yum -y update
 reboot #重要，否则会出现各种诡异的问题
----------------------------------------v2 start-----------------------------------------------------------------------
-私有仓库v2：
+
+安装docker engine：参考docker-engin.txt
+
+firewall-cmd --zone=public --add-port=2375/tcp --permanent
 firewall-cmd --zone=public --add-port=5000/tcp --permanent
 firewall-cmd --reload
+firewall-cmd --permanent --query-port=2375/tcp
 firewall-cmd --permanent --query-port=5000/tcp
+
+---------------------------------------v2 start-----------------------------------------------------------------------
+一：简单的私有仓库
 
 从https://hub.docker.com/上搜索registry的最新tag，然后下载：
 docker pull registry:2.5.1
 docker run -d -p 5000:5000 --restart=always -v /opt/registry:/var/lib/registry --name registry_v2 registry:2.5.1
+
+[root@centos71 ~]# docker push 192.168.56.72:5000/hello-world:1.0
+The push refers to a repository [192.168.56.72:5000/hello-world]
+Get https://192.168.56.72:5000/v1/_ping: http: server gave HTTP response to HTTPS client
+报错原因：docker客户端连接仓库默认采用https协议，服务端还是http协议。
+解决方案一：
+1、在客户端添加文件：
+vi /etc/sysconfig/docker
+OPTIONS='--selinux-enabled --insecure-registry 192.168.56.72:5000'
+2、修改docker的systemd启动文件：
+vi /usr/lib/systemd/system/docker.service
+在[service]这一节下添加：
+EnvironmentFile=-/etc/sysconfig/docker
+并修改：
+ExecStart=/usr/bin/dockerd
+为：
+ExecStart=
+ExecStart=/usr/bin/dockerd $OPTIONS
+重启客户端docker即可解决该问题
+解决方案二：
+在客户端添加文件：
+vi /etc/docker/daemon.json
+{
+    "insecure-registries": ["192.168.56.72:5000"]
+}
+然后重启docker客户端即可。
 
 [root@centos710 ~]# curl http://192.168.56.80:5000/v2/_catalog
 {"repositories":["busybox"]}
@@ -17,7 +53,306 @@ docker run -d -p 5000:5000 --restart=always -v /opt/registry:/var/lib/registry -
 [root@centos710 ~]# curl http://192.168.56.80:5000/v2/busybox/tags/list
 {"name":"busybox","tags":["latest"]}
 
+
+二、使用自签名证书的私有仓库：
+https://docs.docker.com/registry/insecure/
+1、创建自签名证书：
+注：域名：test.com
+mkdir -p /root/certs && openssl req \
+   -newkey rsa:4096 -nodes -sha256 -keyout /root/certs/test.com.key \
+   -x509 -days 365 -out /root/certs/test.com.crt
+[root@centos72 certs]# mkdir -p /root/certs && openssl req \
+>    -newkey rsa:4096 -nodes -sha256 -keyout /root/certs/test.com.key \
+>    -x509 -days 365 -out /root/certs/test.com.crt
+Generating a 4096 bit RSA private key
+....................................................++
+.......++
+writing new private key to '/root/certs/test.com.key'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:CN
+State or Province Name (full name) [Some-State]:SHANGHAI
+Locality Name (eg, city) []:SHANGHAI
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:MEIWEI
+Organizational Unit Name (eg, section) []:MEIWEI
+Common Name (e.g. server FQDN or YOUR name) []:test.com
+Email Address []:yin.shunlin@puscene.com
+
+2、以启用TLS的方式启动registry：
+docker run -d -p 5000:5000 --restart=always --name registry_v2 \
+  -v /root/certs:/certs \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/test.com.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/test.com.key \
+  registry:2.5.1
+
+3、将自签名证书拷贝到各docker客户端：
+在各客户端执行：
+mkdir -p /etc/docker/certs.d/test.com:5000
+scp root@192.168.56.72:/root/certs/test.com.crt /etc/docker/certs.d/test.com:5000/ca.crt
+
+4、各客户端重启docker engine
+
+5、测试：
+A)
+[root@centos71 ~]# curl --cacert /etc/docker/certs.d/test.com:5000/ca.crt https://test.com:5000/v2/_catalog
+{"repositories":[]}
+B)
+浏览器上输入：https://test.com:5000/v2/_catalog
+注：需要修改：C:\Windows\System32\drivers\etc\hosts文件，添加：
+192.168.56.72 test.com
+浏览器会报告这个链接不安全，在高级选项中添加例外，就可以访问了。
+C)
+上传镜像
+[root@centos71 docker]# docker tag hello-world test.com:5000/hello-world:1.0
+[root@centos71 docker]# docker push test.com:5000/hello-world:1.0
+The push refers to a repository [test.com:5000/hello-world]
+a02596fdd012: Pushed 
+1.0: digest: sha256:a18ed77532f6d6781500db650194e0f9396ba5f05f8b50d4046b294ae5f83aa4 size: 524
+d）
+[root@centos71 docker]# curl --cacert /etc/docker/certs.d/test.com:5000/ca.crt https://test.com:5000/v2/_catalog
+{"repositories":["hello-world"]}
+[root@centos71 docker]# curl --cacert /etc/docker/certs.d/test.com:5000/ca.crt https://test.com:5000/v2/hello-world/tags/list
+{"name":"hello-world","tags":["1.0"]}
+
+三、带删除功能的私有仓库：
+https://github.com/docker/distribution/blob/master/docs/configuration.md#storage
+
+mkdir -p /etc/docker
+vi /etc/docker/config.yml
+version: 0.1
+storage:
+  delete:
+    enabled: true
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+http:
+  tls:
+    certificate: /certs/test.com.crt
+    key: /certs/test.com.key 
+docker run -d -v /root/certs:/certs \
+  -v /etc/docker/config.yml:/etc/docker/registry/config.yml \
+  -p 5000:5000 --restart=always --name registry_v2 registry:2.5.1
+
+docker stop registry_v2 && docker rm -v registry_v2
+docker run -d -p 5000:5000 --restart=always --name registry_v2 \
+  -v /root/certs:/certs \
+  -e REGISTRY_STORAGE_DELETE_ENABLED=true \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/test.com.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/test.com.key \
+  registry:2.5.1
+  
+测试：
+a）查看镜像详情：
+[root@centos71 docker]# curl --cacert /etc/docker/certs.d/test.com:5000/ca.crt https://test.com:5000/v2/hello-world/manifests/1.0
+{
+   "schemaVersion": 1,
+   "name": "hello-world",
+   "tag": "1.0",
+   "architecture": "amd64",
+   "fsLayers": [
+      {
+         "blobSum": "sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4"
+      },
+      {
+         "blobSum": "sha256:c04b14da8d1441880ed3fe6106fb2cc6fa1c9661846ac0266b8a5ec8edf37b7c"
+      }
+   ],
+   "history": [
+      {
+         "v1Compatibility": "{\"architecture\":\"amd64\",\"config\":{\"Hostname\":\"c65bc554a4b7\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/hello\"],\"Image\":\"sha256:0f9bb7da10de694b2babd0c1a3b75582a0db3395625cae5ab0fe537ce1cd831e\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":{}},\"container\":\"562cadb4d17bbf30b58ab0f6a870be60c8d36d2e401bf637f1d2d7f8afbef666\",\"container_config\":{\"Hostname\":\"c65bc554a4b7\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/bin/sh\",\"-c\",\"#(nop) CMD [\\\"/hello\\\"]\"],\"Image\":\"sha256:0f9bb7da10de694b2babd0c1a3b75582a0db3395625cae5ab0fe537ce1cd831e\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":{}},\"created\":\"2016-07-01T19:39:27.532838486Z\",\"docker_version\":\"1.10.3\",\"id\":\"f0cb9bdcaa694b35bcef98669b251aca07f630c74103d4cf4a745dccb022adaa\",\"os\":\"linux\",\"parent\":\"264eca88cf85b0a54f73d9d80cc976731322379f436c6917732f869444a2dfb9\",\"throwaway\":true}"
+      },
+      {
+         "v1Compatibility": "{\"id\":\"264eca88cf85b0a54f73d9d80cc976731322379f436c6917732f869444a2dfb9\",\"created\":\"2016-07-01T19:39:26.986719192Z\",\"container_config\":{\"Cmd\":[\"/bin/sh -c #(nop) COPY file:21fb0ede514e588c72071bfbd3c577e2f6a669db9351d1a435e21baf895efcd6 in /\"]}}"
+      }
+   ],
+   "signatures": [
+      {
+         "header": {
+            "jwk": {
+               "crv": "P-256",
+               "kid": "KFRA:KA4L:TDOS:UG5L:S355:P3YQ:FGKZ:QPHX:Z354:QG22:JC2Z:FXSH",
+               "kty": "EC",
+               "x": "NRiNOSJc9Vm0nE4rL6S4z_Ar_-7sPVJfrm2kAvt8l-U",
+               "y": "gX3xYrSd0IHz3Y1asfaY0YXaq4qUW8_u1i-ei0EJhwI"
+            },
+            "alg": "ES256"
+         },
+         "signature": "GVktC1HMUveO8XcT7G4O393dWUNCgAuvfRTrKHCwRpWgzRpBWE-BCGArL2JMlxLhwAQHRfj1fqVY4QQMyBvu4Q",
+         "protected": "eyJmb3JtYXRMZW5ndGgiOjIwOTIsImZvcm1hdFRhaWwiOiJDbjAiLCJ0aW1lIjoiMjAxNi0xMi0yOFQxMDo0MDoxMFoifQ"
+      }
+   ]
+}
+
+B）删除镜像：
+http://stackoverflow.com/questions/35982400/error-delete-image-from-docker-registry-using-api-v2
+1、查看镜像的digist：
+A:使用HEAD方法：
+curl  -v --cacert /etc/docker/certs.d/test.com:5000/ca.crt -X HEAD  https://test.com:5000/v2/hello-world/manifests/1.0
+[root@centos71 docker]# curl  -v --cacert /etc/docker/certs.d/test.com:5000/ca.crt -X HEAD  https://test.com:5000/v2/hello-world/manifests/1.0
+* About to connect() to test.com port 5000 (#0)
+*   Trying 192.168.56.72...
+* Connected to test.com (192.168.56.72) port 5000 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+*   CAfile: /etc/docker/certs.d/test.com:5000/ca.crt
+  CApath: none
+* SSL connection using TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+* Server certificate:
+*       subject: E=yin.shunlin@puscene.com,CN=test.com,OU=MEIWEI,O=MEIWEI,L=SHANGHAI,ST=SHANGHAI,C=CN
+*       start date: Dec 28 09:24:45 2016 GMT
+*       expire date: Dec 28 09:24:45 2017 GMT
+*       common name: test.com
+*       issuer: E=yin.shunlin@puscene.com,CN=test.com,OU=MEIWEI,O=MEIWEI,L=SHANGHAI,ST=SHANGHAI,C=CN
+> HEAD /v2/hello-world/manifests/1.0 HTTP/1.1
+> User-Agent: curl/7.29.0
+> Host: test.com:5000
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Content-Length: 2739
+< Content-Type: application/vnd.docker.distribution.manifest.v1+prettyjws
+< Docker-Content-Digest: sha256:5235bbeedb7be3bad0fb8f9cff23dde70c6f23fa7ca05437ea58f1ea4ac026e1
+< Docker-Distribution-Api-Version: registry/2.0
+< Etag: "sha256:5235bbeedb7be3bad0fb8f9cff23dde70c6f23fa7ca05437ea58f1ea4ac026e1"
+< X-Content-Type-Options: nosniff
+< Date: Wed, 28 Dec 2016 14:56:26 GMT
+< 
+从上面的响应可以看出：
+Docker-Content-Digest: sha256:5235bbeedb7be3bad0fb8f9cff23dde70c6f23fa7ca05437ea58f1ea4ac026e1
+digest是：sha256:5235bbeedb7be3bad0fb8f9cff23dde70c6f23fa7ca05437ea58f1ea4ac026e1
+
+B：使用GET方法：
+1、先上传镜像：
+[root@centos71 docker]# docker push test.com:5000/hello-world:1.1
+The push refers to a repository [test.com:5000/hello-world]
+a02596fdd012: Layer already exists 
+1.1: digest: sha256:a18ed77532f6d6781500db650194e0f9396ba5f05f8b50d4046b294ae5f83aa4 size: 524
+可以看到，客户端的digest是：
+digest: sha256:a18ed77532f6d6781500db650194e0f9396ba5f05f8b50d4046b294ae5f83aa4
+
+2、用GET方法查看镜像信息
+[root@centos11 docker]# curl -v --cacert /etc/docker/certs.d/test.com:5000/ca.crt -X GET  https://test.com:5000/v2/hello-world/manifests/1.1
+* About to connect() to test.com port 5000 (#0)
+*   Trying 192.168.56.72...
+* Connected to test.com (192.168.56.72) port 5000 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+*   CAfile: /etc/docker/certs.d/test.com:5000/ca.crt
+  CApath: none
+* SSL connection using TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+* Server certificate:
+*       subject: E=yin.shunlin@puscene.com,CN=test.com,OU=MEIWEI,O=MEIWEI,L=SHANGHAI,ST=SHANGHAI,C=CN
+*       start date: Dec 28 09:24:45 2016 GMT
+*       expire date: Dec 28 09:24:45 2017 GMT
+*       common name: test.com
+*       issuer: E=yin.shunlin@puscene.com,CN=test.com,OU=MEIWEI,O=MEIWEI,L=SHANGHAI,ST=SHANGHAI,C=CN
+> GET /v2/hello-world/manifests/1.1 HTTP/1.1
+> User-Agent: curl/7.29.0
+> Host: test.com:5000
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Content-Length: 2739
+< Content-Type: application/vnd.docker.distribution.manifest.v1+prettyjws
+< Docker-Content-Digest: sha256:a2b84c04a316f93dff35286b55ce5df2be40dec77ccc8a3ee89fbd2fd442180a
+< Docker-Distribution-Api-Version: registry/2.0
+< Etag: "sha256:a2b84c04a316f93dff35286b55ce5df2be40dec77ccc8a3ee89fbd2fd442180a"
+< X-Content-Type-Options: nosniff
+< Date: Wed, 28 Dec 2016 16:28:29 GMT
+< 
+{
+   "schemaVersion": 1,
+   "name": "hello-world",
+   "tag": "1.1",
+   "architecture": "amd64",
+   "fsLayers": [
+      {
+         "blobSum": "sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4"
+      },
+      {
+         "blobSum": "sha256:c04b14da8d1441880ed3fe6106fb2cc6fa1c9661846ac0266b8a5ec8edf37b7c"
+      }
+   ],
+   "history": [
+      {
+         "v1Compatibility": "{\"architecture\":\"amd64\",\"config\":{\"Hostname\":\"c65bc554a4b7\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/hello\"],\"Image\":\"sha256:0f9bb7da10de694b2babd0c1a3b75582a0db3395625cae5ab0fe537ce1cd831e\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":{}},\"container\":\"562cadb4d17bbf30b58ab0f6a870be60c8d36d2e401bf637f1d2d7f8afbef666\",\"container_config\":{\"Hostname\":\"c65bc554a4b7\",\"Domainname\":\"\",\"User\":\"\",\"AttachStdin\":false,\"AttachStdout\":false,\"AttachStderr\":false,\"Tty\":false,\"OpenStdin\":false,\"StdinOnce\":false,\"Env\":[\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"],\"Cmd\":[\"/bin/sh\",\"-c\",\"#(nop) CMD [\\\"/hello\\\"]\"],\"Image\":\"sha256:0f9bb7da10de694b2babd0c1a3b75582a0db3395625cae5ab0fe537ce1cd831e\",\"Volumes\":null,\"WorkingDir\":\"\",\"Entrypoint\":null,\"OnBuild\":null,\"Labels\":{}},\"created\":\"2016-07-01T19:39:27.532838486Z\",\"docker_version\":\"1.10.3\",\"id\":\"f0cb9bdcaa694b35bcef98669b251aca07f630c74103d4cf4a745dccb022adaa\",\"os\":\"linux\",\"parent\":\"264eca88cf85b0a54f73d9d80cc976731322379f436c6917732f869444a2dfb9\",\"throwaway\":true}"
+      },
+      {
+         "v1Compatibility": "{\"id\":\"264eca88cf85b0a54f73d9d80cc976731322379f436c6917732f869444a2dfb9\",\"created\":\"2016-07-01T19:39:26.986719192Z\",\"container_config\":{\"Cmd\":[\"/bin/sh -c #(nop) COPY file:21fb0ede514e588c72071bfbd3c577e2f6a669db9351d1a435e21baf895efcd6 in /\"]}}"
+      }
+   ],
+   "signatures": [
+      {
+         "header": {
+            "jwk": {
+               "crv": "P-256",
+               "kid": "QTQA:MEOJ:SFCN:PFNI:74SY:XNW5:HAFF:CPI7:SKSF:KJDA:7C25:RLKT",
+               "kty": "EC",
+               "x": "Y1CHRgXv18_LqE2Se_UAY7qrPOgunBMoFzq2cwKyaX4",
+               "y": "nELAP6Xck0vp52xvPRUAOn5l4XsQ_mgVK8yRko53Is8"
+            },
+            "alg": "ES256"
+         },
+         "signature": "mfkzh6tlAcEH7bDwt5vvjqIEXmqORNf2Ii70AV9VvAhvWopeS9H5jzxx9kv2kUoVQcCw-znRo0VEeh0xPbxO8A",
+         "protected": "eyJmb3JtYXRMZW5ndGgiOjIwOTIsImZvcm1hdFRhaWwiOiJDbjAiLCJ0aW1lIjoiMjAxNi0xMi0yOFQxNjoyODoyOVoifQ"
+      }
+   ]
+* Connection #0 to host test.com left intact
+}
+
+可以看到，digest是：
+sha256:a2b84c04a316f93dff35286b55ce5df2be40dec77ccc8a3ee89fbd2fd442180a
+这与客户端的digest值是不一样的。
+
+2、删除：
+curl -v -X DELETE --cacert /etc/docker/certs.d/test.com:5000/ca.crt --header "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+https://test.com:5000/v2/hello-world/manifests/sha256:a18ed77532f6d6781500db650194e0f9396ba5f05f8b50d4046b294ae5f83aa4
+注：删除需要用客户端的digest而不是服务端的digest。
+[root@centos11 docker]# curl  -v  -X DELETE --cacert /etc/docker/certs.d/test.com:5000/ca.crt --header "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+> https://test.com:5000/v2/hello-world/manifests/sha256:a18ed77532f6d6781500db650194e0f9396ba5f05f8b50d4046b294ae5f83aa4
+* About to connect() to test.com port 5000 (#0)
+*   Trying 192.168.56.72...
+* Connected to test.com (192.168.56.72) port 5000 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+*   CAfile: /etc/docker/certs.d/test.com:5000/ca.crt
+  CApath: none
+* SSL connection using TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+* Server certificate:
+*       subject: E=yin.shunlin@puscene.com,CN=test.com,OU=MEIWEI,O=MEIWEI,L=SHANGHAI,ST=SHANGHAI,C=CN
+*       start date: Dec 28 09:24:45 2016 GMT
+*       expire date: Dec 28 09:24:45 2017 GMT
+*       common name: test.com
+*       issuer: E=yin.shunlin@puscene.com,CN=test.com,OU=MEIWEI,O=MEIWEI,L=SHANGHAI,ST=SHANGHAI,C=CN
+> DELETE /v2/hello-world/manifests/sha256:a18ed77532f6d6781500db650194e0f9396ba5f05f8b50d4046b294ae5f83aa4 HTTP/1.1
+> User-Agent: curl/7.29.0
+> Host: test.com:5000
+> Accept: application/vnd.docker.distribution.manifest.v2+json
+> 
+< HTTP/1.1 202 Accepted
+< Docker-Distribution-Api-Version: registry/2.0
+< X-Content-Type-Options: nosniff
+< Date: Wed, 28 Dec 2016 16:28:41 GMT
+< Content-Length: 0
+< Content-Type: text/plain; charset=utf-8
+< 
+* Connection #0 to host test.com left intact
+
+删除后查询就会报错，因为镜像已经不存在了：
+[root@centos11 docker]# curl  --cacert /etc/docker/certs.d/test.com:5000/ca.crt -X GET  https://test.com:5000/v2/hello-world/manifests/1.1
+{"errors":[{"code":"MANIFEST_UNKNOWN","message":"manifest unknown","detail":{"Tag":"1.1"}}]}
+
 ---------------------------------------v2 end-----------------------------------------------------------------------
+
+
+
+
+
 
 
 

@@ -1,0 +1,150 @@
+https://my.oschina.net/wayhk/blog/491958?p=1
+http://www.wosign.com/basic/codesign_basic.htm
+http://blog.csdn.net/clh604/article/details/22179907
+
+1、创建根证书的私钥：
+openssl genrsa -out ca.key 1024
+[root@centos11 ~]# mkdir -p /root/CA
+[root@centos11 ~]# cd CA
+[root@centos11 CA]# ls
+[root@centos11 CA]# openssl genrsa -out ca.key 1024
+Generating RSA private key, 1024 bit long modulus
+...........................++++++
+.......++++++
+e is 65537 (0x10001)
+[root@centos11 CA]# ls
+ca.key
+
+2、利用私钥创建根证书（即CA的公钥）：
+openssl req -new -x509 -days 365 -key ca.key -out ca.crt -subj "/C=CN/ST=SHANGHAI/L=SHANGHAI/O=test.com/OU=ROOT CA"
+说明：
+这 里/C表示国家(Country)，只能是国家字母缩写，如CN、US等；/ST表示州或者省(State/Provice)；
+/L表示城市或者地区 (Locality)；/O表示组织名(Organization Name)；/OU其他显示内容，一般会显示在颁发者这栏
+[root@centos11 CA]# openssl req -new -x509 -days 365 -key ca.key -out ca.crt -subj "/C=CN/ST=SHANGHAI/L=SHANGHAI/O=test.com/OU=ROOT CA"
+[root@centos11 CA]# ls
+ca.crt  ca.key
+
+到这里，根证书创建完毕。
+
+下面建立网站SSL证书：
+1、创建网站SSL证书私钥：
+openssl genrsa -out server.key 1024
+[root@centos11 CA]# openssl genrsa -out server.key 1024
+Generating RSA private key, 1024 bit long modulus
+.......++++++
+.......++++++
+e is 65537 (0x10001)
+[root@centos11 CA]# ls
+ca.crt  ca.key  server.key
+
+2、利用网站ssl证书私钥创建网站ssl证书申请文件（CSR）：
+openssl req -new -key server.key -out server.csr -subj "/C=CN/ST=SHANGHAI/L=SHANGHAI/O=MEIWEI/OU=test.com/CN=mwee.cn"
+说明：
+/O字段内容必须与刚才的CA根证书相同；/CN字段为公用名称(Common Name)，必须为网站的域名(不带www)；/OU字段最好也与为网站域名，当然选择其他名字也没关系。
+[root@centos11 CA]# openssl req -new -key server.key -out server.csr -subj "/C=CN/ST=SHANGHAI/L=SHANGHAI/O=test.com/OU=mwee.cn/CN=mwee.cn"
+[root@centos11 CA]# ls
+ca.crt  ca.key  server.csr  server.key
+
+3、用CA根证书签署SSL自建证书：
+openssl ca -in server.csr -out server.crt -cert ca.crt -keyfile ca.key
+创建过程中需要询问，都输入y。
+[root@centos11 CA]# openssl ca -in server.csr -out server.crt -cert ca.crt -keyfile ca.key
+Using configuration from /etc/pki/tls/openssl.cnf
+/etc/pki/CA/index.txt: No such file or directory
+unable to open '/etc/pki/CA/index.txt'
+139774688798624:error:02001002:system library:fopen:No such file or directory:bss_file.c:398:fopen('/etc/pki/CA/index.txt','r')
+139774688798624:error:20074002:BIO routines:FILE_CTRL:system lib:bss_file.c:400:
+报错：
+创建index.txt文件
+touch /etc/pki/CA/index.txt
+
+[root@centos11 CA]# touch /etc/pki/CA/index.txt
+[root@centos11 CA]# openssl ca -in server.csr -out server.crt -cert ca.crt -keyfile ca.key
+Using configuration from /etc/pki/tls/openssl.cnf
+/etc/pki/CA/serial: No such file or directory
+error while loading serial number
+140024520038304:error:02001002:system library:fopen:No such file or directory:bss_file.c:398:fopen('/etc/pki/CA/serial','r')
+140024520038304:error:20074002:BIO routines:FILE_CTRL:system lib:bss_file.c:400:
+
+报错：
+touch /etc/pki/CA/serial
+[root@centos11 CA]# touch /etc/pki/CA/serial
+[root@centos11 CA]# openssl ca -in server.csr -out server.crt -cert ca.crt -keyfile ca.key
+Using configuration from /etc/pki/tls/openssl.cnf
+unable to load number from /etc/pki/CA/serial
+error while loading serial number
+140261097912224:error:0D066096:asn1 encoding routines:a2i_ASN1_INTEGER:short line:f_int.c:215:
+
+报错：
+echo 00 > /etc/pki/CA/serial
+[root@centos11 CA]# echo 00 > /etc/pki/CA/serial
+[root@centos11 CA]# openssl ca -in server.csr -out server.crt -cert ca.crt -keyfile ca.key
+Using configuration from /etc/pki/tls/openssl.cnf
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number: 0 (0x0)
+        Validity
+            Not Before: Dec 28 04:31:53 2016 GMT
+            Not After : Dec 28 04:31:53 2017 GMT
+        Subject:
+            countryName               = CN
+            stateOrProvinceName       = SHANGHAI
+            organizationName          = MEIWEI
+            organizationalUnitName    = mwee.cn
+            commonName                = mwee.cn
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                A2:89:59:57:43:1A:3D:83:5E:81:51:F0:6C:F0:77:F8:1D:0B:51:C6
+            X509v3 Authority Key Identifier: 
+                keyid:19:05:40:FB:FF:1D:ED:E2:B3:76:DB:AE:5A:4D:46:F7:36:3B:30:13
+
+Certificate is to be certified until Dec 28 04:31:53 2017 GMT (365 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Data Base Updated
+[root@centos11 CA]# ls
+ca.crt  ca.key  server.crt  server.csr  server.key
+
+好了，现在目录下有两个服务器需要的SSL证书及相关文件了，分别是server.crt（公钥）和server.key（私钥），接下来就可以利用它们配置你的服务器软件了。
+需要注意的是由于是自签名证书，所以客户端需要安装根证书，将刚才第2步创建的根证书ca.crt下载到客户端，然后双击导入，否则会提示不受信任的证书发布商问题。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

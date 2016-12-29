@@ -1,38 +1,43 @@
 package com.test.example.base.jdk8;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+
 
 public class Jdk8Test {
 
-//	public static void main(String[] args) {
-//		// test1();
-//		// StreamTest();
-//		// ArraysSortTest();
-//		// OptionalTest();
-//		// SupplierTest();
-//		// ConsumerTest();
-//		// MapForeachTest();
-//		// MultiAnnotationTest();
-//		FunctionalInterfaceTest();
-//	}
-//
-//	public static void FunctionalInterfaceTest() {
-//		Converter<String, Integer> converter = (a) -> Integer.valueOf(a);
-//		Integer converted = converter.convert("123");
-//		System.out.println(converted); // 123
-//
-//		Converter<Person, String> personConverter = (a) -> a.firstName + " "
-//				+ a.lastName;
-//		String fn = personConverter.convert(new Person("Michel", "joden"));
-//		System.out.println(fn);
-//
-//		converter = Integer::valueOf;
-//		converted = converter.convert("123");
-//		System.out.println(converted); // 123
-//		
-//		converter = new Person() :: getNameLength;
-//		converted = converter.convert("123");
-//		System.out.println(converted); // 3
-//	}
+	public static void main(String[] args) {
+		// test1();
+		// StreamTest();
+		// ArraysSortTest();
+		// OptionalTest();
+		// SupplierTest();
+		 ConsumerTest();
+		// MapForeachTest();
+		// MultiAnnotationTest();
+		FunctionalInterfaceTest();
+	}
+
+	public static void FunctionalInterfaceTest() {
+		Converter<String, Integer> converter = (a) -> Integer.valueOf(a);
+		Integer converted = converter.convert("123");
+		System.out.println(converted); // 123
+
+		Converter<Person, String> personConverter = (a) -> a.firstName + " "
+				+ a.lastName;
+		String fn = personConverter.convert(new Person("Michel", "joden"));
+		System.out.println(fn);
+
+		converter = Integer::valueOf;
+		converted = converter.convert("123");
+		System.out.println(converted); // 123
+		
+		converter = new Person() :: getNameLength;
+		converted = converter.convert("Mike");
+		System.out.println(converted); // 3
+	}
 //
 //	public static void MultiAnnotationTest() {
 //		Hint hint = Teacher.class.getAnnotation(Hint.class);
@@ -70,12 +75,12 @@ public class Jdk8Test {
 //		map.merge(9, "concat", (value, newValue) -> value.concat(newValue));
 //		System.out.println(map.get(9)); // val9concat
 //	}
-//
-//	public static void ConsumerTest() {
-//		Consumer<Person> greeter = (p) -> System.out.println("Hello, "
-//				+ p.firstName);
-//		greeter.accept(new Person("Luke", "Skywalker"));
-//	}
+
+	public static void ConsumerTest() {
+		Consumer<Person> greeter = (p) -> System.out.println("Hello, "
+				+ p.firstName);
+		greeter.accept(new Person("Luke", "Skywalker"));
+	}
 //
 //	public static void SupplierTest() {
 //
@@ -133,26 +138,26 @@ public class Jdk8Test {
 //		stringCollection.parallelStream().filter((s) -> s.startsWith("a"))
 //				.forEach(System.out::println);
 //	}
-//
-//	public static void test1() {
-//		List<String> names = Arrays.asList("peter", "anna", "mike", "xenia");
-//
-//		names.forEach(System.out::println);
-//		System.out.println();
-//
-//		Collections.sort(names, (String a, String b) -> {
-//			return a.compareTo(b);
-//		});
-//		names.forEach(System.out::println);
-//		System.out.println();
-//
-//		Collections.sort(names, (String a, String b) -> b.compareTo(a));
-//		names.forEach(System.out::println);
-//		System.out.println();
-//
-//		Collections.sort(names, (a, b) -> a.compareTo(b));
-//		names.forEach(System.out::println);
-//		System.out.println();
-//	}
+
+	public static void test1() {
+		List<String> names = Arrays.asList("peter", "anna", "mike", "xenia");
+
+		names.forEach(System.out::println);
+		System.out.println();
+
+		Collections.sort(names, (String a, String b) -> {
+			return a.compareTo(b);
+		});
+		names.forEach(System.out::println);
+		System.out.println();
+
+		Collections.sort(names, (String a, String b) -> b.compareTo(a));
+		names.forEach(System.out::println);
+		System.out.println();
+
+		Collections.sort(names, (a, b) -> a.compareTo(b));
+		names.forEach(System.out::println);
+		System.out.println();
+	}
 
 }

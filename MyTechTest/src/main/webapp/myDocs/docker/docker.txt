@@ -1,5 +1,7 @@
 docker hub account：dockeruserabcd/qqmail/abcd_1234
 
+http://www.adamzhang.top/2016/04/15/%e5%a4%a7%e9%87%8f-docker-%e5%ad%a6%e4%b9%a0%e8%b5%84%e6%ba%90/
+
 docker提供了一种方式去运行程序，它被安全的隔离在一个容器中，将所有的依赖和包都打包好。
 
 docker namespace 6项隔离：
@@ -195,7 +197,9 @@ docker.io   docker.io/jdeathe/centos-ssh-apache-php   CentOS-6 6.7 x86_64 / Apac
 ......
 
 
-
+查看容器日志：
+docker logs -f <container_name>
+-f:类似 tail -f 动态查看日志
 
 
 1、centos7下安装 etcd 和kubuernetes（会自动安装docker）：

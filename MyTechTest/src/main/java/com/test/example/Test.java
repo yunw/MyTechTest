@@ -44,13 +44,13 @@ public class Test {
 	
 	private static Object obj = new Object();
 
-	public static void main(String args[]) throws IOException {
-		Map<String, Object> resultMap = new HashMap<String, Object>();
-		resultMap.put("errno", 0);
-		int errno = (int) resultMap.get("errno");
-		System.out.println(errno);
-		System.out.println(System.currentTimeMillis());
-	}
+//	public static void main(String args[]) throws IOException {
+//		Map<String, Object> resultMap = new HashMap<String, Object>();
+//		resultMap.put("errno", 0);
+//		int errno = (int) resultMap.get("errno");
+//		System.out.println(errno);
+//		System.out.println(System.currentTimeMillis());
+//	}
 	
 	/**
      * 根据键值对填充字符串，如("hello ${name}",{name:"xiaoming"})

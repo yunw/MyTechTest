@@ -13,6 +13,8 @@ import org.apache.mina.filter.statistic.ProfilerTimerFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 
 public class MinaTimeClient {
+	
+	private static final int PORT = 6488;
 
     public static void main(String[] args) {
         // 创建客户端连接器.
@@ -27,7 +29,7 @@ public class MinaTimeClient {
         connector.setHandler(new TimeClientHandler());
 
         // 建立连接
-        ConnectFuture cf = connector.connect(new InetSocketAddress("localhost", 6488));
+        ConnectFuture cf = connector.connect(new InetSocketAddress("localhost", PORT));
         // 等待连接创建完成
         cf.awaitUninterruptibly();
 
