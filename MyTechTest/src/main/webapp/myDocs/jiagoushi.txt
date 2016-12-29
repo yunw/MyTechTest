@@ -2,6 +2,30 @@
 
 dubbo: http://blog.csdn.net/yinwenjie/article/details/50193987
 
+类的六大设计原则：
+1、开闭原则（OCP：Open Close Principle）：
+对扩展开放，对修改关闭。
+2、单一职责原则（SRP：Single Responsibility Principle）：
+应该有且仅有一个原因引起类的变更。即一个类只负责一项职责
+3、里氏替换原则（LSP：Liskov Substitution Principle）：
+定义1：如果对每一个类型为 S 的对象 o1，都有类型为 T 的对象o2，使得以 T1定义的所有程序 P 在所有的对象 o1 都代换成 o2 时，程序 P 的行为没有发生变化，那么类型 S 是类型 T 的子类型。
+定义2：所有引用基类的地方必须能透明地使用其子类的对象。
+里氏替换原则为良好的继承定义了一个规范：
+    子类必须完全实现父类的方法
+    子类可以有自己的个性
+    覆盖或实现父类的方法时输入参数可以被放大
+    覆写或实现父类的方法输出结果可以被缩小
+4、依赖倒置原则（DIP：Dependence Inversion Principle）：
+高层模块不应该依赖低层模块，两者都应该依赖其抽象。
+抽象不应该依赖细节
+细节应该依赖抽象
+5、接口隔离原则（ISP：Interface Segregation Principle）：
+客户端不应该依赖他不需要的接口
+类间的依赖关系应该建立在最小的接口上
+一句话：建立单一接口，不要建立臃肿庞大的接口。
+6、迪米特法则（LOD：Law Of Demeter）：
+迪米特法则(LOD)也称 最少知道原则（Least Knowledge Principle,LKP）
+一个对象应该对其他对象有最少的了解。
 工具：
 http://dillinger.io/ 在线md编辑器
 http://diff.hust.cc/ 在线文本比较

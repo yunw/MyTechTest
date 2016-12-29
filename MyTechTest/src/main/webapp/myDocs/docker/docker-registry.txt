@@ -121,6 +121,7 @@ d）
 {"name":"hello-world","tags":["1.0"]}
 
 三、带删除功能的私有仓库：
+config.yml的完整配置参考：
 https://github.com/docker/distribution/blob/master/docs/configuration.md#storage
 
 mkdir -p /etc/docker
@@ -133,14 +134,22 @@ storage:
     blobdescriptor: inmemory
   filesystem:
     rootdirectory: /var/lib/registry
+  maintenance:
+    readonly:
+      enabled: false
 http:
+  addr: :5000
+  secert:aRandomPieceOfData
   tls:
     certificate: /certs/test.com.crt
     key: /certs/test.com.key 
+    
+docker stop registry_v2 && docker rm -v registry_v2
 docker run -d -v /root/certs:/certs \
   -v /etc/docker/config.yml:/etc/docker/registry/config.yml \
   -p 5000:5000 --restart=always --name registry_v2 registry:2.5.1
 
+也可以用-e参数来设置环境变量覆盖config.yml中的默认值：
 docker stop registry_v2 && docker rm -v registry_v2
 docker run -d -p 5000:5000 --restart=always --name registry_v2 \
   -v /root/certs:/certs \
@@ -193,6 +202,7 @@ a）查看镜像详情：
 
 B）删除镜像：
 http://stackoverflow.com/questions/35982400/error-delete-image-from-docker-registry-using-api-v2
+http://blog.csdn.net/xts_huangxin/article/details/51693890
 1、查看镜像的digist，发送一个HEAD请求：
 [root@centos11 docker]# curl -k -I -H "Accept: application/vnd.docker.distribution.manifest.v2+json" https://test.com:5000/v2/hello-world/manifests/1.1
 HTTP/1.1 200 OK
@@ -247,7 +257,7 @@ hello-world
 
 registry gc分成mark和sweep两个阶段。mark阶段会扫描所有manifest，列出所有引用的layer的集合。sweep阶段会扫描所有layer，不在mark集合中的layer会被删除。
 –dry-run参数可以不执行删除操作，而查看两阶段的扫描结果
-
+在垃圾收集的时候最好设置为read-only模式然后重启，垃圾收集完成后，再重启为非read-only模式。
 ---------------------------------------v2 end-----------------------------------------------------------------------
 
 
