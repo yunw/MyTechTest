@@ -33,6 +33,7 @@ http://www.bejson.com/ 在线json格式化
 http://tool.chinaz.com/tools/md5.aspx 在线md5加密
 https://redisdesktop.com/download redis desktop manager redis图形界面工具
 https://robomongo.org/download   mongodb可视化工具
+https://www.sourcetreeapp.com/ git管理工具 yinsl123 SEN-8892919 github上搜hosts
 
 linux：
 http://mt.sohu.com/20160517/n449979876.shtml
@@ -111,7 +112,7 @@ openfire + spark ：http://www.igniterealtime.org/
 
 文章：
 http://www.yunweipai.com/archives/10335.html
-
+https://102.alibaba.com/newsInfo.htm?newsId=28
 
 soa 微服务：
 微服务架构强调的第一个重点就是业务系统需要彻底的组件化和服务化。原有的单个业务系统会拆分为多个可以独立开发，设计，运行和运维的小应用。这些小应用之间通过服务完成交互和集成。

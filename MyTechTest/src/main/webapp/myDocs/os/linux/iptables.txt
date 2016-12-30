@@ -1,4 +1,5 @@
 http://blog.chinaunix.net/uid-26495963-id-3279216.html
+http://www.th7.cn/system/lin/201601/150565.shtml
 
 iptables：用于设置、维护和检查linux内核中的IPV4包的过滤规则的表。可以定义几种不同类型的表。每个表都包含一些内建的
 链，也可以包含用户定义的链。每个链都是一个规则的列表，它们可以匹配一些包。每个规则定义了对这些匹配上的包可以做些什么。
@@ -8,10 +9,11 @@ tables：
 -t table
 有下面几种表：
 filter：默认表（如果-t参数没有配置，就取它）它包含内建的链：INPUT（针对去往本地socket的包），FORWARD（针对那些要被路由的包）OUTPUT（针对本地生成的包）
-nat:
-mangle:
-raw:
+nat:主要用于数据包转发
+mangle:可以修改数据包，比如修改ttl值等
+raw:符合raw表所对应规则的数据包将会跳过一些检查，这样就可以提高效率，当然，raw表的优先级也是最高的
 表之间的优先顺序：Raw——mangle——nat——filter
+还有一种表：security，需要和selinux配合使用。
 
 文件位置：
 /etc/sysconfig/iptables

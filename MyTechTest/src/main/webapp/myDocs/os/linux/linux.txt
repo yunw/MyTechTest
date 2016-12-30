@@ -1,4 +1,7 @@
 学习资料：http://roclinux.cn/
+https://wiki.centos.org/HowTos
+
+linux中以.开头的文件或文件夹都是隐藏的文件或文件夹。
 
 BSD(Berkeley Software Distribution):伯克利软件发布
 NFS(Network File System)：网络文件系统

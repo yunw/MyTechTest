@@ -1,0 +1,54 @@
+http://linux.chinaunix.net/techdoc/system/2007/06/02/959125.shtml
+[root@centos72 zones]# ip -s link ls enp0s8
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:5d:19:09 brd ff:ff:ff:ff:ff:ff
+    RX: bytes  packets  errors  dropped overrun mcast   
+    4536669    50764    0       0       0       0       
+    TX: bytes  packets  errors  dropped carrier collsns 
+    7879213    100628   0       0       0       0      
+说明：
+mtu 1500：最大传输单元
+qdisc(queuing discipline) pfifo_fast：显示该网络接口的排队算法，为pfifo_fast。noqueue表示不对数据包进行排队；noop表示这个网络接口出于黑洞模式，也就是所有进入本网络设备的数据会直接被丢弃
+state UP：设备状态，当前为UP也就是运行状态。
+mode DEFAULT：
+qlen 1000：网络接口传输队列的默认长度，当前默认长度为1000。
+
+RX和TX：接收和发送统计信息的开头
+bytes：网络接口发送或者收到的字节数。如果字节数超过数据类型能够表示的最大数值，就会造成回卷。因此，你如果想连续监视这个指标，需要一个用户空间的监控进程周期性地保存这个数据。
+packets：网络接口收到或者发送的数据包个数。
+errors：发生错误的次数。
+dropped：由于系统资源限制，而丢弃数据包的数量。
+overrun：由于发生堵塞，收到的数据包被丢弃的数量。如果接口发生堵塞，就意味着内核或者你的机器太慢，无法处理收到的数据。
+mcast：收到的多播数据包数量，只有很少的设备支持这个选项。
+carrier：连接介质出现故障的次数，例如：网线接触不好。
+collsns：以太网类型介质发生冲突的事件次数。
+
+补充说明：
+qdisc pfifo_fast的队列包括三个波段(band)。在每个波段里面，使用先进先出规则。而三个波段(band)的优先级也不相同，band0的优先级最高，band2的最低。
+如果band0里面有数据包，系统就不会处理band1里面的数据包，band1和band2之间也是一样。数据包是按照服务类型(Type of Service,TOS)被分配多三个波段(band)里面的。 
+内核遵照数据包的TOS标记，把带有“最小延时”标记的包放进0频道
+
+-s可以出现多次，出现次数越多输出信息月详细：
+[root@centos72 zones]# ip  -s -s  link ls enp0s8
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:5d:19:09 brd ff:ff:ff:ff:ff:ff
+    RX: bytes  packets  errors  dropped overrun mcast   
+    4624950    51731    0       0       0       0       
+    RX errors: length   crc     frame   fifo    missed
+               0        0       0       0       0       
+    TX: bytes  packets  errors  dropped carrier collsns 
+    8037747    102897   0       0       0       0       
+    TX errors: aborted  fifo   window heartbeat transns
+               0        0       0       0       8       
+
+
+
+
+
+
+
+
+
+
+
+
