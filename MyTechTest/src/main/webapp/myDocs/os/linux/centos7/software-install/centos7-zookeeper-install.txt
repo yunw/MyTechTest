@@ -1,3 +1,12 @@
+firewall-cmd --zone=public --add-port=2181/tcp --permanent
+firewall-cmd --zone=public --add-port=2888/tcp --permanent
+firewall-cmd --zone=public --add-port=3888/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=2181/tcp
+firewall-cmd --permanent --query-port=2888/tcp
+firewall-cmd --permanent --query-port=3888/tcp
+
+
 wget https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
 
 tar zxf zookeeper-3.4.9.tar.gz -C /usr/local
@@ -14,6 +23,7 @@ clientPort=2181
 server.1=192.168.56.71:2888:3888
 server.2=192.168.56.72:2888:3888
 server.3=192.168.56.73:2888:3888
+备注：上述配置中的端口：2888用于节点间通信，3888用于leader选举。
 
 vi /opt/zookeeper/myid
 1        #标识该zk server，与zoo.cfg的值对应
