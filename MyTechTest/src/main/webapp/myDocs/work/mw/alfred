@@ -224,6 +224,7 @@ http://wk.9now.net/pages/viewpage.action?pageId=3101966#id-美团外卖订单抓
 http://yunpos.dc.mwee.cn/alfred-api/api/takeaway/baidu/order/create
 测试：
 http://dc.api.st.9now.net/alfred-api/api/takeaway/baidu/order/create
+http://dc.api.test.9now.net/alfred-api/api/takeaway/baidu/order/create
 
 美团盗链：
 http://localhost:8080/alfred-api/api/takeaway/meituan2/getMeituanToken
@@ -384,3 +385,23 @@ http://localhost:8480/alfred-mobile-api/api/base/pay/v2_1/pay.json
     	}
     	return resultMap;
     }
+    
+    
+    
+美食专家（正大广场）测试环境：
+桌台1：http://qr.mwee.9now.net/qr/3m1379eeckr605
+桌台2：http://qr.mwee.9now.net/qr/3k2831n8hey060
+桌台3：http://qr.mwee.9now.net/qr/3xx28698o4t512
+
+
+微生活会员二维码如下：
+辰森（世纪大道店）测试环境：
+1号桌：http://qr.mwee.9now.net/qr/coc3366b0uh562
+2号桌：http://qr.mwee.9now.net/qr/cmd788f55oo017
+3号桌：http://qr.mwee.9now.net/qr/cke243o4wsr469
+5号桌：http://qr.mwee.9now.net/qr/cif695wz1my921
+微生活会员卡：13916317469
+微生活储值卡密码：000000
+
+
+测试环境，可以用微信打开上述链接，下单测试

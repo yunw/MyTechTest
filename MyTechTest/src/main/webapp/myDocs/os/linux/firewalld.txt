@@ -44,7 +44,47 @@ firewalld的这种配置文件结构的主要作用是这样的：在第二个�
 
 
 
+使用firewall-cmd配置firewalld
+注意：为了让命令的效果持久化，需要加入--permanent选项，这不仅仅意味着改变将持久化，而且意味着改变将在防火墙reload，服务重启，或系统重启后才起作用。
+如果不加--permanent选项，改变将立即生效，但仅仅持续到防火墙重加载，系统重启或firewalld服务重启。
+为了让命令立即生效并持久化，需要输入两次命令，一次带--permanent选项，一次不带。
+1、查看防火墙状态：
+[root@centos11 firewalld]# firewall-cmd --state
+running
 
+2、查看活动区域列表：
+[root@centos11 firewalld]# firewall-cmd --get-active-zones
+public
+  interfaces: enp0s3 enp0s8
+  
+3、查看一个接口对应的区域：
+[root@centos11 firewalld]# firewall-cmd --get-zone-of-interface=enp0s3
+public 
+  
+4、查看分配给某区域的所有接口：
+[root@centos11 firewalld]# firewall-cmd --zone=public --list-interfaces
+enp0s3 enp0s8
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 
 

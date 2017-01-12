@@ -1,3 +1,7 @@
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=8080/tcp
+
 1、下载tbschedule源码：http://code.taobao.org/svn/tbschedule
 2、执行maven命令：
 mvn clean install
@@ -115,3 +119,6 @@ tbscheduleManagerFactory.setZkConfig(convert(p));
 2、将一个目录下的所有文件按文件名称的首字母(不区分大小写)， 就划分成了A、B、C、D、E、F、G、H、I、J、K、L、M、N、O、P、Q、R、S、T、U、V、W、X、Y、Z供26个任务项。
 3、将一个数据表的数据ID哈希后按1000取模作为最后的HASHCODE,我们就可以将数据按[0,100)、[100,200) 、[200,300)、[300,400) 、[400,500)、[500,600)、[600,700)、[700,800)、[800,900)、 [900,1000)划分为十个任务项， 当然你也可以划分为100个任务项，最多是1000个项。
 4、任务项是进行任务分配的最小单位。一个任务队列只能由一个ScheduleServer来进行处理。但一个Server可以处理任意数量的任务项。
+
+
+

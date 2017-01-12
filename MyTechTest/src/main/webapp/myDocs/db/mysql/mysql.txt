@@ -2,7 +2,8 @@ sqllog过期：
 sqllog enterprise taril 过期解决：删除注册表项目：[HKEY_CURRENT_USER\Software\{FCE28CE8-D8CE-4637-9BC7-93E4C0D407FA}]
 或[HKEY_CURRENT_USER\Software\{FCE48CE8-D8CE-4637-9BC7-93E4C0D407FA}]就可以了
 
- 
+sql语句中如果有关键字，可以用``包围起来。例如：
+select `desc` from test;
 
 InnoDB支持行级锁和表级锁，默认为行级锁。
 InnoDB行锁是通过给索引项加锁来实现的，即只有通过索引条件检索数据，InnoDB才使用行级锁，否则将使用表锁！
