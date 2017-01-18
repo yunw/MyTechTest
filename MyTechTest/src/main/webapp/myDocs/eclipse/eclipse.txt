@@ -21,4 +21,7 @@
 饱和度   64   绿205
 亮度       176  蓝169
 
-
+3、各种语言的背景色官网：
+http://www.eclipsecolorthemes.org/?view=theme&id=1115
+导入方法：
+http://blog.sina.com.cn/s/blog_7dfb07ac01018n04.html

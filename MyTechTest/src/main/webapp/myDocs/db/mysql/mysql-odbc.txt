@@ -1,0 +1,4 @@
+参考：https://zhidao.baidu.com/question/1606089498424844707.html
+
+1、下载并以默认选项安装：
+https://dev.mysql.com/get/Downloads/Connector-ODBC/5.3/mysql-connector-odbc-5.3.7-winx64.msi

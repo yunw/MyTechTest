@@ -1,6 +1,6 @@
 近期目标：solr 站内搜索
 
-idea: http://idea.lanyus.com/
+idea: http://idea.lanyus.com/ license
 
 dubbo: http://blog.csdn.net/yinwenjie/article/details/50193987
 
@@ -115,6 +115,7 @@ openfire + spark ：http://www.igniterealtime.org/
 文章：
 http://www.yunweipai.com/archives/10335.html
 https://102.alibaba.com/newsInfo.htm?newsId=28
+http://mp.weixin.qq.com/s?__biz=MzIwODA4NjMwNA==&mid=2652898172&idx=1&sn=611a620ddac37f8c2570ce1d8f3e3306&chksm=8cdcd733bbab5e25901cc33900535abd7b82c45e6b37771fead32a3f44d7c4b7eef826bc35d7&mpshare=1&scene=1&srcid=0116grmyrqHTA5eqbhiXrruC#rd
 
 soa 微服务：
 微服务架构强调的第一个重点就是业务系统需要彻底的组件化和服务化。原有的单个业务系统会拆分为多个可以独立开发，设计，运行和运维的小应用。这些小应用之间通过服务完成交互和集成。
