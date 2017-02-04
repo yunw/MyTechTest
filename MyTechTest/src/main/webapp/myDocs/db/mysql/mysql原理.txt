@@ -1,0 +1,11 @@
+系统表空间（system tablespace）：
+一个或多个数据文件（ibdata文件）包含InnoDB相关对象（InnoDB数据字典）的元数据，以及一个或多个undo日志（undo log），修改缓存（change buffer），双写缓存（doublewrite buffer）。
+它也可能包含InnoDB表的表和索引数据，如果这些表是创建在系统表空间。系统表空间的数据和元数据应用于一个mysql实例的所有数据库。
+mysql5.6.7之前，默认将所有的InnoDB表和索引保存在系统表空间里，往往导致这个文件变得非常大。因为系统表空间无法缩小，如果大量的临时数据被加载然后被删除，可能会才生存储问题。
+在mysql5.7中，默认采用 file-per-table模式，每个表和相关的索引被存储在一个单独的.ibd文件中。这个新的默认使得易于使用InnoDB的特性，对那些依赖Barracuda文件格式，例如表压缩，efficient storage of off-page columns, and large index key prefixes (innodb_large_prefix). 
+
+二进制日志（binary log）：
+包含试图改变表数据的所有语句的记录的文件。在从服务器的复制方案中，这些语句可以重放以使从服务器的数据和主服务器同步，或者从备份中重新存储表数据以使数据库数据保持最新。二进制日志特征可以被打开或关闭。
+
+binlog：
+二进制日志的非正式名称。例如，您可能在电子邮件或论坛讨论中看到使用这种缩写。

@@ -1,0 +1,5 @@
+下载并安装：curl-7.46.0-win64.exe
+网址：http://www.confusedbycode.com/curl/
+双击安装。
+然后打开cmd
+输入：curl --help

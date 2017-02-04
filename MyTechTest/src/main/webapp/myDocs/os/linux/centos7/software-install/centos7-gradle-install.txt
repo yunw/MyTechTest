@@ -1,0 +1,6 @@
+yum -y install zip unzip
+curl -s https://get.sdkman.io | bash
+sdk install gradle 3.3
+
+#test
+gradle -v
