@@ -307,3 +307,6 @@ rm -f $DUMPFILE
 else
 echo "Database Backup Fail!" >> $LOGFILE
 fi
+
+
+性能优化：

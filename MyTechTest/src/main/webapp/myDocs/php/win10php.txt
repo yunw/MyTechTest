@@ -78,3 +78,17 @@ PHPIniDir "d:/php/php7"
 重启apache服务器
 输入：http://localhost/
 出现php信息说明安装成功
+
+安装redis插件：
+1、下载redis插件：
+http://windows.php.net/downloads/pecl/snaps/redis/20160319/php_redis-20160319-nts-vc14-x64.zip
+将下载下来的php_redis.dll放入：d:/php/php7/ext目录中。
+2、配置php.ini
+找到Dynamic Extensions模块
+加入：
+extension=php_redis.dll
+
+
+
+
+
