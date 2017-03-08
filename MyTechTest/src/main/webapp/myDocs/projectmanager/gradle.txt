@@ -1,3 +1,5 @@
+gradle文档：https://docs.gradle.org/current/userguide/publishing_maven.html
+
 #查看项目jar包依赖
 gradle -q dependencies provider:dependencies
 
@@ -5,3 +7,6 @@ gradle -q dependencies provider:dependencies
 java -Xdebug -Xrunjdwp:transport=dt_socket,address=9999,server=y,suspend=n  -jar provider-1.0-SNAPSHOT.jar
 
 java -Xdebug -Xrunjdwp:transport=dt_socket,address=9999,server=y,suspend=n  -jar consumer-1.0-SNAPSHOT.jar
+
+#强制刷新依赖包
+gradle build --refresh-dependencies

@@ -20,6 +20,7 @@ rpm -Uvh mysql57-community-release-el7-9.noarch.rpm
 yum -y install mysql-community-server
 systemctl start mysqld
 systemctl status mysqld
+
 查看初始化密码（重要）：
 [root@centos75 downloads]# grep 'temporary password' /var/log/mysqld.log
 2016-10-28T11:07:42.167918Z 1 [Note] A temporary password is generated for root@localhost: Y&&xo(<aY9OM
@@ -44,3 +45,5 @@ Query OK, 0 rows affected (0.00 sec)
 添加远程登录用户：
 mysql> GRANT ALL PRIVILEGES ON *.* TO 'yinsl'@'%' IDENTIFIED BY 'Abcd_1234!' WITH GRANT OPTION;
 Query OK, 0 rows affected, 1 warning (0.29 sec)
+
+安装完毕。

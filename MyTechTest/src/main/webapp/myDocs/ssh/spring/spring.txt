@@ -1,3 +1,6 @@
+springboot resteasy: http://blog.csdn.net/dfsdffe/article/details/52101691
+
+
 spring事务核心接口：org.springframework.transaction.PlatformTransactionManager
 
 注册bean定义:

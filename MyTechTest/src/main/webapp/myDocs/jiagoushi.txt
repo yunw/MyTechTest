@@ -6,6 +6,10 @@ idea license: http://idea.lanyus.com/
 
 dubbo: http://blog.csdn.net/yinwenjie/article/details/50193987
 
+序列化：protobuf http://www.iteye.com/topic/1128881
+
+jdk8 StampedLock
+
 类的六大设计原则：
 1、开闭原则（OCP：Open Close Principle）：
 对扩展开放，对修改关闭。
@@ -86,6 +90,9 @@ http://docs.ansible.com/ansible/intro_getting_started.html
 
 微服务：
 http://mp.weixin.qq.com/s?__biz=MzAwNjY4NTQ4MA==&mid=2651175052&idx=1&sn=1e35b631532126c73610097b3197b95b&chksm=80f88ecbb78f07dd2a1d892a816d87e1f3c814e38877a5c7a9d47b0fc8d563cb6ba8ecd83c82&mpshare=1&scene=1&srcid=10192hUAQhUgFIpGi4zxvZB1#rd
+服务治理：http://javatar.iteye.com/blog/1345073
+http://wenku.baidu.com/link?url=sRZW5vW7qLEcpZ9UOf1fU-6mdb5I569bf4JU-TDc7QkQkQbI6NtEvO7v8gViYdFOOhX-EgvtQiziXw6GM9wndoAbt9M78tSuxr7rdq9_q8C
+https://www.aliyun.com/product/edas
 
 urlcheck
 waf应用防火墙（）
@@ -122,6 +129,13 @@ http://www.yunweipai.com/archives/10335.html
 https://102.alibaba.com/newsInfo.htm?newsId=28
 http://mp.weixin.qq.com/s?__biz=MzIwODA4NjMwNA==&mid=2652898172&idx=1&sn=611a620ddac37f8c2570ce1d8f3e3306&chksm=8cdcd733bbab5e25901cc33900535abd7b82c45e6b37771fead32a3f44d7c4b7eef826bc35d7&mpshare=1&scene=1&srcid=0116grmyrqHTA5eqbhiXrruC#rd
 http://mp.weixin.qq.com/s/3O3kPSwV-tAeYdy2ZRACpg
+http://mp.weixin.qq.com/s?__biz=MzA3NDcyMTQyNQ==&mid=2649257107&idx=1&sn=a723a40194cc5a848c63df6206595d37&chksm=8767a56db0102c7bc0369a03faaa82455a6b3bd5729197ae93681ee50112d77b9d02cb1f2e86&mpshare=1&scene=1&srcid=0224OQvzJnN9gTT2zyq2KY2K#rd
+http://url.cn/45YHuEt
+
+车联网：
+http://wenku.baidu.com/link?url=UejuCJJhTyzVaohN7ngmKsibyauXgLv8AXwu3HbJzP5F1Qhze4QFRS0WbcTTPs5XSPZd2H6TOHjEaukEklQqdNVymQ-LR0XlfOjhR0_wScC
+http://www.docin.com/p-661500278.html
+http://wenku.baidu.com/link?url=EccQRim211Os5J3-SM1-YIvkVgVUSFhhh-ESI0MVdQkvLV8UWDVoj8NKchSyWpBZ4u9afd7woNwzF6R2juJcofoMnTxekAOvBPBoHKUon_K
 
 soa 微服务：
 微服务架构强调的第一个重点就是业务系统需要彻底的组件化和服务化。原有的单个业务系统会拆分为多个可以独立开发，设计，运行和运维的小应用。这些小应用之间通过服务完成交互和集成。

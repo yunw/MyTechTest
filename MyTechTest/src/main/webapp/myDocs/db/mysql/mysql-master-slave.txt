@@ -119,11 +119,11 @@ The mysql service was started successfully.
 
 五、创建复制账号：
 在主服务器上创建一个账号用于复制：
-CREATE USER 'repl'@'localhost' IDENTIFIED BY 'replPass';
-GRANT REPLICATION SLAVE ON *.* TO 'repl'@'localhost';
+CREATE USER 'replUser'@'%' IDENTIFIED BY 'replPass_1234!';
+GRANT REPLICATION SLAVE ON *.* TO 'replUser'@'%';
 
 或者：
-grant replication slave, replication client on *.* to 'repl'@'localhost' identified by 'replPass';
+grant replication slave, replication client on *.* to 'replUser'@'%' identified by 'replPass_1234!';
 输入查询语句：select host, user, password from user;
 可以看到账号已经创建好了。
 

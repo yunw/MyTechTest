@@ -1,9 +1,9 @@
 192.168.56.50 VIP
-192.168.56.71 zookeeper disconf(admin/admin) nginx kafka tomcat(confdAdmin)
+192.168.56.71 zookeeper disconf(admin/admin) nginx kafka tomcat(confdAdmin) zabbix-agent
 192.168.56.72 zookeeper activemq kafka tomcat(confdAdmin)
-192.168.56.73 zookeeper kafka
-192.168.56.74 nginx confd solr keepalived haproxy tomcat(disconf) docker
-192.168.56.75 mysql（disconf、alfred、alfred-mobile, yinsl:Abcd_1234!） redis keepalived haproxy
+192.168.56.73 zookeeper kafka mysql
+192.168.56.74 nginx confd solr keepalived haproxy tomcat(disconf) docker mysql
+192.168.56.75 mysql（zabbix、disconf、alfred、alfred-mobile, yinsl:Abcd_1234!） redis keepalived haproxy
 192.168.56.76 elk filebeat mysql activemq etcd docker
 192.168.56.77 openfire docker-machine etcd
 192.168.56.78 openfire etcd
