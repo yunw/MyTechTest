@@ -1,5 +1,13 @@
 MAVEN_OPTS: http://juvenshun.iteye.com/blog/240257
 
+maven deploy 已存在的包的时候出现400异常：
+http://blog.csdn.net/lulongzhou_llz/article/details/42869785
+
+maven生成javadoc报错：
+解决方案：跳过javadoc的生成：
+maven install -Dmaven.javadoc.skip=true
+
+
 根据不同环境打包：
 mvn clean package -PprofileId
 

@@ -94,6 +94,9 @@ http://mp.weixin.qq.com/s?__biz=MzAwNjY4NTQ4MA==&mid=2651175052&idx=1&sn=1e35b63
 http://wenku.baidu.com/link?url=sRZW5vW7qLEcpZ9UOf1fU-6mdb5I569bf4JU-TDc7QkQkQbI6NtEvO7v8gViYdFOOhX-EgvtQiziXw6GM9wndoAbt9M78tSuxr7rdq9_q8C
 https://www.aliyun.com/product/edas
 
+dba:
+http://www.open-open.com/news/view/23771a61
+
 urlcheck
 waf应用防火墙（）
 grafna
