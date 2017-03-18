@@ -15,5 +15,11 @@
 76、77、78 搭建了etcd集群
 
 
+disconf启动：
+1：启动71、72、73、75四台虚机
+2：启动75上的redis：systemctl start redis_6379
+3：访问：http://192.168.56.71/ admin/admin
+
+
 
 
