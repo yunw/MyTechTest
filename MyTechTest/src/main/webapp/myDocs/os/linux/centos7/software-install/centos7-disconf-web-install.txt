@@ -5,8 +5,21 @@
 192.168.56.75 mysql redis
 
 #############################################################################
+#                     on 192.168.56.75:                                     #
+#############################################################################
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=3306/tcp
+
+#############################################################################
 #                     on 192.168.56.71:                                     #
 #############################################################################
+firewall-cmd --zone=public --add-port=8081/tcp --permanent
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --permanent --query-port=8081/tcp
+firewall-cmd --permanent --query-port=80/tcp
+
 cd /root/downloads
 git clone https://github.com/knightliao/disconf.git
 cd /root/downloads/disconf/disconf-web/profile/rd
@@ -104,7 +117,7 @@ upstream disconf {
 
 server {
 
-    listen   8081;
+    listen   80;
     server_name disconf.com;
     access_log /var/logs/disconf/access.log;
     error_log /var/logs/disconf/error.log;
@@ -129,8 +142,8 @@ server {
 #递归修改war目录的owner为nginx，因为nginx默认采用nginx用户来运行nginx worker进程。
 chown -R nginx:nginx /opt/disconf/disconf-rd/war 
 启动nginx后执行：
-curl http://localhost:8081/根据出来的信息，可以判断是否部署成功。
-打开firefox(microsofte edge打不开)，输入：http://192.168.56.71:8081/可以出来登录页面，输入admin/admin登录，能够登录说明安装成功。
+curl http://localhost/根据出来的信息，可以判断是否部署成功。
+打开firefox(microsofte edge打不开)，输入：http://192.168.56.71/可以出来登录页面，输入admin/admin登录，能够登录说明安装成功。
 
 错误：502 Bad Gateway
 错误：connect() to 127.0.0.1:8080 failed (13: Permission denied) while connecting to upstream

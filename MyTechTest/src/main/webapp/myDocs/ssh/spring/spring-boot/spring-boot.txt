@@ -1,6 +1,9 @@
 http://www.tuicool.com/articles/aiUfIv3
 http://www.myexception.cn/operating-system/1964228.html
 
+spring boot 安全终止：
+http://blog.csdn.net/wangshuang1631/article/details/62054798
+
 org.springframework.boot.context.config.ConfigFileApplicationListener负责加载application.properties文件。
 
 Spring Boot所提供的配置优先级顺序比较复杂。按照优先级从高到低的顺序，具体的列表如下所示。
