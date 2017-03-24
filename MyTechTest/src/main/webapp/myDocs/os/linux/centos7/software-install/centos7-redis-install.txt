@@ -13,10 +13,11 @@ firewall-cmd --permanent --query-port=6379/tcp
 firewall-cmd --permanent --query-port=16379/tcp
 firewall-cmd --permanent --query-port=26379/tcp
 
-wget http://download.redis.io/releases/redis-3.2.5.tar.gz
-tar zxf redis-3.2.5.tar.gz
-cd redis-3.2.5
-[root@centos75 redis-3.2.5]# make && make install
+wget http://download.redis.io/releases/redis-3.2.8.tar.gz
+tar zxf redis-3.2.8.tar.gz
+cd redis-3.2.8
+
+[root@centos75 redis-3.2.8]# make && make install
 ......
 PREFIX             : /usr/local
 BINDIR             : /usr/local/bin
@@ -28,7 +29,7 @@ MANDIR             : /usr/local/share/man
 从编译安装信息中可以看出：redis安装到/usr/local,/usr/local/bin,/usr/local/share,/usr/local/include,/usr/local/lib,/usr/local/share/man等目录下。
 
 接下来执行初始化脚本，安装redis服务（一路回车）：
-[root@centos75 redis-3.2.5]# utils/install_server.sh
+[root@centos75 redis-3.2.8]# utils/install_server.sh
 Welcome to the redis service installer
 This script will help you easily set up a running redis server
 
@@ -57,7 +58,7 @@ Starting Redis server...
 Installation successful!
 
 安装systemd服务：
-vi /etc/systemd/system/redis_6379.service
+vi /etc/systemd/system/redis6379.service
 
 [Unit]
 Description=Redis on port 6379
@@ -68,6 +69,7 @@ ExecStop=/etc/init.d/redis_6379 stop
 [Install]
 WantedBy=multi-user.target
 
-systemctl enable redis_6379
-systemctl start redis_6379
-systemctl status redis_6379
+systemctl enable redis6379
+systemctl stop redis6379
+systemctl start redis6379
+systemctl status redis6379

@@ -1,6 +1,18 @@
 yum -y install zip unzip
 curl -s https://get.sdkman.io | bash
+source "/root/.sdkman/bin/sdkman-init.sh"
 sdk install gradle 3.3
 
 #test
+gradle -v
+
+
+手动安装：
+wget https://services.gradle.org/distributions/gradle-3.2.1-bin.zip
+mkdir /opt/gradle
+unzip -d /opt/gradle gradle-3.2.1-bin.zip
+ls /opt/gradle/gradle-3.2.1
+
+export PATH=$PATH:/opt/gradle/gradle-3.2.1/bin
+
 gradle -v

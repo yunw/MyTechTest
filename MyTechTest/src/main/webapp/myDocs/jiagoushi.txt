@@ -88,6 +88,8 @@ https://github.com/knightliao/disconf
 ansible：自动化运维
 http://docs.ansible.com/ansible/intro_getting_started.html
 
+
+
 微服务：
 http://mp.weixin.qq.com/s?__biz=MzAwNjY4NTQ4MA==&mid=2651175052&idx=1&sn=1e35b631532126c73610097b3197b95b&chksm=80f88ecbb78f07dd2a1d892a816d87e1f3c814e38877a5c7a9d47b0fc8d563cb6ba8ecd83c82&mpshare=1&scene=1&srcid=10192hUAQhUgFIpGi4zxvZB1#rd
 服务治理：http://javatar.iteye.com/blog/1345073
@@ -134,6 +136,7 @@ http://mp.weixin.qq.com/s?__biz=MzIwODA4NjMwNA==&mid=2652898172&idx=1&sn=611a620
 http://mp.weixin.qq.com/s/3O3kPSwV-tAeYdy2ZRACpg
 http://mp.weixin.qq.com/s?__biz=MzA3NDcyMTQyNQ==&mid=2649257107&idx=1&sn=a723a40194cc5a848c63df6206595d37&chksm=8767a56db0102c7bc0369a03faaa82455a6b3bd5729197ae93681ee50112d77b9d02cb1f2e86&mpshare=1&scene=1&srcid=0224OQvzJnN9gTT2zyq2KY2K#rd
 http://url.cn/45YHuEt
+http://mp.weixin.qq.com/s?__biz=MzA5Nzc4OTA1Mw==&mid=2659599095&idx=1&sn=2b8dd28b86016958af1da87f14aba9b8&chksm=8be997e5bc9e1ef31d229352cfeeca3688e18e00aeb80052bc0a05471f6eb178bfac94c2313c&mpshare=1&scene=1&srcid=0323S5rOZKN703HZQN4sT8Gp#wechat_redirect
 
 车联网：
 http://wenku.baidu.com/link?url=UejuCJJhTyzVaohN7ngmKsibyauXgLv8AXwu3HbJzP5F1Qhze4QFRS0WbcTTPs5XSPZd2H6TOHjEaukEklQqdNVymQ-LR0XlfOjhR0_wScC

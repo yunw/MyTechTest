@@ -14,25 +14,27 @@ firewall-cmd --permanent --query-port=16379/tcp
 firewall-cmd --permanent --query-port=26379/tcp
 
 yum install -y wget openssl* openssl-devel zlib-devel gcc gcc-c++ make autoconf readline-devel curl-devel expat-devel gettext-devel ruby rubygems ruby-devel
+
 gem update --system
 gem -v
-gem install redis  --version 3.2.2
+gem install redis  --version 3.3.3 #版本号参考： https://rubygems.org/gems/redis
 gem list --local
 
 cd ~/downloads
-wget http://download.redis.io/releases/redis-3.2.5.tar.gz
+wget http://download.redis.io/releases/redis-3.2.8.tar.gz
 
-tar zxf redis-3.2.5.tar.gz
-cd redis-3.2.5
+tar zxf redis-3.2.8.tar.gz
+cd redis-3.2.8
 make MALLOC=libc
 make PREFIX=/usr/local/redis install
 
 mkdir -p /data/redis
 mkdir -p /etc/redis
+
 vi /etc/redis/6379.conf
 
 port 6379
-tcp-backlog 2048    # tcp监听队列的长度，默认值：511。该值还受到内核参数somaxconn的限制，因此必须同时调整这两者的值。
+tcp-backlog 2048    # tcp监听队列的长度，默认值：511。该值还受到内核参数somaxconn的限制，因此必须同时调整这两者的值。 /proc/sys/net/core/somaxconn
 cluster-enabled yes
 cluster-config-file /etc/redis/nodes-6379.conf
 cluster-node-timeout 15000
@@ -41,8 +43,22 @@ cluster-require-full-coverage no
 #bind 192.168.56.71
 requirepass 123456   #msater设置了密码，slave必须要配置相应的参数，否则无权限复制，配置如下：masterauth  123456
 
+备注：
+关于somaxconn参数:
+定义了系统中每一个端口最大的监听队列的长度,这是个全局的参数,默认值为128.限制了每个端口接收新tcp连接侦听队列的大小。对于一个经常处理新连接的高负载 web服务环境来说，默认的 128 太小了。
+大多数环境这个值建议增加到 1024 或者更多。 服务进程会自己限制侦听队列的大小(例如 sendmail(8) 或者 Apache)，常常在它们的配置文件中有设置队列大小的选项。
+大的侦听队列对防止拒绝服务 DoS 攻击也会有所帮助。
+修改该参数的方法：
+vi /etc/sysctl.conf
+net.core.somaxconn=32768
+保存。
+然后执行：
+sysctl -p
+使该参数永久有效。
+
+
 #开机启动服务
-cp /root/downloads/redis-3.2.5/utils/redis_init_script /etc/init.d/redis_6379
+cp /root/downloads/redis-3.2.8/utils/redis_init_script /etc/init.d/redis_6379
 
 vi /etc/init.d/redis_6379
 #!/bin/sh
@@ -104,7 +120,11 @@ systemctl enable redis_6379
 systemctl start redis_6379
 systemctl status redis_6379
 
-/root/downloads/redis-3.2.5/src/redis-trib.rb create 192.168.56.71:6379 192.168.56.72:6379 192.168.56.73:6379
+创建集群：
+修改/etc/redis/6379.conf：
+cluster-enabled yes
+
+/root/downloads/redis-3.2.8/src/redis-trib.rb create 192.168.56.71:6379 192.168.56.72:6379 192.168.56.73:6379
 
 >>> Creating cluster
 >>> Performing hash slots allocation on 3 nodes...

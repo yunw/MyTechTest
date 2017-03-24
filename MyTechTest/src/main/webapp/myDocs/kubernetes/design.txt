@@ -1,0 +1,20 @@
+The Kubernetes Node
+节点上运行docker
+kubelet
+kubelet管理pods以及它们的容器、镜像、卷等等。
+kube-proxy
+每个节点上运行了一个简单的网络代理和负载均衡。
+
+The Kubernetes Control Plane
+控制面板被分成一系列组件。目前，它们都运行在一个单一的master节点上。未来可能支持高可用集群。这些组件彼此互动，提供了一个集群的唯一视图。
+etcd
+所有持久化的master状态都存储在etcd的一个实例中。这提供了一个很好的方式来存储配置数据，并支持watch，这使得协调组件可以很快的通知变化。
+Kubernetes API Server
+主要支持rest操作。
+Scheduler
+
+Kubernetes Controller Manager Server
+
+
+
+

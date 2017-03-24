@@ -1,0 +1,37 @@
+1、linux中tcp连接内核参数调优somaxconn
+永久生效：
+vi /etc/sysctl.conf
+net.core.somaxconn=32768
+
+sysctl -p
+
+说明：
+　　对于一个TCP连接，Server与Client需要通过三次握手来建立网络连接.当三次握手成功后,
+　　我们可以看到端口的状态由LISTEN转变为ESTABLISHED,接着这条链路上就可以开始传送数据了.
+　　每一个处于监听(Listen)状态的端口,都有自己的监听队列.监听队列的长度,与如下两方面有关:
+　　- somaxconn参数.
+　　- 使用该端口的程序中listen()函数.
+
+关于somaxconn参数:
+　　定义了系统中每一个端口最大的监听队列的长度,这是个全局的参数,默认值为128.限制了每个端口接收新tcp连接侦听队列的大小。对于一个经常处理新连接的高负载 web服务环境来说，默认的 128 太小了。
+大多数环境这个值建议增加到 1024 或者更多。 服务进程会自己限制侦听队列的大小(例如 sendmail(8) 或者 Apache)，常常在它们的配置文件中有设置队列大小的选项。
+大的侦听队列对防止拒绝服务 DoS 攻击也会有所帮助。
+
+
+2、vm.overcommit_memory
+Linux的内存分配采取的是一种更加积极的分配策略，它假设应用申请了内存空间后并不会立即去使用它，所以允许一定量的超售，当应用真的需要使用它的时候，
+操作系统可能已经通过回收了其他应用的内存空间而变得有能力去满足这个应用的需求，
+简单的说，就是允许应用申请比实际可分配空间（包括物理内存和Swap）更多的内存，这个特性称为OverCommit。
+这个特性在Linux操作系统里面也是可配的，可以通过设置/proc/sys/vm/overcommit_memory为不同的值来调整OverCommit策略。
+
+overcommit_memory可以取3个值：
+0：默认值，由Linux内核通过一些启发式算法来决定是否超售和超售的大小，一般允许轻微的超售，拒绝一些明显不可能提供的请求，同时做一些规则限制，比如不同用户overcommit的大小也不一样。
+1：允许，不做限制的超售，当然这个也不是无限大，还受到寻址空间的限制，32位系统最大可能只有4G，64位系统大概16T左右。
+2：禁止，禁止超售，系统能够分配的内存不会超过swap+实际物理内存*overcommit_ratio，该值可以通过/proc/sys/vm/overcommit_ratio设置，默认50%。
+
+如何修改该参数：
+编辑 /etc/sysctl.conf                       
+ 添加 vm.overcommit_memory=1   
+或者 sysctl vm.overcommit_memory=1   
+或者 echo 1 > /proc/sys/vm/overcommit_memory        
+以上动作完成后，  使用  sysctl -p 使新的参数生效。
